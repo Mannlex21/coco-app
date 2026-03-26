@@ -1,0 +1,9 @@
+{
+	"name": "@coco/shared",
+	"version": "1.0.0",
+	"private": true,
+	"dependencies": {
+		"@react-native-async-storage/async-storage": "^3.0.1",
+		"firebase": "^12.11.0"
+	}
+}
