@@ -8,8 +8,8 @@ module.exports = function (api) {
 				{
 					root: ["./"],
 					alias: {
-						// Cambiamos el alias para asegurar que suba un nivel
-						"@shared": "../shared",
+						// Ahora '@' apunta a tu carpeta local de la app
+						"@": "./src",
 					},
 					extensions: [".js", ".jsx", ".ts", ".tsx"],
 				},

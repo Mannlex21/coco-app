@@ -1,24 +1,30 @@
 import React, { useEffect, useState } from "react";
-import { StyleSheet, Text, View, ActivityIndicator } from "react-native";
+import {
+	StyleSheet,
+	Text,
+	View,
+	ActivityIndicator,
+	StatusBar,
+} from "react-native";
 
-// Importamos desde tu alias configurado
-import { auth } from "@shared/infrastructure/firebase/config";
+// IMPORT LOCAL: Usando tu infraestructura de Firebase
+import { auth } from "./src/infrastructure/firebase/config";
 import { onAuthStateChanged, User } from "firebase/auth";
+import { CocoLogo } from "./src/components/CocoLogo";
 
 export default function App() {
 	const [loading, setLoading] = useState(true);
 	const [user, setUser] = useState<User | null>(null);
 
 	useEffect(() => {
-		console.log("Checking Firebase connection...");
+		console.log("Checking Firebase connection (Client)...");
 
-		// Si llegamos aquí, el import de @shared funcionó
 		const unsubscribe = onAuthStateChanged(
 			auth,
 			(currentUser) => {
 				console.log(
 					"Firebase Auth State Changed:",
-					currentUser ? "User Logged In" : "No User",
+					currentUser ? "User Logged In" : "Guest Mode",
 				);
 				setUser(currentUser);
 				setLoading(false);
@@ -35,9 +41,15 @@ export default function App() {
 	if (loading) {
 		return (
 			<View style={[styles.container, { backgroundColor: "#eef2f3" }]}>
-				<ActivityIndicator size="large" color="#FF5A5F" />
-				<Text style={{ marginTop: 10 }}>
-					Cargando Coco desde Tuxpan...
+				<ActivityIndicator size="large" color="#1A7A4A" />
+				<Text
+					style={{
+						marginTop: 15,
+						color: "#1A7A4A",
+						fontWeight: "600",
+					}}
+				>
+					Preparando tu Coco...
 				</Text>
 			</View>
 		);
@@ -45,16 +57,29 @@ export default function App() {
 
 	return (
 		<View style={styles.container}>
-			<Text style={styles.title}>🥥 Coco App</Text>
+			<StatusBar barStyle="light-content" />
+
+			{/* Logo de Cliente con Hojas */}
+			<CocoLogo size={280} />
+
+			<Text style={styles.title}>Coco Cliente</Text>
+
 			<View style={styles.card}>
 				<Text style={styles.status}>
 					{user
-						? `Bienvenido: ${user.email}`
-						: "Estado: Desconectado"}
+						? `¡Qué onda, ${user.email}!`
+						: "¡Pide tu Coco hoy mismo!"}
+				</Text>
+
+				<View style={styles.separator} />
+
+				<Text style={styles.buttonText}>
+					{user ? "Ver Menú de Hoy" : "Iniciar Sesión / Registrarse"}
 				</Text>
 			</View>
+
 			<Text style={styles.footer}>
-				Proyecto: {auth.app.options.projectId}
+				Proyecto ID: {auth.app.options.projectId}
 			</Text>
 		</View>
 	);
@@ -63,30 +88,55 @@ export default function App() {
 const styles = StyleSheet.create({
 	container: {
 		flex: 1,
-		backgroundColor: "#FF5A5F",
+		backgroundColor: "#1A7A4A", // Verde Selva
 		alignItems: "center",
 		justifyContent: "center",
-		padding: 20,
+		padding: 25,
+	},
+	title: {
+		fontSize: 36,
+		fontWeight: "900",
+		color: "white",
+		marginTop: 10,
+		marginBottom: 30,
+		letterSpacing: 1,
+		textTransform: "uppercase",
 	},
 	card: {
 		backgroundColor: "white",
-		padding: 20,
-		borderRadius: 15,
+		padding: 25,
+		borderRadius: 30,
 		width: "100%",
 		alignItems: "center",
-		elevation: 5,
+		elevation: 12,
+		shadowColor: "#000",
+		shadowOffset: { width: 0, height: 6 },
+		shadowOpacity: 0.3,
+		shadowRadius: 10,
 	},
-	title: {
-		fontSize: 40,
-		fontWeight: "bold",
-		color: "white",
-		marginBottom: 20,
+	separator: {
+		height: 3,
+		width: 40,
+		backgroundColor: "#E76F51", // Naranja acento (Interior del coco)
+		marginVertical: 15,
+		borderRadius: 2,
 	},
-	status: { fontSize: 18, color: "#333", fontWeight: "500" },
+	status: {
+		fontSize: 18,
+		color: "#1A7A4A",
+		fontWeight: "700",
+		textAlign: "center",
+	},
+	buttonText: {
+		color: "#27AE60",
+		fontWeight: "800",
+		fontSize: 18,
+	},
 	footer: {
 		position: "absolute",
 		bottom: 40,
-		fontSize: 12,
 		color: "rgba(255,255,255,0.7)",
+		fontSize: 12,
+		fontWeight: "600",
 	},
 });
