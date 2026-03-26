@@ -5,16 +5,21 @@ import {
 	View,
 	ActivityIndicator,
 	StatusBar,
+	TouchableOpacity,
 } from "react-native";
 
 // IMPORT LOCAL: Usando tu infraestructura de Firebase
 import { auth } from "./src/infrastructure/firebase/config";
 import { onAuthStateChanged, User } from "firebase/auth";
 import { CocoLogo } from "./src/components/CocoLogo";
+import { LoginScreen } from "@/screens/LoginScreen";
+import { RegisterScreen } from "@/screens/RegisterScreen";
+import { AuthService } from "@/infrastructure/firebase/auth.service";
 
 export default function App() {
 	const [loading, setLoading] = useState(true);
 	const [user, setUser] = useState<User | null>(null);
+	const [isRegistering, setIsRegistering] = useState(false);
 
 	useEffect(() => {
 		console.log("Checking Firebase connection (Client)...");
@@ -38,49 +43,39 @@ export default function App() {
 		return () => unsubscribe();
 	}, []);
 
-	if (loading) {
-		return (
-			<View style={[styles.container, { backgroundColor: "#eef2f3" }]}>
-				<ActivityIndicator size="large" color="#1A7A4A" />
-				<Text
-					style={{
-						marginTop: 15,
-						color: "#1A7A4A",
-						fontWeight: "600",
-					}}
-				>
-					Preparando tu Coco...
-				</Text>
-			</View>
+	if (loading) return <ActivityIndicator />;
+
+	// Si no hay usuario, mostramos el Login
+	if (!user) {
+		return isRegistering ? (
+			<RegisterScreen onBack={() => setIsRegistering(false)} />
+		) : (
+			<LoginScreen onRegister={() => setIsRegistering(true)} />
 		);
 	}
 
+	// Si ya hay usuario, mostramos la pantalla principal que ya tenías
 	return (
 		<View style={styles.container}>
-			<StatusBar barStyle="light-content" />
+			<CocoLogo size={150} />
 
-			{/* Logo de Cliente con Hojas */}
-			<CocoLogo size={280} />
-
-			<Text style={styles.title}>Coco Cliente</Text>
-
-			<View style={styles.card}>
-				<Text style={styles.status}>
-					{user
-						? `¡Qué onda, ${user.email}!`
-						: "¡Pide tu Coco hoy mismo!"}
-				</Text>
-
-				<View style={styles.separator} />
-
-				<Text style={styles.buttonText}>
-					{user ? "Ver Menú de Hoy" : "Iniciar Sesión / Registrarse"}
-				</Text>
-			</View>
-
-			<Text style={styles.footer}>
-				Proyecto ID: {auth.app.options.projectId}
+			<Text style={styles.welcomeTitle}>
+				¡Hola, {user.email?.split("@")[0]}! 🥥
 			</Text>
+
+			<View style={styles.infoCard}>
+				<Text style={styles.infoText}>
+					Sesión activa en Coco Tuxpan
+				</Text>
+
+				{/* BOTÓN DE CERRAR SESIÓN */}
+				<TouchableOpacity
+					style={styles.logoutButton}
+					onPress={() => AuthService.logout()}
+				>
+					<Text style={styles.logoutText}>Cerrar Sesión</Text>
+				</TouchableOpacity>
+			</View>
 		</View>
 	);
 }
@@ -138,5 +133,44 @@ const styles = StyleSheet.create({
 		color: "rgba(255,255,255,0.7)",
 		fontSize: 12,
 		fontWeight: "600",
+	},
+	welcomeTitle: {
+		fontSize: 26,
+		fontWeight: "900",
+		color: "white",
+		marginTop: 20,
+		marginBottom: 30,
+	},
+	infoCard: {
+		backgroundColor: "rgba(255,255,255,0.15)",
+		padding: 25,
+		borderRadius: 20,
+		width: "100%",
+		alignItems: "center",
+		borderWidth: 1,
+		borderColor: "rgba(255,255,255,0.2)",
+	},
+	infoText: {
+		color: "white",
+		fontSize: 16,
+		marginBottom: 20,
+		opacity: 0.9,
+	},
+	logoutButton: {
+		backgroundColor: "#E67E22", // Naranja para que resalte del fondo verde
+		paddingVertical: 15,
+		paddingHorizontal: 40,
+		borderRadius: 12,
+		elevation: 3,
+		shadowColor: "#000",
+		shadowOffset: { width: 0, height: 2 },
+		shadowOpacity: 0.25,
+		shadowRadius: 3.84,
+	},
+	logoutText: {
+		color: "white",
+		fontWeight: "800",
+		fontSize: 16,
+		letterSpacing: 1,
 	},
 });
