@@ -59,13 +59,11 @@ export default function App() {
 			<CocoLogo size={150} />
 
 			<Text style={styles.welcomeTitle}>
-				¡Hola, {user.email?.split("@")[0]}! 🥥
+				¡Hola, {user.email?.split("@")[0]}!
 			</Text>
 
 			<View style={styles.infoCard}>
-				<Text style={styles.infoText}>
-					Sesión activa en Coco Tuxpan
-				</Text>
+				<Text style={styles.infoText}>Sesión activa en Coco</Text>
 
 				{/* BOTÓN DE CERRAR SESIÓN */}
 				<TouchableOpacity

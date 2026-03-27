@@ -49,9 +49,7 @@ export default function App() {
 				</Text>
 				<View style={styles.separator} />
 				<Text style={styles.buttonText}>
-					{user
-						? "Ver Pedidos en Tuxpan"
-						: "Conectarse para Repartir"}
+					{user ? "Ver Pedidos" : "Conectarse para Repartir"}
 				</Text>
 			</View>
 

@@ -1,0 +1,132 @@
+import { create } from "zustand";
+import { User } from "@coco/shared/core/entities/User";
+import { Order } from "@coco/shared/core/entities/Order";
+import { Business } from "@coco/shared/core/entities/Business";
+
+export interface CartItem {
+	productId: string;
+	productName: string;
+	productPrice: number;
+	quantity: number;
+}
+
+interface AppState {
+	// Auth
+	user: User | null;
+	isLoadingAuth: boolean;
+	setUser: (user: User | null) => void;
+	setLoadingAuth: (loading: boolean) => void;
+
+	// Pedido activo
+	activeOrder: Order | null;
+	setActiveOrder: (order: Order | null) => void;
+
+	// Negocio activo (panel negocio)
+	activeBusiness: Business | null;
+	setActiveBusiness: (business: Business | null) => void;
+
+	// Carrito (cliente)
+	cart: CartItem[];
+	cartBusinessId: string | null;
+	addToCart: (item: CartItem, businessId: string) => void;
+	removeFromCart: (productId: string) => void;
+	incrementItem: (productId: string) => void;
+	decrementItem: (productId: string) => void;
+	clearCart: () => void;
+	cartTotal: () => number;
+	cartCount: () => number;
+}
+
+export const useAppStore = create<AppState>((set, get) => ({
+	// Auth
+	user: null,
+	isLoadingAuth: true,
+	setUser: (user) => set({ user }),
+	setLoadingAuth: (isLoadingAuth) => set({ isLoadingAuth }),
+
+	// Pedido activo
+	activeOrder: null,
+	setActiveOrder: (activeOrder) => set({ activeOrder }),
+
+	// Negocio activo
+	activeBusiness: null,
+	setActiveBusiness: (activeBusiness) => set({ activeBusiness }),
+
+	// Carrito
+	cart: [],
+	cartBusinessId: null,
+
+	addToCart: (item, businessId) =>
+		set((state) => {
+			// Si es de otro negocio, limpia el carrito
+			if (state.cartBusinessId && state.cartBusinessId !== businessId) {
+				return { cart: [item], cartBusinessId: businessId };
+			}
+			const existing = state.cart.find(
+				(c) => c.productId === item.productId,
+			);
+			if (existing) {
+				return {
+					cartBusinessId: businessId,
+					cart: state.cart.map((c) =>
+						c.productId === item.productId
+							? { ...c, quantity: c.quantity + 1 }
+							: c,
+					),
+				};
+			}
+			return { cart: [...state.cart, item], cartBusinessId: businessId };
+		}),
+
+	removeFromCart: (productId) =>
+		set((state) => {
+			const newCart = state.cart.filter((c) => c.productId !== productId);
+			return {
+				cart: newCart,
+				cartBusinessId:
+					newCart.length === 0 ? null : state.cartBusinessId,
+			};
+		}),
+
+	incrementItem: (productId) =>
+		set((state) => ({
+			cart: state.cart.map((c) =>
+				c.productId === productId
+					? { ...c, quantity: c.quantity + 1 }
+					: c,
+			),
+		})),
+
+	decrementItem: (productId) =>
+		set((state) => {
+			const item = state.cart.find((c) => c.productId === productId);
+			if (!item) return state;
+			if (item.quantity <= 1) {
+				const newCart = state.cart.filter(
+					(c) => c.productId !== productId,
+				);
+				return {
+					cart: newCart,
+					cartBusinessId:
+						newCart.length === 0 ? null : state.cartBusinessId,
+				};
+			}
+			return {
+				cart: state.cart.map((c) =>
+					c.productId === productId
+						? { ...c, quantity: c.quantity - 1 }
+						: c,
+				),
+			};
+		}),
+
+	clearCart: () => set({ cart: [], cartBusinessId: null }),
+
+	cartTotal: () =>
+		get().cart.reduce(
+			(sum, item) => sum + item.productPrice * item.quantity,
+			0,
+		),
+
+	cartCount: () => get().cart.reduce((sum, item) => sum + item.quantity, 0),
+}));

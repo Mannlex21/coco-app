@@ -19,12 +19,6 @@ const GoogleButton = () => {
 			onPress={handleGoogleLogin}
 			activeOpacity={0.9}
 		>
-			{/* <Ionicons
-				name="logo-google"
-				size={20}
-				color="#EA4335"
-				style={styles.googleIcon}
-			/> */}
 			<View style={styles.googleIconWrapper}>
 				<GoogleIcon />
 			</View>
@@ -63,7 +57,7 @@ const styles = StyleSheet.create({
 		shadowOpacity: 0.2,
 		shadowRadius: 3,
 		backgroundColor: "white",
-		padding: 15,
+		padding: 9,
 		borderRadius: 15,
 		alignItems: "center",
 		marginTop: 10,

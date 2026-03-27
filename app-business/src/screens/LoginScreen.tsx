@@ -8,10 +8,19 @@ import {
 	Alert,
 	KeyboardAvoidingView,
 	Platform,
+	StatusBar,
 } from "react-native";
 import { CocoLogo } from "@coco/shared/components/CocoLogo";
 import { AuthService } from "@/infrastructure/auth/AuthService";
 import GoogleButton from "@coco/shared/components/GoogleButton";
+import {
+	BorderRadius,
+	Colors,
+	FontSize,
+	FontWeight,
+	Shadow,
+	Spacing,
+} from "@coco/shared/config/theme";
 
 interface LoginProps {
 	onRegister: () => void;
@@ -26,6 +35,7 @@ export const LoginScreen: React.FC<LoginProps> = ({ onRegister }) => {
 			await AuthService.login(email, password);
 			Alert.alert("¡Bienvenido!", "Ya puedes pedir tu coco");
 		} catch (error: any) {
+			console.log("Error:", error.code); // Para que lo veas en la terminal
 			Alert.alert("Error", "Revisa tus datos o regístrate.");
 		}
 	};
@@ -35,7 +45,8 @@ export const LoginScreen: React.FC<LoginProps> = ({ onRegister }) => {
 			behavior={Platform.OS === "ios" ? "padding" : "height"}
 			style={styles.container}
 		>
-			<CocoLogo size={180} />
+			<StatusBar barStyle="light-content" />
+			<CocoLogo variant="business" />
 			<Text style={styles.title}>Coco</Text>
 
 			<View style={styles.inputContainer}>
@@ -85,47 +96,46 @@ export const LoginScreen: React.FC<LoginProps> = ({ onRegister }) => {
 const styles = StyleSheet.create({
 	container: {
 		flex: 1,
-		backgroundColor: "#1A7A4A",
+		backgroundColor: Colors.businessBg, // Naranja oscuro oficial
 		alignItems: "center",
 		justifyContent: "center",
-		padding: 30,
+		padding: Spacing.lg,
 	},
 	title: {
-		fontSize: 40,
-		fontWeight: "900",
-		color: "white",
-		marginBottom: 40,
-		letterSpacing: 3,
+		fontSize: FontSize.hero,
+		fontWeight: FontWeight.black,
+		color: Colors.surfaceLight,
+		marginBottom: Spacing.xl,
+		letterSpacing: 2,
 	},
 	inputContainer: { width: "100%" },
 	input: {
-		backgroundColor: "rgba(255,255,255,0.2)",
-		borderRadius: 15,
-		padding: 18,
-		color: "white",
-		marginBottom: 15,
-		fontSize: 16,
+		backgroundColor: "rgba(255,255,255,0.15)",
+		borderRadius: BorderRadius.md,
+		padding: Spacing.md,
+		color: Colors.surfaceLight,
+		marginBottom: Spacing.sm,
+		fontSize: FontSize.md,
 		borderWidth: 1,
-		borderColor: "rgba(255,255,255,0.3)",
+		borderColor: "rgba(255,255,255,0.2)",
 	},
 	button: {
-		backgroundColor: "white",
-		padding: 20,
-		borderRadius: 15,
+		backgroundColor: Colors.surfaceLight, // Fondo blanco para contraste
+		padding: Spacing.md,
+		borderRadius: BorderRadius.md,
 		alignItems: "center",
-		marginTop: 10,
-		elevation: 5,
+		marginTop: Spacing.sm,
+		...Shadow.md,
 	},
 	buttonText: {
-		color: "#444",
-		fontWeight: "800",
-		fontSize: 20,
-		letterSpacing: 1,
+		color: Colors.businessBg, // Texto en naranja oscuro
+		fontWeight: FontWeight.bold,
+		fontSize: FontSize.lg,
 	},
 	dividerContainer: {
 		flexDirection: "row",
 		alignItems: "center",
-		marginVertical: 25,
+		marginVertical: Spacing.lg,
 	},
 	line: {
 		flex: 1,
@@ -133,11 +143,19 @@ const styles = StyleSheet.create({
 		backgroundColor: "rgba(255,255,255,0.3)",
 	},
 	dividerText: {
-		color: "white",
-		paddingHorizontal: 15,
-		fontWeight: "600",
+		color: Colors.surfaceLight,
+		paddingHorizontal: Spacing.md,
+		fontWeight: FontWeight.semibold,
 		opacity: 0.8,
 	},
-	registerBtn: { marginTop: 25, alignItems: "center" },
-	registerText: { color: "white", fontWeight: "600", opacity: 0.9 },
+	registerBtn: {
+		marginTop: Spacing.xl,
+		alignItems: "center",
+	},
+	registerText: {
+		color: Colors.surfaceLight,
+		fontWeight: FontWeight.semibold,
+		opacity: 0.9,
+		textDecorationLine: "underline",
+	},
 });

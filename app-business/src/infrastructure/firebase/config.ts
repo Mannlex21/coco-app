@@ -13,6 +13,8 @@ import {
 	FIREBASE_MESSAGING_SENDER_ID,
 	FIREBASE_APP_ID,
 } from "@env";
+import { getFirestore } from "firebase/firestore";
+import { getDatabase } from "firebase/database";
 
 const firebaseConfig = {
 	apiKey: FIREBASE_API_KEY,
@@ -66,4 +68,6 @@ const initializeFirebaseAuth = () => {
 };
 
 export const auth = initializeFirebaseAuth();
+export const db = getFirestore(app);
+export const rtdb = getDatabase(app);
 export default app;
