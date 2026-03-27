@@ -7,7 +7,7 @@ import {
 	TouchableOpacity,
 	Alert,
 } from "react-native";
-import { CocoLogo } from "@/components/CocoLogo";
+import { CocoLogo } from "@coco/shared/components/CocoLogo";
 import { AuthService } from "@/infrastructure/auth/AuthService";
 
 export const RegisterScreen = ({ onBack }: { onBack: () => void }) => {

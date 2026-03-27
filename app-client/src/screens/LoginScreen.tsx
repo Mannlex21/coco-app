@@ -9,10 +9,9 @@ import {
 	KeyboardAvoidingView,
 	Platform,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-import { CocoLogo } from "@/components/CocoLogo";
+import { CocoLogo } from "@coco/shared/components/CocoLogo";
 import { AuthService } from "@/infrastructure/auth/AuthService";
-import GoogleButton from "@/components/GoogleButton";
+import GoogleButton from "@coco/shared/components/GoogleButton";
 
 interface LoginProps {
 	onRegister: () => void;
@@ -29,14 +28,6 @@ export const LoginScreen: React.FC<LoginProps> = ({ onRegister }) => {
 		} catch (error: any) {
 			Alert.alert("Error", "Revisa tus datos o regístrate.");
 		}
-	};
-
-	const handleGoogleLogin = () => {
-		// Placeholder para futura implementación con SHA-1 y Firebase
-		Alert.alert(
-			"Próximamente",
-			"El inicio con Google estará disponible en la Fase 2.",
-		);
 	};
 
 	return (

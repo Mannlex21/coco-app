@@ -1,0 +1,13 @@
+{
+	"name": "coco-app",
+	"private": true,
+	"workspaces": [
+		"shared",
+		"app-client",
+		"app-business",
+		"app-driver"
+	],
+	"dependencies": {
+		"react-native-svg": "^15.15.4"
+	}
+}

@@ -4,14 +4,13 @@ import {
 	Text,
 	View,
 	ActivityIndicator,
-	StatusBar,
 	TouchableOpacity,
 } from "react-native";
 
 // IMPORT LOCAL: Usando tu infraestructura de Firebase
-import { auth } from "./src/infrastructure/firebase/config";
+import { auth } from "@/infrastructure/firebase/config";
 import { onAuthStateChanged, User } from "firebase/auth";
-import { CocoLogo } from "./src/components/CocoLogo";
+import { CocoLogo } from "@coco/shared/components/CocoLogo";
 import { LoginScreen } from "@/screens/LoginScreen";
 import { RegisterScreen } from "@/screens/RegisterScreen";
 import { AuthService } from "@/infrastructure/firebase/auth.service";
