@@ -9,11 +9,15 @@ import {
 	KeyboardAvoidingView,
 	Platform,
 } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import { CocoLogo } from "@/components/CocoLogo";
 import { AuthService } from "@/infrastructure/auth/AuthService";
+import GoogleButton from "@/components/GoogleButton";
+
 interface LoginProps {
 	onRegister: () => void;
 }
+
 export const LoginScreen: React.FC<LoginProps> = ({ onRegister }) => {
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
@@ -27,13 +31,21 @@ export const LoginScreen: React.FC<LoginProps> = ({ onRegister }) => {
 		}
 	};
 
+	const handleGoogleLogin = () => {
+		// Placeholder para futura implementación con SHA-1 y Firebase
+		Alert.alert(
+			"Próximamente",
+			"El inicio con Google estará disponible en la Fase 2.",
+		);
+	};
+
 	return (
 		<KeyboardAvoidingView
 			behavior={Platform.OS === "ios" ? "padding" : "height"}
 			style={styles.container}
 		>
 			<CocoLogo size={180} />
-			<Text style={styles.title}>COCO TUXPAN</Text>
+			<Text style={styles.title}>Coco</Text>
 
 			<View style={styles.inputContainer}>
 				<TextInput
@@ -54,8 +66,17 @@ export const LoginScreen: React.FC<LoginProps> = ({ onRegister }) => {
 				/>
 
 				<TouchableOpacity style={styles.button} onPress={handleLogin}>
-					<Text style={styles.buttonText}>ENTRAR</Text>
+					<Text style={styles.buttonText}>Iniciar Sesión</Text>
 				</TouchableOpacity>
+
+				{/* Separador visual */}
+				<View style={styles.dividerContainer}>
+					<View style={styles.line} />
+					<Text style={styles.dividerText}>O</Text>
+					<View style={styles.line} />
+				</View>
+
+				<GoogleButton />
 
 				<TouchableOpacity
 					style={styles.registerBtn}
@@ -79,7 +100,7 @@ const styles = StyleSheet.create({
 		padding: 30,
 	},
 	title: {
-		fontSize: 28,
+		fontSize: 40,
 		fontWeight: "900",
 		color: "white",
 		marginBottom: 40,
@@ -105,10 +126,26 @@ const styles = StyleSheet.create({
 		elevation: 5,
 	},
 	buttonText: {
-		color: "#1A7A4A",
+		color: "#444",
 		fontWeight: "800",
-		fontSize: 16,
+		fontSize: 20,
 		letterSpacing: 1,
+	},
+	dividerContainer: {
+		flexDirection: "row",
+		alignItems: "center",
+		marginVertical: 25,
+	},
+	line: {
+		flex: 1,
+		height: 1,
+		backgroundColor: "rgba(255,255,255,0.3)",
+	},
+	dividerText: {
+		color: "white",
+		paddingHorizontal: 15,
+		fontWeight: "600",
+		opacity: 0.8,
 	},
 	registerBtn: { marginTop: 25, alignItems: "center" },
 	registerText: { color: "white", fontWeight: "600", opacity: 0.9 },

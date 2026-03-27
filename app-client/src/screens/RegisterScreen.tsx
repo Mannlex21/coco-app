@@ -51,7 +51,7 @@ export const RegisterScreen = ({ onBack }: { onBack: () => void }) => {
 	return (
 		<View style={styles.container}>
 			<CocoLogo size={120} />
-			<Text style={styles.title}>NUEVO CLIENTE</Text>
+			<Text style={styles.title}>Registro</Text>
 
 			<View style={styles.inputContainer}>
 				<TextInput
@@ -75,11 +75,13 @@ export const RegisterScreen = ({ onBack }: { onBack: () => void }) => {
 					style={styles.button}
 					onPress={handleRegister}
 				>
-					<Text style={styles.buttonText}>REGISTRARME</Text>
+					<Text style={styles.buttonText}>Crear cuenta</Text>
 				</TouchableOpacity>
 
 				<TouchableOpacity style={styles.backBtn} onPress={onBack}>
-					<Text style={styles.backText}>← Volver al Login</Text>
+					<Text style={styles.backText}>
+						Regresar a Iniciar Sesión
+					</Text>
 				</TouchableOpacity>
 			</View>
 		</View>
@@ -95,7 +97,7 @@ const styles = StyleSheet.create({
 		padding: 30,
 	},
 	title: {
-		fontSize: 24,
+		fontSize: 40,
 		fontWeight: "900",
 		color: "white",
 		marginBottom: 30,
@@ -109,12 +111,19 @@ const styles = StyleSheet.create({
 		marginBottom: 15,
 	},
 	button: {
-		backgroundColor: "#2ECC71",
+		backgroundColor: "white",
 		padding: 20,
 		borderRadius: 15,
 		alignItems: "center",
+		marginTop: 10,
+		elevation: 5,
 	},
-	buttonText: { color: "white", fontWeight: "800" },
+	buttonText: {
+		color: "#444",
+		fontWeight: "800",
+		fontSize: 20,
+		letterSpacing: 1,
+	},
 	backBtn: { marginTop: 20, alignItems: "center" },
-	backText: { color: "white", opacity: 0.8 },
+	backText: { color: "white", fontWeight: "600", opacity: 0.9 },
 });
