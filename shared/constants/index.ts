@@ -49,3 +49,7 @@ export const COLLECTIONS = {
 export const RTDB_PATHS = {
 	TRACKING: (orderId: string) => `tracking/${orderId}`,
 };
+export const LAYOUT = {
+	TAB_BAR_HEIGHT: 70, // altura base del tab bar definida en MainNavigator
+	KEYBOARD_EXTRA_SCROLL: 130, // offset extra para KeyboardAwareScrollView
+};

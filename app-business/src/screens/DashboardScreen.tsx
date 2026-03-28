@@ -7,21 +7,17 @@ import {
 	ScrollView,
 	Switch,
 	Alert,
+	RefreshControl,
 } from "react-native";
 import { Colors } from "@coco/shared/config/theme";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useAppStore } from "@coco/shared/hooks/useAppStore";
 import { useBusiness } from "@coco/shared/hooks/useBusiness";
 import { db } from "@/infrastructure/firebase/config";
+import { useNavigation } from "@react-navigation/native";
 
-// Definimos la forma de las props
-interface DashboardProps {
-	onRegisterPress: () => void;
-}
-
-export const DashboardScreen: React.FC<DashboardProps> = ({
-	onRegisterPress,
-}) => {
+export const DashboardScreen = () => {
+	const navigation = useNavigation<any>();
 	// 1. Obtenemos el usuario actual del store global
 	const { user } = useAppStore();
 
@@ -30,8 +26,11 @@ export const DashboardScreen: React.FC<DashboardProps> = ({
 		businesses: allBusinesses,
 		toggleBusinessStatus,
 		loading,
+		refreshing,
+		onRefresh,
+		deleteBusiness,
 	} = useBusiness(db, user?.id);
-
+	console.log(activeBusiness);
 	const handleToggle = async () => {
 		if (!activeBusiness) return;
 
@@ -46,7 +45,32 @@ export const DashboardScreen: React.FC<DashboardProps> = ({
 			Alert.alert("Error", "No se pudo cambiar el estado del negocio.");
 		}
 	};
+	const handleDelete = () => {
+		if (!activeBusiness) return;
 
+		Alert.alert(
+			"BORRAR NEGOCIO (MODO PRUEBAS)",
+			"¿Estás seguro? Esto eliminará el negocio de Firebase permanentemente.",
+			[
+				{ text: "Cancelar", style: "cancel" },
+				{
+					text: "Eliminar",
+					style: "destructive",
+					onPress: async () => {
+						try {
+							await deleteBusiness(activeBusiness.id);
+							Alert.alert(
+								"Eliminado",
+								"El negocio ha sido borrado.",
+							);
+						} catch (e) {
+							Alert.alert("Error", "No se pudo borrar.");
+						}
+					},
+				},
+			],
+		);
+	};
 	if (loading) {
 		return (
 			<SafeAreaView style={styles.container}>
@@ -59,102 +83,137 @@ export const DashboardScreen: React.FC<DashboardProps> = ({
 
 	return (
 		<SafeAreaView style={styles.container} edges={["top"]}>
-			<View>
-				<View style={styles.header}>
-					<Text style={styles.welcomeText}>Hola, 👋</Text>
+			<View style={styles.header}>
+				<Text style={styles.welcomeText}>
+					Hola, {user?.name.split(" ")[0]} 👋
+				</Text>
+				<TouchableOpacity
+					style={styles.selector}
+					disabled={allBusinesses.length <= 1}
+				>
+					<View style={styles.row}>
+						<Text style={styles.businessName}>
+							{activeBusiness
+								? activeBusiness.name
+								: "Configurar mi negocio"}
+						</Text>
+						{allBusinesses.length > 1 && (
+							<Text style={styles.chevron}> ▾</Text>
+						)}
+					</View>
+				</TouchableOpacity>
+			</View>
 
-					<TouchableOpacity
-						style={styles.selector}
-						disabled={allBusinesses.length <= 1} // Solo clickable si hay varios
+			<ScrollView
+				contentContainerStyle={styles.content}
+				refreshControl={
+					<RefreshControl
+						refreshing={refreshing}
+						onRefresh={onRefresh}
+						colors={["#C45E1A"]} // Color del círculo en Android
+						tintColor={"#C45E1A"} // Color del círculo en iOS
+					/>
+				}
+			>
+				{activeBusiness ? (
+					<View
+						style={[
+							styles.mainCard,
+							{
+								borderLeftColor: activeBusiness.isOpen
+									? "#2D6A4F"
+									: "#E76F51",
+							},
+						]}
 					>
-						<View style={styles.row}>
-							<Text style={styles.businessName}>
-								{activeBusiness
-									? activeBusiness.name
-									: "Configurar mi negocio"}
+						<View>
+							<Text style={styles.cardLabel}>
+								Estado del Negocio
 							</Text>
-							{allBusinesses.length > 1 && (
-								<Text style={styles.chevron}> ▾</Text>
-							)}
+							<Text
+								style={[
+									styles.statusTitle,
+									{
+										color: activeBusiness.isOpen
+											? "#2D6A4F"
+											: "#E76F51",
+									},
+								]}
+							>
+								{activeBusiness.isOpen
+									? "RECIBIENDO PEDIDOS"
+									: "PAUSADO / CERRADO"}
+							</Text>
+						</View>
+						<Switch
+							value={activeBusiness.isOpen}
+							onValueChange={handleToggle}
+							trackColor={{ false: "#D1D1D1", true: "#C45E1A" }}
+							thumbColor={"#FFF"}
+							ios_backgroundColor="#D1D1D1"
+						/>
+					</View>
+				) : (
+					/* Banner de Registro si no hay negocio */
+					<TouchableOpacity
+						style={styles.registerBanner}
+						onPress={() => navigation.navigate("BusinessSetup")}
+					>
+						<Text style={styles.bannerTitle}>
+							¡Haz crecer tu negocio!
+						</Text>
+						<Text style={styles.bannerSub}>
+							Registra tu establecimiento para empezar.
+						</Text>
+						<View style={styles.bannerButton}>
+							<Text style={styles.bannerButtonText}>
+								Comenzar
+							</Text>
 						</View>
 					</TouchableOpacity>
+				)}
+
+				{/* 2. FILA DE ESTADÍSTICAS */}
+				<View style={styles.statsRow}>
+					<View style={styles.miniCard}>
+						<Text style={styles.miniCardLabel}>Ventas hoy</Text>
+						<Text style={styles.bigAmount}>
+							{activeBusiness ? "$0.00" : "--"}
+						</Text>
+						<Text style={styles.infoNote}>0 pedidos</Text>
+					</View>
+
+					<View style={styles.miniCard}>
+						<Text style={styles.miniCardLabel}>Fee Coco</Text>
+						<Text style={[styles.bigAmount, { color: "#E76F51" }]}>
+							{activeBusiness
+								? `$${activeBusiness.weeklyDebt}`
+								: "--"}
+						</Text>
+						<Text style={styles.infoNote}>Corte: Lunes</Text>
+					</View>
 				</View>
 
-				<ScrollView contentContainerStyle={styles.content}>
-					{!activeBusiness && (
-						<TouchableOpacity
-							style={styles.registerBanner}
-							onPress={onRegisterPress}
-						>
-							<Text style={styles.bannerTitle}>
-								¡Haz crecer tu negocio!
-							</Text>
-							<Text style={styles.bannerSub}>
-								Registra tu establecimiento para empezar a
-								recibir pedidos.
-							</Text>
-							<View style={styles.bannerButton}>
-								<Text style={styles.bannerButtonText}>
-									Comenzar registro
-								</Text>
-							</View>
-						</TouchableOpacity>
-					)}
+				{/* 3. ACCESOS RÁPIDOS (Próximamente) */}
+				<Text style={styles.sectionTitle}>Gestión</Text>
+				<TouchableOpacity style={styles.menuItem}>
+					<Text style={styles.menuItemText}>
+						📦 Gestionar Catálogo
+					</Text>
+					<Text style={styles.chevron}>›</Text>
+				</TouchableOpacity>
 
-					{/* TARJETAS DE MÉTRICAS (Monetización 5.1) */}
-					<View style={styles.statsRow}>
-						{activeBusiness && (
-							<View style={styles.statusContainer}>
-								<Text
-									style={[
-										styles.statusText,
-										{
-											color: activeBusiness.isOpen
-												? "#2D6A4F"
-												: "#999",
-										},
-									]}
-								>
-									{activeBusiness.isOpen
-										? "Abierto"
-										: "Cerrado"}
-								</Text>
-								<Switch
-									value={activeBusiness.isOpen}
-									onValueChange={handleToggle} // <--- Conectado aquí
-									trackColor={{
-										false: "#767577",
-										true: "#C45E1A",
-									}}
-									thumbColor={
-										activeBusiness.isOpen
-											? "#fff"
-											: "#f4f3f4"
-									}
-								/>
-							</View>
-						)}
-						<View style={styles.miniCard}>
-							<Text style={styles.cardTitle}>Ventas hoy</Text>
-							<Text style={styles.bigAmount}>
-								{activeBusiness ? "$0.00" : "--"}
-							</Text>
-						</View>
-
-						<View style={styles.miniCard}>
-							<Text style={styles.cardTitle}>Fee Coco</Text>
-							<Text
-								style={[styles.bigAmount, { color: "#E76F51" }]}
-							>
-								{activeBusiness
-									? `$${activeBusiness.weeklyDebt}`
-									: "--"}
-							</Text>
-							<Text style={styles.infoNote}>Corte: Lunes</Text>
-						</View>
-					</View>
-				</ScrollView>
-			</View>
+				{activeBusiness && (
+					<TouchableOpacity
+						style={styles.deleteBtn}
+						onPress={handleDelete}
+					>
+						<Text style={styles.deleteBtnText}>
+							⚠️ Borrar Negocio (Debug)
+						</Text>
+					</TouchableOpacity>
+				)}
+			</ScrollView>
 		</SafeAreaView>
 	);
 };
@@ -206,39 +265,9 @@ const styles = StyleSheet.create({
 		alignSelf: "flex-start",
 	},
 	bannerButtonText: { color: Colors.businessBg, fontWeight: "bold" },
-	card: {
-		backgroundColor: "white",
-		padding: 20,
-		borderRadius: 12,
-		// Sombras básicas para Android/iOS
-		elevation: 3,
-		shadowColor: "#000",
-		shadowOffset: { width: 0, height: 2 },
-		shadowOpacity: 0.1,
-		shadowRadius: 4,
-	},
-	cardTitle: {
-		color: "#666",
-		marginBottom: 10,
-		fontSize: 14,
-		fontWeight: "600",
-	},
 	bigAmount: { fontSize: 32, fontWeight: "bold", color: "#333" },
 	infoNote: { color: "#999", fontSize: 12, marginTop: 10 },
-	headerRow: {
-		flexDirection: "row",
-		justifyContent: "space-between",
-		alignItems: "center",
-	},
-	statusContainer: {
-		alignItems: "center",
-	},
-	statusText: {
-		fontSize: 10,
-		fontWeight: "bold",
-		marginBottom: 2,
-		textTransform: "uppercase",
-	},
+
 	statsRow: {
 		flexDirection: "row",
 		justifyContent: "space-between",
@@ -254,5 +283,59 @@ const styles = StyleSheet.create({
 		shadowOffset: { width: 0, height: 2 },
 		shadowOpacity: 0.1,
 		shadowRadius: 4,
+	},
+	mainCard: {
+		backgroundColor: "white",
+		padding: 20,
+		borderRadius: 16,
+		flexDirection: "row",
+		justifyContent: "space-between",
+		alignItems: "center",
+		marginBottom: 20,
+		elevation: 4,
+		shadowColor: "#000",
+		shadowOffset: { width: 0, height: 2 },
+		shadowOpacity: 0.1,
+		shadowRadius: 6,
+		borderLeftWidth: 5, // Indicador de color lateral
+	},
+	cardLabel: {
+		fontSize: 12,
+		color: "#888",
+		fontWeight: "600",
+		textTransform: "uppercase",
+	},
+	statusTitle: { fontSize: 16, fontWeight: "800", marginTop: 4 },
+	miniCardLabel: { fontSize: 13, color: "#666", fontWeight: "600" },
+	sectionTitle: {
+		fontSize: 18,
+		fontWeight: "bold",
+		color: "#333",
+		marginTop: 10,
+		marginBottom: 15,
+	},
+	menuItem: {
+		backgroundColor: "white",
+		padding: 18,
+		borderRadius: 12,
+		flexDirection: "row",
+		justifyContent: "space-between",
+		alignItems: "center",
+		marginBottom: 10,
+	},
+	menuItemText: { fontSize: 16, fontWeight: "500", color: "#444" },
+	deleteBtn: {
+		marginTop: 40,
+		padding: 15,
+		backgroundColor: "#FFE5E5",
+		borderRadius: 12,
+		borderWidth: 1,
+		borderColor: "#FFBABA",
+		alignItems: "center",
+	},
+	deleteBtnText: {
+		color: "#D8000C",
+		fontWeight: "bold",
+		fontSize: 14,
 	},
 });

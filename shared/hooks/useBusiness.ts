@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import {
 	collection,
+	deleteDoc,
 	doc,
 	Firestore,
 	serverTimestamp,
@@ -9,11 +10,13 @@ import {
 } from "firebase/firestore";
 import { FirebaseBusinessRepository } from "@coco/shared/infrastructure/firebase/FirebaseBusinessRepository";
 import { Business } from "@coco/shared/core/entities/Business";
+import { useAppStore } from "./useAppStore";
 
 export const useBusiness = (db: Firestore, userId: string | undefined) => {
 	const [loading, setLoading] = useState(true);
+	const [refreshing, setRefreshing] = useState(false); // Nuevo estado para el pull-to-refresh
 	const [businesses, setBusinesses] = useState<Business[]>([]); // La lista 1 a N
-	const [activeBusiness, setActiveBusiness] = useState<Business | null>(null); // El seleccionado
+	const { activeBusiness, setActiveBusiness } = useAppStore();
 
 	useEffect(() => {
 		if (!db || !userId) {
@@ -93,10 +96,8 @@ export const useBusiness = (db: Firestore, userId: string | undefined) => {
 			};
 
 			await setDoc(newBusinessRef, businessData);
-
-			// OPCIONAL: Podrías actualizar el estado local aquí para que
-			// aparezca el nuevo negocio sin recargar
-			// setBusinesses([...businesses, businessData]);
+			setActiveBusiness(businessData);
+			setBusinesses((prev) => [...prev, businessData]);
 		} catch (error) {
 			console.error("Error en registerBusiness:", error);
 			throw error;
@@ -113,34 +114,81 @@ export const useBusiness = (db: Firestore, userId: string | undefined) => {
 			const businessRef = doc(db, "businesses", businessId);
 			const newStatus = !currentStatus;
 
-			// updateDoc devuelve Promise<void> nativamente, no requiere 'as any' ni 'as Promise'
+			// 1. Actualización persistente en Firebase
 			await updateDoc(businessRef, {
 				isOpen: newStatus,
 				updatedAt: serverTimestamp(),
 			});
 
-			// Actualización atómica del estado local para evitar saltos en la UI
-			setActiveBusiness((prev) =>
-				prev ? { ...prev, isOpen: newStatus } : null,
-			);
+			// 2. Actualización en el Store Global (Zustand)
+			// IMPORTANTE: Aquí no usamos (prev) => ... porque el setter de tu Store
+			// espera el objeto Business directamente.
+			if (activeBusiness?.id === businessId) {
+				setActiveBusiness({
+					...activeBusiness,
+					isOpen: newStatus,
+					updatedAt: new Date() as any, // Sync local de la fecha
+				});
+			}
 
+			// 3. Actualización en la lista local del Hook (React State)
+			// Aquí SÍ usamos el callback (prev) porque es un useState estándar
 			setBusinesses((prev) =>
 				prev.map((b) =>
 					b.id === businessId ? { ...b, isOpen: newStatus } : b,
 				),
 			);
 		} catch (error) {
-			// SonarQube S2486: Siempre loguear o manejar el error, nunca dejar el catch vacío
-			console.error("Error updating business status in Tuxpan:", error);
+			// Logueamos el error con contexto (buena práctica de Clean Code)
+			console.error("Error al cambiar el estado del negocio:", error);
 			throw error;
 		}
 	};
 
+	const deleteBusiness = async (businessId: string): Promise<void> => {
+		try {
+			const businessRef = doc(db, "businesses", businessId);
+			await deleteDoc(businessRef);
+
+			// Limpiamos el estado global y local
+			setActiveBusiness(null);
+			setBusinesses((prev) => prev.filter((b) => b.id !== businessId));
+		} catch (error) {
+			console.error("Error al borrar negocio:", error);
+			throw error;
+		}
+	};
+	const fetchData = async () => {
+		if (!db || !userId) return;
+		try {
+			const repo = new FirebaseBusinessRepository(db);
+			const list = await repo.listByOwnerId(userId);
+			setBusinesses(list);
+			if (list.length > 0) {
+				setActiveBusiness(list[0]);
+			}
+		} catch (error) {
+			console.error("Error fetching:", error);
+		}
+	};
+
+	useEffect(() => {
+		setLoading(true);
+		fetchData().finally(() => setLoading(false));
+	}, [db, userId]);
+	const onRefresh = async () => {
+		setRefreshing(true);
+		await fetchData();
+		setRefreshing(false);
+	};
 	return {
 		businesses,
 		activeBusiness,
 		loading,
 		registerBusiness,
 		toggleBusinessStatus,
+		refreshing,
+		onRefresh,
+		deleteBusiness,
 	};
 };

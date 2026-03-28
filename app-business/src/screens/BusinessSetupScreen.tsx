@@ -1,44 +1,33 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useState } from "react";
 import {
 	View,
 	Text,
 	TextInput,
 	TouchableOpacity,
 	StyleSheet,
-	ScrollView,
 	Alert,
-	KeyboardAvoidingView,
-	Platform,
-	TouchableWithoutFeedback,
-	Keyboard,
 } from "react-native";
 import { useBusiness } from "@coco/shared/hooks/useBusiness";
 import { useAppStore } from "@coco/shared/hooks/useAppStore";
 import { BUSINESS_CATEGORY_LABELS } from "@coco/shared/constants";
 import { db } from "@/infrastructure/firebase/config";
 import { Colors } from "@coco/shared/config/theme";
-
+import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 // Recibimos navigation para poder cerrar el modal al terminar
 export const BusinessSetupScreen = ({ navigation }: any) => {
 	const { user } = useAppStore();
 	const { registerBusiness } = useBusiness(db, user?.id);
-	const scrollRef = useRef<ScrollView>(null);
-	const [keyboardHeight, setKeyboardHeight] = useState(0);
 	const [loading, setLoading] = useState(false);
 	const [form, setForm] = useState({
 		name: "",
 		category: "food" as any,
+		description: "",
 		address: "",
 		phone: "",
 		deliveryCost: "20",
 	});
-	const scrollToBottom = () => {
-		// Un pequeño delay asegura que el teclado ya empezó a subir
-		setTimeout(() => {
-			scrollRef.current?.scrollToEnd({ animated: true });
-		}, 100);
-	};
 	const handleSave = async () => {
+		console.log(user);
 		// 1. Validaciones iniciales (Regla 9.1: Dirección y Teléfono son obligatorios)
 		if (!form.name.trim() || !form.address.trim() || !form.phone.trim()) {
 			return Alert.alert(
@@ -91,160 +80,129 @@ export const BusinessSetupScreen = ({ navigation }: any) => {
 			setLoading(false);
 		}
 	};
-	useEffect(() => {
-		// Escuchamos cuando el teclado sube y baja
-		const showSubscription = Keyboard.addListener(
-			Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow",
-			(e) => {
-				setKeyboardHeight(e.endCoordinates.height);
-				// Forzamos el scroll al final para que el spacer haga su magia
-				setTimeout(() => {
-					scrollRef.current?.scrollToEnd({ animated: true });
-				}, 100);
-			},
-		);
-		const hideSubscription = Keyboard.addListener(
-			Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide",
-			() => setKeyboardHeight(0),
-		);
-
-		return () => {
-			showSubscription.remove();
-			hideSubscription.remove();
-		};
-	}, []);
 	return (
-		<KeyboardAvoidingView
-			behavior={Platform.OS === "ios" ? "padding" : undefined} // Android lo suele manejar solo
-			style={{ flex: 1 }}
+		<KeyboardAwareScrollView
+			style={styles.container}
+			contentContainerStyle={styles.scrollContent}
+			keyboardShouldPersistTaps="handled"
+			enableOnAndroid={true}
+			extraScrollHeight={16}
+			showsVerticalScrollIndicator={false}
 		>
-			<TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-				<ScrollView
-					ref={scrollRef}
-					style={styles.container}
-					contentContainerStyle={styles.scrollContent}
-				>
-					<Text style={styles.headerTitle}>
-						Cuéntanos sobre tu negocio
-					</Text>
-					<Text style={styles.headerSub}>
-						Esta información será visible para tus clientes.
-					</Text>
+			<Text style={styles.headerTitle}>Cuéntanos sobre tu negocio</Text>
+			<Text style={styles.headerSub}>
+				Esta información será visible para tus clientes.
+			</Text>
 
-					<View style={styles.form}>
-						<Text style={styles.label}>Nombre comercial</Text>
-						<TextInput
-							style={styles.input}
-							value={form.name}
-							onChangeText={(val) =>
-								setForm({ ...form, name: val })
-							}
-							placeholder="Ej. Tacos El Pastor"
-							placeholderTextColor="#999"
-						/>
+			<View style={styles.form}>
+				<Text style={styles.label}>Nombre comercial</Text>
+				<TextInput
+					style={styles.input}
+					value={form.name}
+					onChangeText={(val) => setForm({ ...form, name: val })}
+					placeholder="Ej. Tacos El Pastor"
+					editable={!loading}
+				/>
 
-						<Text style={styles.label}>Dirección física</Text>
-						<TextInput
-							style={styles.input}
-							value={form.address}
-							onChangeText={(val) =>
-								setForm({ ...form, address: val })
-							}
-							placeholder="Ej. Calle Nacional #12, Col. Centro"
-							placeholderTextColor="#999"
-						/>
+				<Text style={styles.label}>¿Qué vendes? (Breve reseña)</Text>
+				<TextInput
+					style={styles.input}
+					value={form.description}
+					onChangeText={(val) =>
+						setForm({ ...form, description: val })
+					}
+					placeholder="Ej. Antojitos mexicanos y aguas frescas"
+					multiline
+					editable={!loading}
+				/>
 
-						<Text style={styles.label}>
-							Teléfono de contacto (WhatsApp)
-						</Text>
-						<TextInput
-							style={styles.input}
-							value={form.phone}
-							keyboardType="phone-pad"
-							onChangeText={(val) =>
-								setForm({ ...form, phone: val })
-							}
-							placeholder="323 123 4567"
-							placeholderTextColor="#999"
-						/>
+				<Text style={styles.label}>Teléfono</Text>
+				<TextInput
+					style={styles.input}
+					value={form.phone}
+					keyboardType="phone-pad"
+					onChangeText={(val) => setForm({ ...form, phone: val })}
+					placeholder="323 123 4567"
+					editable={!loading}
+				/>
 
-						<Text style={styles.label}>Categoría</Text>
-						<View style={styles.chipContainer}>
-							{Object.entries(BUSINESS_CATEGORY_LABELS).map(
-								([key, label]) => (
-									<TouchableOpacity
-										key={key}
-										style={[
-											styles.chip,
-											form.category === key &&
-												styles.chipActive,
-										]}
-										onPress={() =>
-											setForm({
-												...form,
-												category: key as any,
-											})
-										}
-									>
-										<Text
-											style={[
-												styles.chipText,
-												form.category === key &&
-													styles.chipTextActive,
-											]}
-										>
-											{label}
-										</Text>
-									</TouchableOpacity>
-								),
-							)}
-						</View>
-
-						<Text style={styles.label}>
-							Costo de Envío Base (MXN)
-						</Text>
-						<View style={styles.priceInputContainer}>
-							<Text style={styles.currencyPrefix}>$</Text>
-							<TextInput
+				<Text style={styles.label}>Categoría</Text>
+				<View style={styles.chipContainer}>
+					{Object.entries(BUSINESS_CATEGORY_LABELS).map(
+						([key, label]) => (
+							<TouchableOpacity
+								key={key}
 								style={[
-									styles.input,
-									{ flex: 1, borderBottomWidth: 0 },
-								]}
-								keyboardType="numeric"
-								value={form.deliveryCost}
-								onChangeText={(val) =>
-									setForm({ ...form, deliveryCost: val })
-								}
-								onFocus={scrollToBottom}
-							/>
-						</View>
+									styles.chip,
 
-						<TouchableOpacity
-							style={[
-								styles.saveBtn,
-								loading && { opacity: 0.7 },
-							]}
-							onPress={handleSave}
-							disabled={loading}
-						>
-							<Text style={styles.saveBtnText}>
-								{loading
-									? "Registrando..."
-									: "Guardar y Continuar"}
-							</Text>
-						</TouchableOpacity>
-						<View
-							style={{
-								height:
-									keyboardHeight > 0
-										? keyboardHeight - 50
-										: 20,
-							}}
-						/>
-					</View>
-				</ScrollView>
-			</TouchableWithoutFeedback>
-		</KeyboardAvoidingView>
+									form.category === key && styles.chipActive,
+								]}
+								onPress={() =>
+									setForm({
+										...form,
+
+										category: key as any,
+									})
+								}
+								disabled={loading}
+							>
+								<Text
+									style={[
+										styles.chipText,
+
+										form.category === key &&
+											styles.chipTextActive,
+									]}
+								>
+									{label}
+								</Text>
+							</TouchableOpacity>
+						),
+					)}
+				</View>
+
+				<Text style={styles.label}>Dirección física</Text>
+				<TextInput
+					style={styles.input}
+					value={form.address}
+					onChangeText={(val) => setForm({ ...form, address: val })}
+					placeholder="Ej. Calle Nacional #12, Col. Centro"
+					editable={!loading}
+				/>
+
+				<Text style={styles.label}>Costo de Envío Base (MXN)</Text>
+				<View style={styles.priceInputContainer}>
+					<Text style={styles.currencyPrefix}>$</Text>
+					<TextInput
+						style={[
+							styles.input,
+							{ flex: 1, borderBottomWidth: 0 },
+						]}
+						keyboardType="numeric"
+						value={form.deliveryCost}
+						onChangeText={(val) =>
+							setForm({ ...form, deliveryCost: val })
+						}
+						editable={!loading}
+					/>
+				</View>
+
+				<TouchableOpacity
+					style={[styles.saveBtn, loading && { opacity: 0.7 }]}
+					onPress={handleSave}
+					disabled={loading}
+				>
+					{loading ? (
+						// Opcional: Puedes poner un ActivityIndicator aquí
+						<Text style={styles.saveBtnText}>Registrando...</Text>
+					) : (
+						<Text style={styles.saveBtnText}>
+							Guardar y Continuar
+						</Text>
+					)}
+				</TouchableOpacity>
+			</View>
+		</KeyboardAwareScrollView>
 	);
 };
 
@@ -255,7 +213,6 @@ const styles = StyleSheet.create({
 		fontSize: 26,
 		fontWeight: "800",
 		color: "#333",
-		marginTop: 20,
 	},
 	headerSub: {
 		fontSize: 15,
