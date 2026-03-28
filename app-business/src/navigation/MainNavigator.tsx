@@ -7,6 +7,8 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { DashboardScreen } from "@/screens/DashboardScreen";
 import { BusinessSetupScreen } from "@/screens/BusinessSetupScreen";
 import { Colors } from "@coco/shared/config/theme";
+import { ProductCatalogScreen } from "@/screens/ProductCardScreen";
+import { ProductFormScreen } from "@/screens/ProductFormScreen";
 
 const RootStack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -93,9 +95,10 @@ const TabNavigator = () => {
 			<Tab.Screen name="Pedidos">
 				{() => <PlaceholderScreen name="Gestión de Pedidos" />}
 			</Tab.Screen>
-			<Tab.Screen name="Catálogo">
-				{() => <PlaceholderScreen name="Mi Menú / Productos" />}
-			</Tab.Screen>
+			<Tab.Screen
+				name="Catálogo"
+				component={ProductCatalogScreen}
+			></Tab.Screen>
 			<Tab.Screen name="Perfil">
 				{() => <PlaceholderScreen name="Ajustes de Cuenta" />}
 			</Tab.Screen>
@@ -119,6 +122,29 @@ export const MainNavigator = () => {
 				options={{
 					headerShown: true,
 					title: "Configurar Negocio",
+					headerTintColor: Colors.businessBg, // Título y botón atrás en naranja Coco
+					headerTitleStyle: {
+						fontWeight: "800",
+						fontSize: 18,
+						color: "#333",
+					},
+					headerBackTitle: "",
+					presentation: "card", // Se siente como una navegación fluida
+					headerStyle: {
+						backgroundColor: "white",
+						elevation: 0, // Limpio para Android
+						shadowOpacity: 0, // Limpio para iOS
+						borderBottomWidth: 1,
+						borderBottomColor: "#EEE",
+					},
+				}}
+			/>
+			<RootStack.Screen
+				name="ProductForm"
+				component={ProductFormScreen}
+				options={{
+					headerShown: true,
+					title: "Agregar producto",
 					headerTintColor: Colors.businessBg, // Título y botón atrás en naranja Coco
 					headerTitleStyle: {
 						fontWeight: "800",

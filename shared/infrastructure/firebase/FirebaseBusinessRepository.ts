@@ -9,6 +9,7 @@ import {
 	arrayRemove,
 	arrayUnion,
 	collection,
+	deleteDoc,
 	doc,
 	Firestore,
 	getDoc,
@@ -17,44 +18,68 @@ import {
 	onSnapshot,
 	query,
 	serverTimestamp,
+	setDoc,
 	Timestamp,
 	updateDoc,
 	where,
 } from "firebase/firestore";
 
 export class FirebaseBusinessRepository implements IBusinessRepository {
-	constructor(private db: Firestore) {
-		if (!this.db) {
-			console.error(
-				"🚨 FirebaseBusinessRepository: La instancia de Firestore (db) es undefined.",
-			);
-		}
-	}
+	constructor(private db: Firestore) {}
 
-	// Usamos 'any' en el retorno para saltar la validación de instancia en toda la clase
-	private get safeDb(): any {
+	private get safeDb(): Firestore {
 		if (!this.db) throw new Error("Firestore no inicializado.");
-		return this.db as any;
+		return this.db;
 	}
 
-	async create(
-		business: Omit<Business, "id" | "createdAt" | "updatedAt">,
-	): Promise<Business> {
-		const dbAny = this.db as any;
-		// El 'business' que recibes del formulario ya debe traer el 'ownerId'
-		const ref = await addDoc(collection(dbAny, COLLECTIONS.BUSINESSES), {
-			...business,
-			createdAt: serverTimestamp(),
-			updatedAt: serverTimestamp(),
-			status: "active", // Estado inicial por defecto
-		});
+	// Método unificado para registro de nuevos negocios
+	async register(
+		userId: string,
+		formData: Pick<
+			Business,
+			"name" | "category" | "address" | "phone" | "deliveryCost"
+		>,
+	): Promise<string> {
+		const docRef = doc(collection(this.safeDb, COLLECTIONS.BUSINESSES));
 
-		return {
-			...business,
-			id: ref.id,
-			createdAt: new Date(),
-			updatedAt: new Date(),
-		} as Business;
+		const businessData: Business = {
+			id: docRef.id,
+			ownerId: userId,
+			name: formData.name,
+			category: formData.category,
+			address: formData.address,
+			phone: formData.phone,
+			deliveryCost: Number(formData.deliveryCost),
+			location: { lat: 0, lng: 0 },
+			isOpen: false,
+			status: "active",
+			plan: "basic",
+			platformFee: 0.05,
+			weeklyDebt: 0,
+			ownDriverIds: [],
+			description: "",
+			logoUrl: "",
+			coverUrl: "",
+			totalOrders: 0,
+			rating: 5,
+			createdAt: serverTimestamp() as any,
+			updatedAt: serverTimestamp() as any,
+			paymentDeadline: null as any,
+		};
+
+		await setDoc(docRef, businessData);
+		return docRef.id;
+	}
+
+	async updateStatus(id: string, isOpen: boolean): Promise<void> {
+		await updateDoc(doc(this.safeDb, COLLECTIONS.BUSINESSES, id), {
+			isOpen,
+			updatedAt: serverTimestamp(),
+		});
+	}
+
+	async delete(id: string): Promise<void> {
+		await deleteDoc(doc(this.safeDb, COLLECTIONS.BUSINESSES, id));
 	}
 
 	async getById(id: string): Promise<Business | null> {

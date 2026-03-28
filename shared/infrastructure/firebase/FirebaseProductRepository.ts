@@ -1,74 +1,87 @@
 import {
+	Firestore,
 	collection,
-	doc,
 	addDoc,
-	getDoc,
-	getDocs,
 	updateDoc,
 	deleteDoc,
+	doc,
+	getDocs,
 	query,
-	where,
 	orderBy,
 	serverTimestamp,
-	Firestore,
+	getDoc,
 } from "firebase/firestore";
-import { IProductRepository } from "@coco/shared/core/repositories";
 import { Product } from "@coco/shared/core/entities/Product";
-import { COLLECTIONS } from "@coco/shared/constants";
+import { IProductRepository } from "core/repositories";
 
 export class FirebaseProductRepository implements IProductRepository {
 	constructor(private db: Firestore) {}
 
-	async create(
-		product: Omit<Product, "id" | "createdAt" | "updatedAt">,
-	): Promise<Product> {
-		const ref = await addDoc(collection(this.db, COLLECTIONS.PRODUCTS), {
+	private getProductPath(businessId: string, productId?: string) {
+		return productId
+			? doc(this.db, `businesses/${businessId}/products`, productId)
+			: collection(this.db, `businesses/${businessId}/products`);
+	}
+
+	async listByBusinessId(businessId: string): Promise<Product[]> {
+		const q = query(
+			this.getProductPath(businessId) as any,
+			orderBy("sortOrder", "asc"),
+		);
+		const snapshot = await getDocs(q);
+
+		return snapshot.docs.map(
+			(doc) =>
+				({
+					id: doc.id,
+					...(doc.data() as object), // ✅ Soluciona ts(2698)
+				}) as Product,
+		);
+	}
+
+	async save(businessId: string, product: any): Promise<string> {
+		const colRef = this.getProductPath(businessId) as any;
+		const docRef = await addDoc(colRef, {
 			...product,
 			createdAt: serverTimestamp(),
 			updatedAt: serverTimestamp(),
 		});
-		return {
-			...product,
-			id: ref.id,
-			createdAt: new Date(),
-			updatedAt: new Date(),
-		};
+		return docRef.id;
 	}
 
-	async getById(id: string): Promise<Product | null> {
-		const snap = await getDoc(doc(this.db, COLLECTIONS.PRODUCTS, id));
-		if (!snap.exists()) return null;
-		return this._map(snap.id, snap.data());
-	}
-
-	async listByBusiness(businessId: string): Promise<Product[]> {
-		const q = query(
-			collection(this.db, COLLECTIONS.PRODUCTS),
-			where("businessId", "==", businessId),
-			where("isAvailable", "==", true),
-			orderBy("sortOrder", "asc"),
-		);
-		const snap = await getDocs(q);
-		return snap.docs.map((d) => this._map(d.id, d.data()));
-	}
-
-	async update(id: string, data: Partial<Product>): Promise<void> {
-		await updateDoc(doc(this.db, COLLECTIONS.PRODUCTS, id), {
+	async update(
+		businessId: string,
+		productId: string,
+		data: Partial<Product>,
+	): Promise<void> {
+		const docRef = this.getProductPath(businessId, productId) as any;
+		await updateDoc(docRef, {
 			...data,
 			updatedAt: serverTimestamp(),
 		});
 	}
 
-	async delete(id: string): Promise<void> {
-		await deleteDoc(doc(this.db, COLLECTIONS.PRODUCTS, id));
+	async updateAvailability(
+		businessId: string,
+		productId: string,
+		isAvailable: boolean,
+	): Promise<void> {
+		await this.update(businessId, productId, { isAvailable });
 	}
 
-	private _map(id: string, data: Record<string, any>): Product {
-		return {
-			...data,
-			id,
-			createdAt: data.createdAt?.toDate?.() ?? new Date(),
-			updatedAt: data.updatedAt?.toDate?.() ?? new Date(),
-		} as Product;
+	async delete(businessId: string, productId: string): Promise<void> {
+		const docRef = this.getProductPath(businessId, productId) as any;
+		await deleteDoc(docRef);
+	}
+
+	async getById(
+		businessId: string,
+		productId: string,
+	): Promise<Product | null> {
+		const docRef = this.getProductPath(businessId, productId) as any;
+		const snap = await getDoc(docRef);
+		return snap.exists()
+			? ({ id: snap.id, ...(snap.data() as object) } as Product)
+			: null;
 	}
 }

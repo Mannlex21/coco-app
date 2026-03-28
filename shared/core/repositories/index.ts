@@ -30,14 +30,27 @@ export interface IUserRepository {
 // ─── NEGOCIOS ────────────────────────────────────────────────────────────────
 
 export interface IBusinessRepository {
-	create(
-		business: Omit<Business, "id" | "createdAt" | "updatedAt">,
-	): Promise<Business>;
+	// Registro inicial con campos obligatorios
+	register(
+		userId: string,
+		formData: Pick<
+			Business,
+			"name" | "category" | "address" | "phone" | "deliveryCost"
+		>,
+	): Promise<string>;
+
+	// Métodos de lectura
 	getById(id: string): Promise<Business | null>;
 	listByOwnerId(ownerId: string): Promise<Business[]>;
 	listActive(): Promise<Business[]>;
-	update(id: string, data: Partial<Business>): Promise<void>;
 	listen(id: string, callback: (business: Business) => void): Unsubscribe;
+
+	// Métodos de actualización y estado
+	update(id: string, data: Partial<Business>): Promise<void>;
+	updateStatus(id: string, isOpen: boolean): Promise<void>;
+	delete(id: string): Promise<void>;
+
+	// Gestión de drivers y finanzas
 	addOwnDriver(businessId: string, driverId: string): Promise<void>;
 	removeOwnDriver(businessId: string, driverId: string): Promise<void>;
 	addWeeklyDebt(businessId: string, amount: number): Promise<void>;
@@ -47,13 +60,26 @@ export interface IBusinessRepository {
 // ─── PRODUCTOS ───────────────────────────────────────────────────────────────
 
 export interface IProductRepository {
-	create(
+	// Lectura
+	getById(businessId: string, productId: string): Promise<Product | null>;
+	listByBusinessId(businessId: string): Promise<Product[]>;
+
+	// Escritura
+	save(
+		businessId: string,
 		product: Omit<Product, "id" | "createdAt" | "updatedAt">,
-	): Promise<Product>;
-	getById(id: string): Promise<Product | null>;
-	listByBusiness(businessId: string): Promise<Product[]>;
-	update(id: string, data: Partial<Product>): Promise<void>;
-	delete(id: string): Promise<void>;
+	): Promise<string>;
+	update(
+		businessId: string,
+		productId: string,
+		data: Partial<Product>,
+	): Promise<void>;
+	updateAvailability(
+		businessId: string,
+		productId: string,
+		isAvailable: boolean,
+	): Promise<void>;
+	delete(businessId: string, productId: string): Promise<void>;
 }
 
 // ─── PEDIDOS ─────────────────────────────────────────────────────────────────

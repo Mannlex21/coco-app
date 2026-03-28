@@ -30,7 +30,7 @@ export const DashboardScreen = () => {
 		onRefresh,
 		deleteBusiness,
 	} = useBusiness(db, user?.id);
-	console.log(activeBusiness);
+
 	const handleToggle = async () => {
 		if (!activeBusiness) return;
 
@@ -228,7 +228,6 @@ const styles = StyleSheet.create({
 		borderBottomColor: "#EEE",
 	},
 	welcomeText: { fontSize: 14, color: "#666" },
-	// AQUÍ AGREGAMOS EL SELECTOR QUE FALTABA
 	selector: {
 		marginTop: 5,
 		alignSelf: "flex-start",
