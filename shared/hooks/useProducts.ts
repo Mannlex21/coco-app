@@ -5,6 +5,9 @@ import {
 	query,
 	orderBy,
 	Firestore,
+	updateDoc,
+	doc,
+	getDoc,
 } from "firebase/firestore";
 import { Product } from "@coco/shared/core/entities/Product";
 import { FirebaseProductRepository } from "../infrastructure/firebase/FirebaseProductRepository";
@@ -14,7 +17,6 @@ export const useProducts = (db: Firestore, businessId: string | undefined) => {
 	const [loading, setLoading] = useState(true);
 	const [refreshing, setRefreshing] = useState(false);
 
-	// Repositorio memorizado
 	const repo = useMemo(() => new FirebaseProductRepository(db), [db]);
 
 	useEffect(() => {
@@ -32,7 +34,7 @@ export const useProducts = (db: Firestore, businessId: string | undefined) => {
 			(snapshot) => {
 				const list = snapshot.docs.map((doc) => ({
 					id: doc.id,
-					...doc.data(),
+					...(doc.data() as object),
 				})) as Product[];
 
 				setProducts(list);
@@ -47,17 +49,53 @@ export const useProducts = (db: Firestore, businessId: string | undefined) => {
 		return () => unsubscribe();
 	}, [db, businessId]);
 
-	const saveProduct = async (formData: any) => {
+	const saveProduct = async (
+		formData: Omit<
+			Product,
+			"id" | "businessId" | "createdAt" | "updatedAt"
+		>,
+	) => {
 		if (!businessId) throw new Error("No hay negocio activo");
 		try {
 			return await repo.save(businessId, {
 				...formData,
 				isAvailable: formData.isAvailable ?? true,
 				sortOrder: products.length,
-			});
+			} as any);
 		} catch (error) {
 			console.error("Error saving product:", error);
 			throw error;
+		}
+	};
+
+	// --- NUEVA FUNCIÓN: UPDATE PRODUCT ---
+	const updateProduct = async (
+		productId: string,
+		formData: Partial<Omit<Product, "id" | "businessId" | "createdAt">>,
+	) => {
+		if (!businessId) throw new Error("No hay negocio activo");
+
+		try {
+			setLoading(true);
+			const productRef = doc(
+				db,
+				`businesses/${businessId}/products`,
+				productId,
+			);
+
+			// Si tu repositorio ya tiene un método update, úsalo:
+			// return await repo.update(businessId, productId, formData);
+
+			// Si no, lo hacemos directo con Firebase mientras tanto:
+			await updateDoc(productRef, {
+				...formData,
+				updatedAt: new Date().toISOString(), // Mantenemos registro de cambios
+			});
+		} catch (error) {
+			console.error("Error updating product:", error);
+			throw error;
+		} finally {
+			setLoading(false);
 		}
 	};
 
@@ -67,7 +105,6 @@ export const useProducts = (db: Firestore, businessId: string | undefined) => {
 	) => {
 		if (!businessId) return;
 
-		// Update Optimista
 		setProducts((prev) =>
 			prev.map((p) =>
 				p.id === productId ? { ...p, isAvailable: !currentStatus } : p,
@@ -81,8 +118,7 @@ export const useProducts = (db: Firestore, businessId: string | undefined) => {
 				!currentStatus,
 			);
 		} catch (error) {
-			console.log(error);
-			// Rollback manual (aunque onSnapshot lo corregiría solo, esto es más rápido)
+			console.error("Error al cambiar disponibilidad:", error);
 			setProducts((prev) =>
 				prev.map((p) =>
 					p.id === productId
@@ -102,15 +138,40 @@ export const useProducts = (db: Firestore, businessId: string | undefined) => {
 			throw error;
 		}
 	};
+	const getProductById = async (productId: string) => {
+		if (!businessId) throw new Error("No hay negocio activo");
 
+		try {
+			const productRef = doc(
+				db,
+				`businesses/${businessId}/products`,
+				productId,
+			);
+			const productSnap = await getDoc(productRef);
+
+			if (productSnap.exists()) {
+				return {
+					id: productSnap.id,
+					...productSnap.data(),
+				} as Product;
+			} else {
+				return null;
+			}
+		} catch (error) {
+			console.error("Error getProduct en hook:", error);
+			throw error;
+		}
+	};
 	const onRefresh = async () => {
 		setRefreshing(true);
 		try {
-			await new Promise((resolve) => setTimeout(resolve, 800));
-			if (businessId) {
-				await repo.listByBusinessId(businessId);
-				console.log("Refresh");
-			}
+			const wait = new Promise((resolve) => setTimeout(resolve, 800));
+			const fetch = businessId
+				? repo.listByBusinessId(businessId)
+				: Promise.resolve();
+
+			await Promise.all([wait, fetch]);
+			console.log("useProduct refresh");
 		} catch (error) {
 			console.error("Error al refrescar productos:", error);
 		} finally {
@@ -126,5 +187,7 @@ export const useProducts = (db: Firestore, businessId: string | undefined) => {
 		saveProduct,
 		toggleAvailability,
 		deleteProduct,
+		updateProduct,
+		getProductById,
 	};
 };

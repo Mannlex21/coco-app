@@ -1,23 +1,35 @@
 export const Colors = {
 	// 1. Identidad de Apps (Fondos de Login/Splash)
-	clientBg: "#1A7A4A", // Verde selva
-	businessBg: "#C45E1A", // Naranja oscuro
-	driverBg: "#0A4A7A", // Azul marino
+	clientBg: "#1A7A4A",
+	businessBg: "#C45E1A",
+	driverBg: "#0A4A7A",
 
 	// 2. Colores de la Mascota Coco
-	cocoBase: "#F4A261", // Naranja coco
-	cocoInner: "#E76F51", // Naranja interior
-	cocoEyes: "#2D1B0E", // Café oscuro
+	cocoBase: "#F4A261",
+	cocoInner: "#E76F51",
+	cocoEyes: "#2D1B0E",
 
 	// 3. Paleta de Hojas y Acentos
-	leafMed: "#27AE60", // Verde medio
-	leafLight: "#2ECC71", // Verde claro
+	leafMed: "#27AE60",
+	leafLight: "#2ECC71",
 
 	// 4. Semánticos (Estados)
-	success: "#27AE60", // Reutilizamos verde medio
-	error: "#E74C3C", // Rojo estándar
-	warning: "#F39C12", // Ámbar
-	info: "#3498DB", // Azul
+	success: "#27AE60",
+	error: "#E74C3C",
+	warning: "#F39C12",
+	info: "#3498DB",
+
+	// 4.1 Fondos suaves para iconos/badges/botones outline
+	successLight: "#EAF7EF", // fondo verde suave
+	errorLight: "#FDEDEC", // fondo rojo suave
+	warningLight: "#FEF9E7", // fondo ámbar suave
+	infoLight: "#EAF4FB", // fondo azul suave
+
+	// 4.2 Texto sobre fondos light (más oscuro que el color base)
+	successText: "#1E8449", // verde oscuro
+	errorText: "#C0392B", // rojo oscuro
+	warningText: "#D68910", // ámbar oscuro
+	infoText: "#1A6FA8", // azul oscuro
 
 	// 5. Neutros y Superficies
 	backgroundLight: "#F5F3EF",
@@ -26,7 +38,7 @@ export const Colors = {
 
 	// 6. Texto
 	textPrimaryLight: "#1A1A1A",
-	textSecondaryLight: "#7A736A", // El gris para subtítulos que faltaba
+	textSecondaryLight: "#7A736A",
 	textOnPrimary: "#FFFFFF",
 };
 
@@ -101,5 +113,104 @@ export const Shadow = {
 		shadowOpacity: 0.15,
 		shadowRadius: 24,
 		elevation: 10,
+	},
+};
+
+export const ButtonStyles = {
+	// Sólidos — fondo lleno
+	solid: {
+		success: {
+			backgroundColor: Colors.success,
+			borderRadius: BorderRadius.md,
+			color: Colors.textOnPrimary,
+		},
+		error: {
+			backgroundColor: Colors.error,
+			borderRadius: BorderRadius.md,
+			color: Colors.textOnPrimary,
+		},
+		warning: {
+			backgroundColor: Colors.warning,
+			borderRadius: BorderRadius.md,
+			color: Colors.textOnPrimary,
+		},
+		info: {
+			backgroundColor: Colors.info,
+			borderRadius: BorderRadius.md,
+			color: Colors.textOnPrimary,
+		},
+		primary: {
+			backgroundColor: Colors.businessBg,
+			borderRadius: BorderRadius.md,
+			color: Colors.textOnPrimary,
+		},
+	},
+
+	// Outline — solo borde, fondo transparente
+	outline: {
+		success: {
+			backgroundColor: "transparent",
+			borderRadius: BorderRadius.md,
+			borderWidth: 1,
+			borderColor: Colors.success,
+			color: Colors.success,
+		},
+		error: {
+			backgroundColor: "transparent",
+			borderRadius: BorderRadius.md,
+			borderWidth: 1,
+			borderColor: Colors.error,
+			color: Colors.error,
+		},
+		warning: {
+			backgroundColor: "transparent",
+			borderRadius: BorderRadius.md,
+			borderWidth: 1,
+			borderColor: Colors.warning,
+			color: Colors.warning,
+		},
+		info: {
+			backgroundColor: "transparent",
+			borderRadius: BorderRadius.md,
+			borderWidth: 1,
+			borderColor: Colors.info,
+			color: Colors.info,
+		},
+		primary: {
+			backgroundColor: "transparent",
+			borderRadius: BorderRadius.md,
+			borderWidth: 1,
+			borderColor: Colors.businessBg,
+			color: Colors.businessBg,
+		},
+	},
+
+	// Light — fondo suave con texto oscuro
+	light: {
+		success: {
+			backgroundColor: Colors.successLight,
+			borderRadius: BorderRadius.md,
+			color: Colors.successText,
+		},
+		error: {
+			backgroundColor: Colors.errorLight,
+			borderRadius: BorderRadius.md,
+			color: Colors.errorText,
+		},
+		warning: {
+			backgroundColor: Colors.warningLight,
+			borderRadius: BorderRadius.md,
+			color: Colors.warningText,
+		},
+		info: {
+			backgroundColor: Colors.infoLight,
+			borderRadius: BorderRadius.md,
+			color: Colors.infoText,
+		},
+		primary: {
+			backgroundColor: Colors.backgroundLight,
+			borderRadius: BorderRadius.md,
+			color: Colors.businessBg,
+		},
 	},
 };

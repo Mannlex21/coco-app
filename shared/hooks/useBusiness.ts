@@ -17,10 +17,8 @@ export const useBusiness = (db: Firestore, userId?: string) => {
 	const [loading, setLoading] = useState(true);
 	const [refreshing, setRefreshing] = useState(false);
 
-	// Memorizamos el repositorio para evitar re-instanciaciones innecesarias
 	const repo = useMemo(() => new FirebaseBusinessRepository(db), [db]);
 
-	// 1. LISTENER EN TIEMPO REAL
 	useEffect(() => {
 		if (!db || !userId) {
 			setLoading(false);
@@ -38,7 +36,7 @@ export const useBusiness = (db: Firestore, userId?: string) => {
 			(snapshot) => {
 				const list = snapshot.docs.map((doc) => ({
 					id: doc.id,
-					...doc.data(),
+					...(doc.data() as object),
 				})) as Business[];
 
 				setBusinesses(list);
@@ -96,13 +94,12 @@ export const useBusiness = (db: Firestore, userId?: string) => {
 
 	const onRefresh = async () => {
 		setRefreshing(true);
-
 		try {
-			if (userId) {
-				await repo.listByOwnerId(userId);
-			}
-			await new Promise((resolve) => setTimeout(resolve, 800));
-			console.log("Refresh");
+			await Promise.all([
+				userId ? repo.listByOwnerId(userId) : Promise.resolve(),
+				new Promise((resolve) => setTimeout(resolve, 800)),
+			]);
+			console.log("useBusiness refresh");
 		} catch (error) {
 			console.error("Error al refrescar negocios:", error);
 		} finally {

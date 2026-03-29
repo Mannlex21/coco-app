@@ -27,7 +27,6 @@ export const BusinessSetupScreen = ({ navigation }: any) => {
 		deliveryCost: "20",
 	});
 	const handleSave = async () => {
-		console.log(user);
 		// 1. Validaciones iniciales (Regla 9.1: Dirección y Teléfono son obligatorios)
 		if (!form.name.trim() || !form.address.trim() || !form.phone.trim()) {
 			return Alert.alert(
@@ -193,7 +192,6 @@ export const BusinessSetupScreen = ({ navigation }: any) => {
 					disabled={loading}
 				>
 					{loading ? (
-						// Opcional: Puedes poner un ActivityIndicator aquí
 						<Text style={styles.saveBtnText}>Registrando...</Text>
 					) : (
 						<Text style={styles.saveBtnText}>

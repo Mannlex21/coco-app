@@ -8,27 +8,28 @@ import {
 	Switch,
 	Alert,
 	ActivityIndicator,
-	KeyboardAvoidingView,
-	Platform,
-	Keyboard,
-	KeyboardEvent,
 } from "react-native";
-import {
-	SafeAreaView,
-	useSafeAreaInsets,
-} from "react-native-safe-area-context";
 import { Colors } from "@coco/shared/config/theme";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useRoute } from "@react-navigation/native";
 import { useAppStore } from "@coco/shared/hooks/useAppStore";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { useProducts } from "../../../shared/hooks/useProducts";
 import { db } from "@/infrastructure/firebase/config";
+import { Product } from "@coco/shared/core/entities/Product";
 
 const CATEGORIES = ["tacos", "bebidas", "postres", "combos", "otros"];
 
 export const ProductFormScreen = () => {
 	const navigation = useNavigation();
+	const route = useRoute<any>();
+
+	// Si viene un productId en los parámetros, estamos en modo Edición
+	const productId = route.params?.productId;
+	const isEditMode = !!productId;
+
 	const { activeBusiness } = useAppStore();
+	const [fetchingProduct, setFetchingProduct] = useState(isEditMode);
+
 	const [form, setForm] = useState({
 		name: "",
 		description: "",
@@ -36,40 +37,95 @@ export const ProductFormScreen = () => {
 		category: "tacos",
 		isAvailable: true,
 	});
-	const { saveProduct, loading } = useProducts(db, activeBusiness?.id);
+
+	const { saveProduct, getProductById, updateProduct, loading } = useProducts(
+		db,
+		activeBusiness?.id,
+	);
+	// 1. Efecto para cargar los datos si estamos editando
+	useEffect(() => {
+		const fetchProductData = async () => {
+			if (!isEditMode || !productId) return;
+
+			try {
+				const data = await getProductById(productId);
+
+				if (data) {
+					setForm({
+						name: data.name || "",
+						description: data.description || "",
+						price: data.price ? data.price.toString() : "",
+						category: data.category || "tacos",
+						isAvailable: data.isAvailable ?? true,
+					});
+				} else {
+					Alert.alert("Error", "No se encontró el producto.");
+					navigation.goBack();
+				}
+			} catch (error) {
+				Alert.alert(
+					"Error",
+					"No se pudieron cargar los datos del producto.",
+				);
+			} finally {
+				setFetchingProduct(false);
+			}
+		};
+
+		fetchProductData();
+	}, [isEditMode, productId]);
 
 	const handleSave = async () => {
-		// 1. Validaciones básicas de UI
 		if (!form.name.trim() || !form.price) {
 			Alert.alert("Error", "Nombre y precio son obligatorios.");
 			return;
 		}
 
 		try {
-			// 2. Llamamos a tu función saveProduct
-			// Notarás que solo pasamos lo que el Omit permite
-			await saveProduct({
+			const productData = {
 				name: form.name.trim(),
 				description: form.description.trim(),
-				price: parseFloat(form.price),
-				category: form.category,
+				price: Number.parseFloat(form.price),
+				category: form.category as Product["category"],
 				isAvailable: form.isAvailable,
-				imageUrl: "", // Por ahora vacío, luego vendrá de Firebase Storage
-				// sortOrder se calcula dentro de saveProduct, así que aquí no lo mandamos
-			} as any);
+			};
 
-			// 3. Feedback y navegación
-			Alert.alert("¡Éxito!", "Producto guardado correctamente.", [
-				{ text: "OK", onPress: () => navigation.goBack() },
-			]);
+			if (isEditMode) {
+				// Mandamos el ID y la data limpia
+				await updateProduct(productId, productData);
+				Alert.alert("¡Éxito!", "Producto actualizado correctamente.", [
+					{ text: "OK", onPress: () => navigation.goBack() },
+				]);
+			} else {
+				await saveProduct(productData as any);
+				Alert.alert("¡Éxito!", "Producto guardado correctamente.", [
+					{ text: "OK", onPress: () => navigation.goBack() },
+				]);
+			}
 		} catch (error) {
 			console.error("Error en handleSave:", error);
 			Alert.alert(
 				"Error",
-				"No se pudo guardar el producto. Inténtalo de nuevo.",
+				`No se pudo ${isEditMode ? "actualizar" : "guardar"} el producto.`,
 			);
 		}
 	};
+	if (fetchingProduct) {
+		return (
+			<View
+				style={{
+					flex: 1,
+					justifyContent: "center",
+					alignItems: "center",
+				}}
+			>
+				<ActivityIndicator size="large" color={Colors.businessBg} />
+				<Text style={{ marginTop: 10, color: "#666" }}>
+					Cargando datos...
+				</Text>
+			</View>
+		);
+	}
 	return (
 		<KeyboardAwareScrollView
 			style={styles.container}
@@ -86,6 +142,7 @@ export const ProductFormScreen = () => {
 					placeholder="Ej. Tacos de Asada"
 					value={form.name}
 					onChangeText={(t) => setForm({ ...form, name: t })}
+					editable={!loading}
 				/>
 
 				<Text style={styles.label}>Descripción (Opcional)</Text>
@@ -95,6 +152,7 @@ export const ProductFormScreen = () => {
 					multiline
 					value={form.description}
 					onChangeText={(t) => setForm({ ...form, description: t })}
+					editable={!loading}
 				/>
 
 				<Text style={styles.label}>Precio ($) *</Text>
@@ -104,6 +162,7 @@ export const ProductFormScreen = () => {
 					keyboardType="numeric"
 					value={form.price}
 					onChangeText={(t) => setForm({ ...form, price: t })}
+					editable={!loading}
 				/>
 
 				<Text style={styles.label}>Categoría</Text>
@@ -116,6 +175,7 @@ export const ProductFormScreen = () => {
 								form.category === cat && styles.activeChip,
 							]}
 							onPress={() => setForm({ ...form, category: cat })}
+							disabled={loading}
 						>
 							<Text
 								style={[
@@ -148,6 +208,7 @@ export const ProductFormScreen = () => {
 							false: "#D1D1D1",
 							true: Colors.businessBg,
 						}}
+						disabled={loading}
 					/>
 				</View>
 
@@ -157,7 +218,9 @@ export const ProductFormScreen = () => {
 					disabled={loading}
 				>
 					{loading ? (
-						<ActivityIndicator color="white" />
+						<Text style={styles.saveBtnText}>
+							Guardando producto...
+						</Text>
 					) : (
 						<Text style={styles.saveBtnText}>Guardar Producto</Text>
 					)}
