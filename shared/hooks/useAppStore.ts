@@ -10,7 +10,7 @@ export interface CartItem {
 	quantity: number;
 }
 
-interface AppState {
+export interface AppState {
 	// Auth
 	user: User | null;
 	isLoadingAuth: boolean;
@@ -35,6 +35,9 @@ interface AppState {
 	clearCart: () => void;
 	cartTotal: () => number;
 	cartCount: () => number;
+
+	themeMode: "light" | "dark";
+	setThemeMode: (mode: "light" | "dark") => void;
 }
 
 export const useAppStore = create<AppState>((set, get) => ({
@@ -43,6 +46,9 @@ export const useAppStore = create<AppState>((set, get) => ({
 	isLoadingAuth: true,
 	setUser: (user) => set({ user }),
 	setLoadingAuth: (isLoadingAuth) => set({ isLoadingAuth }),
+
+	themeMode: "light", // Tema por defecto
+	setThemeMode: (mode) => set({ themeMode: mode }),
 
 	// Pedido activo
 	activeOrder: null,

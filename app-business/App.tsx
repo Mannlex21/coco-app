@@ -3,36 +3,36 @@ import { StyleSheet, View, ActivityIndicator } from "react-native";
 
 import { auth, db } from "./src/infrastructure/firebase/config";
 import { onAuthStateChanged } from "firebase/auth";
-import { RegisterScreen } from "@/screens/RegisterScreen";
-import { LoginScreen } from "@/screens/LoginScreen";
-import { Colors } from "@coco/shared/config/theme";
+import { Colors, ColorPalette } from "@coco/shared/config/theme"; // 👈 Importamos ColorPalette
 import { useBusiness } from "@coco/shared/hooks/useBusiness";
-import { NavigationContainer } from "@react-navigation/native";
+import { NavigationContainer, DefaultTheme } from "@react-navigation/native";
 import { MainNavigator } from "@/navigation/MainNavigator";
 import { AuthStack } from "@/navigation/AuthStack";
-import { SafeAreaProvider } from "react-native-safe-area-context";
+import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { useAppStore } from "@coco/shared/hooks/useAppStore";
 import { User } from "@coco/shared/core/entities/User";
+import { DialogProvider } from "@coco/shared/providers/DialogContext";
+import { useTheme } from "@coco/shared/hooks/useTheme";
+
 export default function App() {
-	const { user, setUser, isLoadingAuth, setLoadingAuth } = useAppStore();
+	const { user, setUser, isLoadingAuth, setLoadingAuth, themeMode } =
+		useAppStore();
+	const { isDark } = useTheme();
 	const [isRegistering, setIsRegistering] = useState(false);
 
-	// Dentro de tu useEffect en App.tsx
 	useEffect(() => {
 		const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
 			if (firebaseUser) {
-				// 1. Mapeamos al objeto que tu interfaz 'User' exige
 				const cocoUser: User = {
 					id: firebaseUser.uid,
 					phone: firebaseUser.phoneNumber || "",
 					name: firebaseUser.displayName || "Usuario Coco",
 					role: "business",
 					status: "active",
-					createdAt: new Date(), // En un flujo real, esto vendría de Firestore
+					createdAt: new Date(),
 					updatedAt: new Date(),
 				};
 
-				// 2. Guardamos en el Store Global de Zustand
 				setUser(cocoUser);
 			} else {
 				setUser(null);
@@ -46,34 +46,67 @@ export default function App() {
 
 	const isGlobalLoading = isLoadingAuth || (user && businessLoading);
 
+	// 💡 Quitamos el casteo genérico y usamos el tipado exacto que acordamos
+	const currentColors = Colors[themeMode] as ColorPalette;
+	const headerBgColor =
+		currentColors.surfaceLight || (isDark ? "#1C1C1E" : "#FFFFFF");
+	const CocoAppTheme = {
+		...DefaultTheme,
+		colors: {
+			...DefaultTheme.colors,
+			background: currentColors.backgroundLight,
+			primary: currentColors.businessBg,
+			card: headerBgColor, // Muy importante para los headers nativos
+			text: currentColors.textPrimaryLight,
+		},
+	};
+
 	if (isGlobalLoading) {
 		return (
-			<View style={styles.loadingContainer}>
-				<ActivityIndicator color="white" size="large" />
+			/* 💡 Le pasamos el color de fondo dinámico según el tema del store */
+			<View
+				style={[
+					styles.loadingContainer,
+					{ backgroundColor: currentColors.businessBg },
+				]}
+			>
+				<ActivityIndicator
+					color={currentColors.textOnPrimary || "white"}
+					size="large"
+				/>
 			</View>
 		);
 	}
 
 	return (
 		<SafeAreaProvider>
-			<NavigationContainer>
-				{/* 3. Una sola fuente de verdad para la navegación */}
-				{user ? (
-					<MainNavigator />
-				) : (
-					<AuthStack
-						isRegistering={isRegistering}
-						setIsRegistering={setIsRegistering}
-					/>
-				)}
-			</NavigationContainer>
+			<SafeAreaView
+				style={[styles.container, { backgroundColor: headerBgColor }]}
+				edges={["top"]}
+			>
+				<DialogProvider>
+					<NavigationContainer theme={CocoAppTheme}>
+						{user ? (
+							<MainNavigator />
+						) : (
+							<AuthStack
+								isRegistering={isRegistering}
+								setIsRegistering={setIsRegistering}
+							/>
+						)}
+					</NavigationContainer>
+				</DialogProvider>
+			</SafeAreaView>
 		</SafeAreaProvider>
 	);
 }
+
 const styles = StyleSheet.create({
+	container: {
+		flex: 1,
+	},
 	loadingContainer: {
 		flex: 1,
-		backgroundColor: Colors.businessBg,
 		justifyContent: "center",
 		alignItems: "center",
 	},

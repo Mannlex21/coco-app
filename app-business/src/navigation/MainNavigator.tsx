@@ -6,24 +6,40 @@ import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { DashboardScreen } from "@/screens/DashboardScreen";
 import { BusinessSetupScreen } from "@/screens/BusinessSetupScreen";
-import { Colors } from "@coco/shared/config/theme";
+import { FontSize, FontWeight } from "@coco/shared/config/theme";
 import { ProductCatalogScreen } from "@/screens/ProductCardScreen";
 import { ProductFormScreen } from "@/screens/ProductFormScreen";
+import { useTheme } from "@coco/shared/hooks/useTheme"; // 👈 Importamos el hook
+import { ProfileScreen } from "@/screens/ProfileScreen";
 
 const RootStack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 
 // Pantalla temporal para secciones en desarrollo
-const PlaceholderScreen = ({ name }: { name: string }) => (
+const PlaceholderScreen = ({
+	name,
+	backgroundColor,
+	textColor,
+}: {
+	name: string;
+	backgroundColor: string;
+	textColor: string;
+}) => (
 	<View
 		style={{
 			flex: 1,
 			justifyContent: "center",
 			alignItems: "center",
-			backgroundColor: "#F8F9FA",
+			backgroundColor: backgroundColor,
 		}}
 	>
-		<Text style={{ color: "#666", fontSize: 16 }}>
+		<Text
+			style={{
+				color: textColor,
+				fontSize: FontSize.md,
+				fontWeight: FontWeight.medium,
+			}}
+		>
 			{name} (Próximamente)
 		</Text>
 	</View>
@@ -31,23 +47,21 @@ const PlaceholderScreen = ({ name }: { name: string }) => (
 
 const TabNavigator = () => {
 	const insets = useSafeAreaInsets();
+	const { colors } = useTheme(); // 💡 Colores del tema dinámico
 
 	return (
 		<Tab.Navigator
 			screenOptions={({ route }) => ({
 				headerShown: false,
-				// Aplicamos el color global de Coco para la pestaña activa
-				tabBarActiveTintColor: Colors.businessBg,
-				tabBarInactiveTintColor: "#999",
+				tabBarActiveTintColor: colors.businessBg,
+				tabBarInactiveTintColor: colors.textSecondaryLight,
 				tabBarStyle: {
-					// Ajuste de altura dinámico según el dispositivo (iOS/Android)
 					height: Platform.OS === "ios" ? 70 + insets.bottom : 90,
 					paddingBottom: Platform.OS === "ios" ? insets.bottom : 12,
 					paddingTop: 10,
-					backgroundColor: "white",
+					backgroundColor: colors.surfaceLight, // 💡 Dinámico
 					borderTopWidth: 1,
-					borderTopColor: "#F0F0F0",
-					// Sombras
+					borderTopColor: colors.borderLight, // 💡 Dinámico
 					elevation: 10,
 					shadowColor: "#000",
 					shadowOffset: { width: 0, height: -3 },
@@ -55,8 +69,8 @@ const TabNavigator = () => {
 					shadowRadius: 5,
 				},
 				tabBarLabelStyle: {
-					fontSize: 11,
-					fontWeight: "600",
+					fontSize: FontSize.xs,
+					fontWeight: FontWeight.semibold,
 					marginTop: 2,
 				},
 				tabBarIcon: ({ focused, color, size }) => {
@@ -93,26 +107,28 @@ const TabNavigator = () => {
 		>
 			<Tab.Screen name="Inicio" component={DashboardScreen} />
 			<Tab.Screen name="Pedidos">
-				{() => <PlaceholderScreen name="Gestión de Pedidos" />}
+				{() => (
+					<PlaceholderScreen
+						name="Gestión de Pedidos"
+						backgroundColor={colors.backgroundLight}
+						textColor={colors.textSecondaryLight}
+					/>
+				)}
 			</Tab.Screen>
-			<Tab.Screen
-				name="Catálogo"
-				component={ProductCatalogScreen}
-			></Tab.Screen>
-			<Tab.Screen name="Perfil">
-				{() => <PlaceholderScreen name="Ajustes de Cuenta" />}
-			</Tab.Screen>
+			<Tab.Screen name="Catálogo" component={ProductCatalogScreen} />
+			<Tab.Screen name="Perfil" component={ProfileScreen}></Tab.Screen>
 		</Tab.Navigator>
 	);
 };
 
 export const MainNavigator = () => {
+	const { colors } = useTheme(); // 💡 Colores del tema dinámico
+
 	return (
 		<RootStack.Navigator
 			screenOptions={{
 				headerShown: false,
-				// Configuración de transición suave
-				cardStyle: { backgroundColor: "white" },
+				cardStyle: { backgroundColor: colors.surfaceLight }, // 💡 Evita destellos blancos en transiciones
 			}}
 		>
 			<RootStack.Screen name="Tabs" component={TabNavigator} />
@@ -122,45 +138,45 @@ export const MainNavigator = () => {
 				options={{
 					headerShown: true,
 					title: "Configurar Negocio",
-					headerTintColor: Colors.businessBg, // Título y botón atrás en naranja Coco
+					headerTintColor: colors.businessBg,
 					headerTitleStyle: {
-						fontWeight: "800",
-						fontSize: 18,
-						color: "#333",
+						fontWeight: FontWeight.bold,
+						fontSize: FontSize.lg,
+						color: colors.textPrimaryLight, // 💡 Título dinámico
 					},
 					headerBackTitle: "",
-					presentation: "card", // Se siente como una navegación fluida
+					presentation: "card",
 					headerStyle: {
-						backgroundColor: "white",
-						elevation: 0, // Limpio para Android
-						shadowOpacity: 0, // Limpio para iOS
+						backgroundColor: colors.surfaceLight, // 💡 Header dinámico
+						elevation: 0,
+						shadowOpacity: 0,
 						borderBottomWidth: 1,
-						borderBottomColor: "#EEE",
+						borderBottomColor: colors.borderLight, // 💡 Borde dinámico
 					},
 				}}
 			/>
 			<RootStack.Screen
 				name="ProductForm"
 				component={ProductFormScreen}
-				options={{
+				options={({ route }: any) => ({
 					headerShown: true,
-					title: "Agregar producto",
-					headerTintColor: Colors.businessBg, // Título y botón atrás en naranja Coco
+					title: route.params?.title || "Producto",
+					headerTintColor: colors.businessBg,
 					headerTitleStyle: {
-						fontWeight: "800",
-						fontSize: 18,
-						color: "#333",
+						fontWeight: FontWeight.bold,
+						fontSize: FontSize.lg,
+						color: colors.textPrimaryLight, // 💡 Dinámico
 					},
 					headerBackTitle: "",
-					presentation: "card", // Se siente como una navegación fluida
+					presentation: "card",
 					headerStyle: {
-						backgroundColor: "white",
-						elevation: 0, // Limpio para Android
-						shadowOpacity: 0, // Limpio para iOS
+						backgroundColor: colors.surfaceLight, // 💡 Dinámico
+						elevation: 0,
+						shadowOpacity: 0,
 						borderBottomWidth: 1,
-						borderBottomColor: "#EEE",
+						borderBottomColor: colors.borderLight, // 💡 Dinámico
 					},
-				}}
+				})}
 			/>
 		</RootStack.Navigator>
 	);

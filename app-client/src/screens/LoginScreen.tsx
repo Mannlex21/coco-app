@@ -5,13 +5,13 @@ import {
 	View,
 	TextInput,
 	TouchableOpacity,
-	Alert,
 	KeyboardAvoidingView,
 	Platform,
 } from "react-native";
 import { CocoLogo } from "@coco/shared/components/CocoLogo";
 import { AuthService } from "@/infrastructure/auth/AuthService";
 import GoogleButton from "@coco/shared/components/GoogleButton";
+import { useDialog } from "../../../shared/providers/DialogContext";
 
 interface LoginProps {
 	onRegister: () => void;
@@ -20,13 +20,25 @@ interface LoginProps {
 export const LoginScreen: React.FC<LoginProps> = ({ onRegister }) => {
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
+	const { showDialog } = useDialog();
 
 	const handleLogin = async () => {
 		try {
 			await AuthService.login(email, password);
-			Alert.alert("¡Bienvenido!", "Ya puedes pedir tu coco");
+
+			showDialog({
+				title: "¡Bienvenido!",
+				message: "Ya puedes pedir tu coco",
+				intent: "success",
+			});
 		} catch (error: any) {
-			Alert.alert("Error", "Revisa tus datos o regístrate.");
+			console.error(error);
+
+			showDialog({
+				title: "Error",
+				message: "Revisa tus datos o regístrate.",
+				intent: "error",
+			});
 		}
 	};
 
@@ -46,6 +58,7 @@ export const LoginScreen: React.FC<LoginProps> = ({ onRegister }) => {
 					value={email}
 					onChangeText={setEmail}
 					autoCapitalize="none"
+					keyboardType="email-address"
 				/>
 				<TextInput
 					style={styles.input}
@@ -60,7 +73,6 @@ export const LoginScreen: React.FC<LoginProps> = ({ onRegister }) => {
 					<Text style={styles.buttonText}>Iniciar Sesión</Text>
 				</TouchableOpacity>
 
-				{/* Separador visual */}
 				<View style={styles.dividerContainer}>
 					<View style={styles.line} />
 					<Text style={styles.dividerText}>O</Text>

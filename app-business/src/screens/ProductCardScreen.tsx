@@ -6,13 +6,18 @@ import {
 	FlatList,
 	TouchableOpacity,
 	Image,
-	Switch,
 	TextInput,
 	RefreshControl,
 	Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { BorderRadius, Colors, Shadow } from "@coco/shared/config/theme";
+import {
+	BorderRadius,
+	Shadow,
+	Spacing,
+	FontSize,
+	FontWeight,
+} from "@coco/shared/config/theme";
 import { useNavigation } from "@react-navigation/native";
 import { Product } from "@coco/shared/core/entities/Product";
 import { useProducts } from "../../../shared/hooks/useProducts";
@@ -20,15 +25,19 @@ import { db } from "@/infrastructure/firebase/config";
 import { useBusiness } from "@coco/shared/hooks/useBusiness";
 import { useAppStore } from "@coco/shared/hooks/useAppStore";
 import { ProductContextMenu } from "../../../shared/components/ProductContextMenu";
+import { useTheme } from "@coco/shared/hooks/useTheme"; // 👈 Importamos el hook
+import { useDialog } from "@coco/shared/providers/DialogContext";
 
 export const ProductCatalogScreen = () => {
 	const navigation = useNavigation<any>();
 	const [search, setSearch] = useState("");
 	const { user } = useAppStore();
+	const { showDialog } = useDialog();
 	const [menuVisible, setMenuVisible] = useState(false);
 	const [selectedProduct, setSelectedProduct] = useState<Product | null>(
 		null,
 	);
+	const { colors } = useTheme();
 	const { activeBusiness } = useBusiness(db, user?.id);
 	const {
 		products,
@@ -37,33 +46,56 @@ export const ProductCatalogScreen = () => {
 		deleteProduct,
 		toggleAvailability,
 	} = useProducts(db, activeBusiness?.id);
+
 	const handleDelete = (product: Product) => {
-		Alert.alert(
-			"Eliminar Producto",
-			`¿Estás seguro de que quieres eliminar "${product.name}"?`,
-			[
-				{ text: "Cancelar", style: "cancel" },
-				{
-					text: "Eliminar",
-					style: "destructive",
-					onPress: () => deleteProduct(product.id),
-				},
-			],
-		);
+		showDialog({
+			title: "Eliminar Producto",
+			message: `¿Estás seguro de que quieres eliminar "${product.name}"?`,
+			intent: "error",
+			onConfirm: () => {
+				(async () => {
+					try {
+						await deleteProduct(product.id);
+
+						showDialog({
+							title: "Eliminado",
+							message: "El producto ha sido borrado con éxito.",
+							intent: "success",
+						});
+					} catch (error) {
+						console.error(error);
+
+						showDialog({
+							title: "Error",
+							message: "No se pudo borrar el producto.",
+							intent: "error",
+						});
+					}
+				})();
+			},
+		});
 	};
 
 	const renderProductItem = ({ item }: { item: Product }) => (
 		<TouchableOpacity
 			style={[
 				styles.productCard,
-				{ opacity: item.isAvailable ? 1 : 0.8 }, // <- Se verá un poco grisáceo si está pausado
+				{
+					backgroundColor: colors.surfaceLight,
+					opacity: item.isAvailable ? 1 : 0.6, // Bajamos un poco más la opacidad si está pausado
+				},
 			]}
 			onPress={() => {
 				setSelectedProduct(item);
 				setMenuVisible(true);
 			}}
 		>
-			<View style={styles.imagePlaceholder}>
+			<View
+				style={[
+					styles.imagePlaceholder,
+					{ backgroundColor: colors.backgroundLight },
+				]}
+			>
 				{item.imageUrl ? (
 					<Image
 						source={{ uri: item.imageUrl }}
@@ -76,13 +108,38 @@ export const ProductCatalogScreen = () => {
 
 			<View style={styles.productInfo}>
 				<View style={styles.titleRow}>
-					<Text style={styles.productName}>{item.name}</Text>
-					<Text style={styles.categoryBadge}>{item.category}</Text>
+					<Text
+						style={[
+							styles.productName,
+							{ color: colors.textPrimaryLight },
+						]}
+					>
+						{item.name}
+					</Text>
+					<Text
+						style={[
+							styles.categoryBadge,
+							{
+								backgroundColor: colors.backgroundLight,
+								color: colors.textSecondaryLight,
+							},
+						]}
+					>
+						{item.category}
+					</Text>
 				</View>
-				<Text style={styles.productDesc} numberOfLines={1}>
+				<Text
+					style={[
+						styles.productDesc,
+						{ color: colors.textSecondaryLight },
+					]}
+					numberOfLines={1}
+				>
 					{item.description || "Sin descripción"}
 				</Text>
-				<Text style={styles.productPrice}>
+				<Text
+					style={[styles.productPrice, { color: colors.businessBg }]}
+				>
 					${item.price.toFixed(2)}
 				</Text>
 			</View>
@@ -92,7 +149,11 @@ export const ProductCatalogScreen = () => {
 					<Text
 						style={[
 							styles.statusText,
-							{ color: item.isAvailable ? "#2D6A4F" : "#E76F51" },
+							{
+								color: item.isAvailable
+									? colors.success
+									: colors.error,
+							},
 						]}
 					>
 						{item.isAvailable ? "Activo" : "Pausado"}
@@ -103,12 +164,29 @@ export const ProductCatalogScreen = () => {
 	);
 
 	return (
-		<SafeAreaView style={styles.container} edges={["top"]}>
-			<View style={styles.header}>
-				<Text style={styles.title}>Mi Catálogo</Text>
+		<View style={styles.container}>
+			<View
+				style={[
+					styles.header,
+					{ backgroundColor: colors.surfaceLight },
+				]}
+			>
+				<Text
+					style={[styles.title, { color: colors.textPrimaryLight }]}
+				>
+					Mi Catálogo
+				</Text>
 				<TextInput
-					style={styles.searchBar}
+					style={[
+						styles.searchBar,
+						{
+							backgroundColor: colors.backgroundLight,
+							color: colors.textPrimaryLight,
+							borderColor: colors.borderLight,
+						},
+					]}
 					placeholder="Buscar producto..."
+					placeholderTextColor={colors.textSecondaryLight}
 					value={search}
 					onChangeText={setSearch}
 				/>
@@ -121,7 +199,12 @@ export const ProductCatalogScreen = () => {
 				contentContainerStyle={styles.listContent}
 				ListEmptyComponent={
 					<View style={styles.emptyContainer}>
-						<Text style={styles.emptyText}>
+						<Text
+							style={[
+								styles.emptyText,
+								{ color: colors.textSecondaryLight },
+							]}
+						>
 							No tienes productos registrados.
 						</Text>
 					</View>
@@ -132,19 +215,26 @@ export const ProductCatalogScreen = () => {
 					<RefreshControl
 						refreshing={refreshing}
 						onRefresh={onRefresh}
-						colors={[Colors.businessBg]} // Android
-						tintColor={Colors.businessBg} // iOS
+						colors={[colors.businessBg]} // Android
+						tintColor={colors.businessBg} // iOS
 					/>
 				}
 			/>
 
-			{/* Floating Action Button (FAB) */}
+			{/* Floating Action Button */}
 			<TouchableOpacity
-				style={styles.fab}
-				onPress={() => navigation.navigate("ProductForm")}
+				style={[styles.fab, { backgroundColor: colors.businessBg }]}
+				onPress={() =>
+					navigation.navigate("ProductForm", {
+						title: "Nuevo Producto",
+					})
+				}
 			>
-				<Text style={styles.fabText}>+</Text>
+				<Text style={[styles.fabText, { color: colors.textOnPrimary }]}>
+					+
+				</Text>
 			</TouchableOpacity>
+
 			<ProductContextMenu
 				visible={menuVisible}
 				onClose={() => setMenuVisible(false)}
@@ -154,103 +244,126 @@ export const ProductCatalogScreen = () => {
 					{
 						label: "Editar producto",
 						icon: "✏️",
-						iconBg: "#FFF5EB",
-						textColor: "#333",
-						onPress: () =>
+						iconBg: colors.warningLight,
+						textColor: colors.textPrimaryLight,
+						onPress: () => {
+							setMenuVisible(false);
 							navigation.navigate("ProductForm", {
+								title: "Actualizar Producto",
 								productId: selectedProduct?.id,
-							}),
+							});
+						},
 					},
 					{
 						label: selectedProduct?.isAvailable
 							? "Pausar producto"
 							: "Activar producto",
 						icon: selectedProduct?.isAvailable ? "⏸️" : "▶️",
-						iconBg: "#FFF9E6",
-						textColor: "#F39C12",
+						iconBg: colors.infoLight,
+						textColor: colors.info,
 						onPress: () => {
 							if (selectedProduct) {
-								// Mandamos el ID y el estado actual
 								toggleAvailability(
 									selectedProduct.id,
 									selectedProduct.isAvailable,
 								);
-								setMenuVisible(false); // Cerramos el menú
+								setMenuVisible(false);
 							}
 						},
 					},
 					{
 						label: "Eliminar producto",
 						icon: "🗑️",
-						iconBg: "#FFF0EE",
-						textColor: "#E76F51",
-						onPress: () =>
-							selectedProduct && handleDelete(selectedProduct),
+						iconBg: colors.errorLight,
+						textColor: colors.error,
+						onPress: () => {
+							setMenuVisible(false);
+							selectedProduct && handleDelete(selectedProduct);
+						},
 					},
 				]}
 			/>
-		</SafeAreaView>
+		</View>
 	);
 };
 
 const styles = StyleSheet.create({
-	container: { flex: 1, backgroundColor: "#F8F9FA" },
-	header: { padding: 20, backgroundColor: "white" },
+	container: {
+		flex: 1,
+	},
+	header: {
+		padding: Spacing.md,
+	},
 	title: {
-		fontSize: 24,
-		fontWeight: "bold",
-		color: "#333",
-		marginBottom: 15,
+		fontSize: FontSize.xxl,
+		fontWeight: FontWeight.bold,
+		marginBottom: Spacing.md,
 	},
 	searchBar: {
-		backgroundColor: "#F1F3F5",
-		padding: 12,
-		borderRadius: 10,
-		fontSize: 16,
+		padding: Spacing.md,
+		borderRadius: BorderRadius.md,
+		fontSize: FontSize.md,
+		borderWidth: 1,
 	},
-	listContent: { padding: 20, paddingBottom: 100 },
+	listContent: {
+		padding: Spacing.md,
+		paddingBottom: 100,
+	},
 	productCard: {
-		backgroundColor: "white",
-		// borderRadius: 15,
-		padding: 12,
+		padding: Spacing.md,
 		flexDirection: "row",
 		alignItems: "center",
-		marginBottom: 15,
-		borderRadius: BorderRadius.md,
+		marginBottom: Spacing.md,
+		borderRadius: BorderRadius.lg,
 		...Shadow.md,
 	},
 	imagePlaceholder: {
 		width: 60,
 		height: 60,
-		borderRadius: 10,
-		backgroundColor: "#FFF5EB",
+		borderRadius: BorderRadius.md,
 		justifyContent: "center",
 		alignItems: "center",
 	},
-	image: { width: 60, height: 60, borderRadius: 10 },
-	imageText: { fontSize: 30 },
-	productInfo: { flex: 1, marginLeft: 15 },
-	titleRow: { flexDirection: "row", alignItems: "center" },
-	productName: { fontSize: 16, fontWeight: "bold", color: "#333" },
-	categoryBadge: {
-		fontSize: 10,
-		backgroundColor: "#EEE",
-		paddingHorizontal: 6,
-		paddingVertical: 2,
-		borderRadius: 4,
-		marginLeft: 8,
-		color: "#666",
-		textTransform: "uppercase",
+	image: {
+		width: 60,
+		height: 60,
+		borderRadius: BorderRadius.md,
 	},
-	productDesc: { fontSize: 13, color: "#888", marginTop: 2 },
+	imageText: {
+		fontSize: FontSize.title,
+	},
+	productInfo: {
+		flex: 1,
+		marginLeft: Spacing.md,
+	},
+	titleRow: {
+		flexDirection: "row",
+		alignItems: "center",
+	},
+	productName: {
+		fontSize: FontSize.md,
+		fontWeight: FontWeight.bold,
+	},
+	categoryBadge: {
+		fontSize: FontSize.xs,
+		paddingHorizontal: Spacing.sm,
+		paddingVertical: 2,
+		borderRadius: BorderRadius.sm,
+		marginLeft: Spacing.sm,
+		textTransform: "uppercase",
+		fontWeight: FontWeight.semibold,
+	},
+	productDesc: {
+		fontSize: FontSize.sm,
+		marginTop: 2,
+	},
 	productPrice: {
-		fontSize: 15,
-		fontWeight: "bold",
-		color: Colors.businessBg,
+		fontSize: FontSize.md,
+		fontWeight: FontWeight.bold,
 		marginTop: 4,
 	},
 	rightProductInfo: {
-		marginLeft: 10,
+		marginLeft: Spacing.sm,
 	},
 	statusContainer: {
 		display: "flex",
@@ -262,54 +375,30 @@ const styles = StyleSheet.create({
 	},
 	statusText: {
 		textAlign: "right",
-		fontSize: 10,
-		fontWeight: "bold",
+		fontSize: FontSize.xs,
+		fontWeight: FontWeight.bold,
 		marginTop: 4,
 	},
 	fab: {
 		position: "absolute",
 		bottom: 30,
 		right: 30,
-		backgroundColor: Colors.businessBg,
 		width: 60,
 		height: 60,
 		borderRadius: 30,
 		justifyContent: "center",
 		alignItems: "center",
-		elevation: 5,
-		shadowColor: "#000",
-		shadowOffset: { width: 0, height: 4 },
-		shadowOpacity: 0.3,
-		shadowRadius: 5,
+		...Shadow.lg,
 	},
-	fabText: { color: "white", fontSize: 30, fontWeight: "bold" },
-	emptyContainer: { marginTop: 50, alignItems: "center" },
-	emptyText: { color: "#999", fontSize: 16 },
-
-	deleteButtonContainer: {
-		marginBottom: 15, // Debe ser igual al de la tarjeta
-		marginRight: 20,
-		width: 80,
+	fabText: {
+		fontSize: FontSize.title,
+		fontWeight: FontWeight.bold,
 	},
-	productCardContainer: {
-		marginBottom: 15,
-	},
-	deleteButton: {
-		backgroundColor: "#E76F51",
-		marginHorizontal: 20,
-		marginTop: -8,
-		paddingVertical: 8,
-		borderBottomLeftRadius: 15,
-		borderBottomRightRadius: 15,
+	emptyContainer: {
+		marginTop: 50,
 		alignItems: "center",
 	},
-	deleteButtonText: {
-		color: "white",
-		fontWeight: "bold",
-		fontSize: 12,
-	},
-	trashButton: {
-		marginTop: 8,
-		padding: 4,
+	emptyText: {
+		fontSize: FontSize.md,
 	},
 });

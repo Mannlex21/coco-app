@@ -15,12 +15,14 @@ import { AuthService } from "@/infrastructure/auth/AuthService";
 import GoogleButton from "@coco/shared/components/GoogleButton";
 import {
 	BorderRadius,
-	Colors,
 	FontSize,
 	FontWeight,
 	Shadow,
 	Spacing,
+	Colors,
 } from "@coco/shared/config/theme";
+import { useTheme } from "@coco/shared/hooks/useTheme"; // 👈 Tu hook
+import { useDialog } from "@coco/shared/providers/DialogContext";
 
 interface LoginProps {
 	onRegister: () => void;
@@ -29,14 +31,26 @@ interface LoginProps {
 export const LoginScreen: React.FC<LoginProps> = ({ onRegister }) => {
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
+	const { colors } = useTheme();
+	const { showDialog } = useDialog();
 
 	const handleLogin = async () => {
 		try {
 			await AuthService.login(email, password);
-			Alert.alert("¡Bienvenido!", "Ya puedes pedir tu coco");
+
+			showDialog({
+				title: "¡Bienvenido!",
+				message: "Ya puedes pedir tu coco",
+				intent: "success",
+			});
 		} catch (error: any) {
-			console.log("Error:", error.code); // Para que lo veas en la terminal
-			Alert.alert("Error", "Revisa tus datos o regístrate.");
+			console.error(error);
+
+			showDialog({
+				title: "Error",
+				message: "Revisa tus datos o regístrate.",
+				intent: "error",
+			});
 		}
 	};
 
@@ -46,6 +60,7 @@ export const LoginScreen: React.FC<LoginProps> = ({ onRegister }) => {
 			style={styles.container}
 		>
 			<StatusBar barStyle="light-content" />
+
 			<CocoLogo variant="business" />
 			<Text style={styles.title}>Coco</Text>
 
@@ -57,6 +72,7 @@ export const LoginScreen: React.FC<LoginProps> = ({ onRegister }) => {
 					value={email}
 					onChangeText={setEmail}
 					autoCapitalize="none"
+					keyboardType="email-address"
 				/>
 				<TextInput
 					style={styles.input}
@@ -68,7 +84,15 @@ export const LoginScreen: React.FC<LoginProps> = ({ onRegister }) => {
 				/>
 
 				<TouchableOpacity style={styles.button} onPress={handleLogin}>
-					<Text style={styles.buttonText}>Iniciar Sesión</Text>
+					{/* 💡 colors.businessBg es el color dinámico correcto para el texto */}
+					<Text
+						style={[
+							styles.buttonText,
+							{ color: colors.businessBg },
+						]}
+					>
+						Iniciar Sesión
+					</Text>
 				</TouchableOpacity>
 
 				{/* Separador visual */}
@@ -96,7 +120,7 @@ export const LoginScreen: React.FC<LoginProps> = ({ onRegister }) => {
 const styles = StyleSheet.create({
 	container: {
 		flex: 1,
-		backgroundColor: Colors.businessBg, // Naranja oscuro oficial
+		backgroundColor: Colors.light.businessBg,
 		alignItems: "center",
 		justifyContent: "center",
 		padding: Spacing.lg,
@@ -104,7 +128,7 @@ const styles = StyleSheet.create({
 	title: {
 		fontSize: FontSize.hero,
 		fontWeight: FontWeight.black,
-		color: Colors.surfaceLight,
+		color: Colors.light.backgroundLight, // 💡 Ocupamos el color del tema claro estático para asegurar el blanco
 		marginBottom: Spacing.xl,
 		letterSpacing: 2,
 	},
@@ -113,14 +137,14 @@ const styles = StyleSheet.create({
 		backgroundColor: "rgba(255,255,255,0.15)",
 		borderRadius: BorderRadius.md,
 		padding: Spacing.md,
-		color: Colors.surfaceLight,
+		color: Colors.light.backgroundLight, // 💡 Texto siempre blanco sobre el fondo naranja
 		marginBottom: Spacing.sm,
 		fontSize: FontSize.md,
 		borderWidth: 1,
 		borderColor: "rgba(255,255,255,0.2)",
 	},
 	button: {
-		backgroundColor: Colors.surfaceLight, // Fondo blanco para contraste
+		backgroundColor: Colors.light.backgroundLight, // 💡 El botón siempre será del color de fondo claro (blanco)
 		padding: Spacing.md,
 		borderRadius: BorderRadius.md,
 		alignItems: "center",
@@ -128,7 +152,6 @@ const styles = StyleSheet.create({
 		...Shadow.md,
 	},
 	buttonText: {
-		color: Colors.businessBg, // Texto en naranja oscuro
 		fontWeight: FontWeight.bold,
 		fontSize: FontSize.lg,
 	},
@@ -143,7 +166,7 @@ const styles = StyleSheet.create({
 		backgroundColor: "rgba(255,255,255,0.3)",
 	},
 	dividerText: {
-		color: Colors.surfaceLight,
+		color: Colors.light.backgroundLight, // 💡 Siempre blanco
 		paddingHorizontal: Spacing.md,
 		fontWeight: FontWeight.semibold,
 		opacity: 0.8,
@@ -153,7 +176,7 @@ const styles = StyleSheet.create({
 		alignItems: "center",
 	},
 	registerText: {
-		color: Colors.surfaceLight,
+		color: Colors.light.backgroundLight, // 💡 Siempre blanco
 		fontWeight: FontWeight.semibold,
 		opacity: 0.9,
 		textDecorationLine: "underline",

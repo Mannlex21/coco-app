@@ -1,60 +1,77 @@
-export const Colors = {
-	// 1. Identidad de Apps (Fondos de Login/Splash)
-	clientBg: "#1A7A4A",
+const LightTheme = {
+	// 1. 🟢 MANTENEMOS TUS COLORES ORIGINALES (Para no cambiar toda la app)
+	clientBg: "#3498DB",
 	businessBg: "#C45E1A",
-	driverBg: "#0A4A7A",
+	driverBg: "#2ECC71",
+	cocoBase: "#5D4037",
+	cocoInner: "#D7CCC8",
+	cocoEyes: "#212121",
+	leafMed: "#4CAF50",
+	leafLight: "#8BC34A",
 
-	// 2. Colores de la Mascota Coco
-	cocoBase: "#F4A261",
-	cocoInner: "#E76F51",
-	cocoEyes: "#2D1B0E",
-
-	// 3. Paleta de Hojas y Acentos
-	leafMed: "#27AE60",
-	leafLight: "#2ECC71",
-
-	// 4. Semánticos (Estados)
-	success: "#27AE60",
-	error: "#E74C3C",
-	warning: "#F39C12",
-	info: "#3498DB",
-
-	// 4.1 Fondos suaves para iconos/badges/botones outline
-	successLight: "#EAF7EF", // fondo verde suave
-	errorLight: "#FDEDEC", // fondo rojo suave
-	warningLight: "#FEF9E7", // fondo ámbar suave
-	infoLight: "#EAF4FB", // fondo azul suave
-
-	// 4.2 Texto sobre fondos light (más oscuro que el color base)
-	successText: "#1E8449", // verde oscuro
-	errorText: "#C0392B", // rojo oscuro
-	warningText: "#D68910", // ámbar oscuro
-	infoText: "#1A6FA8", // azul oscuro
-
-	// 5. Neutros y Superficies
-	backgroundLight: "#F5F3EF",
+	// 2. 🟢 SUMAMOS LOS COLORES DE INTERFAZ QUE PROPUSISTE
+	businessLight: "#FFF5EB",
+	backgroundLight: "#F8F9FA",
 	surfaceLight: "#FFFFFF",
-	borderLight: "#E8E4DC",
+	borderLight: "#EEEEEE",
 
-	// 6. Texto
-	textPrimaryLight: "#1A1A1A",
-	textSecondaryLight: "#7A736A",
+	// Tipografía
+	textPrimaryLight: "#333333",
+	textSecondaryLight: "#666666",
 	textOnPrimary: "#FFFFFF",
+
+	// Colores Semánticos
+	success: "#2D6A4F",
+	successLight: "#E8F5E9",
+	error: "#E76F51",
+	errorLight: "#FFF0EE",
+	warning: "#FFB703",
+	warningLight: "#FFF9E6",
+	info: "#2196F3",
+	infoLight: "#E3F2FD",
 };
 
-// Función auxiliar para obtener el color de marca según el rol
-export const getBrandColor = (role: "client" | "business" | "driver") => {
-	switch (role) {
-		case "client":
-			return Colors.clientBg;
-		case "business":
-			return Colors.businessBg;
-		case "driver":
-			return Colors.driverBg;
-		default:
-			return Colors.clientBg;
-	}
+const DarkTheme: ColorPalette = {
+	// 1. 🔴 ADAPTAMOS TUS COLORES ORIGINALES AL MODO OSCURO
+	clientBg: "#2980B9",
+	businessBg: "#E07A2F", // El naranja vibrante que querías
+	driverBg: "#27AE60",
+	cocoBase: "#3E2723",
+	cocoInner: "#5D4037",
+	cocoEyes: "#F5F5F5",
+	leafMed: "#388E3C",
+	leafLight: "#689F38",
+
+	// 2. 🔴 COLORES DE INTERFAZ OSCUROS QUE PROPUSISTE
+	businessLight: "#2C1D14",
+	backgroundLight: "#121212",
+	surfaceLight: "#1E1E1E",
+	borderLight: "#333333",
+
+	// Tipografía
+	textPrimaryLight: "#F5F5F5",
+	textSecondaryLight: "#AAAAAA",
+	textOnPrimary: "#FFFFFF",
+
+	// Colores Semánticos
+	success: "#52B788",
+	successLight: "#1A2E22",
+	error: "#F4A261",
+	errorLight: "#2C1B1A",
+	warning: "#FFD166",
+	warningLight: "#2C271A",
+	info: "#64B5F6",
+	infoLight: "#1A242E",
 };
+
+export type ColorPalette = typeof LightTheme;
+
+export const Colors = {
+	light: LightTheme,
+	dark: DarkTheme,
+};
+
+// --- TIPOGRAFÍA Y MEDIDAS (Se quedan exactamente igual) ---
 
 export const Spacing = {
 	xs: 4,
@@ -93,124 +110,28 @@ export const FontWeight = {
 };
 
 export const Shadow = {
+	// 💡 Muy sutil, apenas un borde
 	sm: {
 		shadowColor: "#000",
 		shadowOffset: { width: 0, height: 1 },
-		shadowOpacity: 0.06,
-		shadowRadius: 4,
-		elevation: 2,
+		shadowOpacity: 0.04, // 👈 Bajamos un pelín más la opacidad
+		shadowRadius: 2, // 👈 Menos dispersión
+		elevation: 1, // 👈 Elevación 1 para Android
 	},
+	// 💡 Tu nuevo MD (Sutil pero define la tarjeta)
 	md: {
 		shadowColor: "#000",
-		shadowOffset: { width: 0, height: 4 },
-		shadowOpacity: 0.1,
-		shadowRadius: 12,
-		elevation: 5,
+		shadowOffset: { width: 0, height: 1.5 }, // 👈 Altura muy baja
+		shadowOpacity: 0.06, // 👈 Opacidad súper ligera
+		shadowRadius: 4, // 👈 Dispersión controlada
+		elevation: 2, // 👈 Elevación 2 para Android
 	},
+	// 💡 Tu nuevo LG (Para elementos que sí necesitan destacar un poco)
 	lg: {
 		shadowColor: "#000",
-		shadowOffset: { width: 0, height: 8 },
-		shadowOpacity: 0.15,
-		shadowRadius: 24,
-		elevation: 10,
-	},
-};
-
-export const ButtonStyles = {
-	// Sólidos — fondo lleno
-	solid: {
-		success: {
-			backgroundColor: Colors.success,
-			borderRadius: BorderRadius.md,
-			color: Colors.textOnPrimary,
-		},
-		error: {
-			backgroundColor: Colors.error,
-			borderRadius: BorderRadius.md,
-			color: Colors.textOnPrimary,
-		},
-		warning: {
-			backgroundColor: Colors.warning,
-			borderRadius: BorderRadius.md,
-			color: Colors.textOnPrimary,
-		},
-		info: {
-			backgroundColor: Colors.info,
-			borderRadius: BorderRadius.md,
-			color: Colors.textOnPrimary,
-		},
-		primary: {
-			backgroundColor: Colors.businessBg,
-			borderRadius: BorderRadius.md,
-			color: Colors.textOnPrimary,
-		},
-	},
-
-	// Outline — solo borde, fondo transparente
-	outline: {
-		success: {
-			backgroundColor: "transparent",
-			borderRadius: BorderRadius.md,
-			borderWidth: 1,
-			borderColor: Colors.success,
-			color: Colors.success,
-		},
-		error: {
-			backgroundColor: "transparent",
-			borderRadius: BorderRadius.md,
-			borderWidth: 1,
-			borderColor: Colors.error,
-			color: Colors.error,
-		},
-		warning: {
-			backgroundColor: "transparent",
-			borderRadius: BorderRadius.md,
-			borderWidth: 1,
-			borderColor: Colors.warning,
-			color: Colors.warning,
-		},
-		info: {
-			backgroundColor: "transparent",
-			borderRadius: BorderRadius.md,
-			borderWidth: 1,
-			borderColor: Colors.info,
-			color: Colors.info,
-		},
-		primary: {
-			backgroundColor: "transparent",
-			borderRadius: BorderRadius.md,
-			borderWidth: 1,
-			borderColor: Colors.businessBg,
-			color: Colors.businessBg,
-		},
-	},
-
-	// Light — fondo suave con texto oscuro
-	light: {
-		success: {
-			backgroundColor: Colors.successLight,
-			borderRadius: BorderRadius.md,
-			color: Colors.successText,
-		},
-		error: {
-			backgroundColor: Colors.errorLight,
-			borderRadius: BorderRadius.md,
-			color: Colors.errorText,
-		},
-		warning: {
-			backgroundColor: Colors.warningLight,
-			borderRadius: BorderRadius.md,
-			color: Colors.warningText,
-		},
-		info: {
-			backgroundColor: Colors.infoLight,
-			borderRadius: BorderRadius.md,
-			color: Colors.infoText,
-		},
-		primary: {
-			backgroundColor: Colors.backgroundLight,
-			borderRadius: BorderRadius.md,
-			color: Colors.businessBg,
-		},
+		shadowOffset: { width: 0, height: 3 }, // 👈 Altura máxima de 3
+		shadowOpacity: 0.08, // 👈 Sigue siendo muy transparente
+		shadowRadius: 8, // 👈 Difuminado elegante pero no exagerado
+		elevation: 3, // 👈 Elevación 3 para Android
 	},
 };

@@ -5,46 +5,59 @@ import {
 	View,
 	TextInput,
 	TouchableOpacity,
-	Alert,
 } from "react-native";
 import { CocoLogo } from "@coco/shared/components/CocoLogo";
 import { AuthService } from "@/infrastructure/auth/AuthService";
+import { useDialog } from "@coco/shared/providers/DialogContext";
 
 export const RegisterScreen = ({ onBack }: { onBack: () => void }) => {
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
+	const { showDialog } = useDialog();
 
 	const handleRegister = async () => {
-		// .trim() elimina espacios al inicio y al final
 		const cleanEmail = email.trim();
 
 		if (cleanEmail === "" || password === "") {
-			Alert.alert("Error", "Por favor llena todos los campos.");
+			showDialog({
+				title: "Error",
+				message: "Por favor llena todos los campos.",
+				intent: "error",
+			});
 			return;
 		}
 
 		if (password.length < 6) {
-			Alert.alert(
-				"Error",
-				"La contraseña debe tener al menos 6 caracteres.",
-			);
+			showDialog({
+				title: "Error",
+				message: "La contraseña debe tener al menos 6 caracteres.",
+				intent: "error",
+			});
 			return;
 		}
 
 		try {
-			// Usamos el correo limpio
 			await AuthService.register(cleanEmail, password);
-			Alert.alert("¡Éxito!", "Cuenta creada");
+			showDialog({
+				title: "¡Éxito!",
+				message: "Cuenta creada",
+				intent: "success",
+			});
 		} catch (error: any) {
-			console.log("Error detallado de Firebase:", error.code); // Para que lo veas en la terminal
+			console.error(error);
 
+			let errorMessage = "Ocurrió un problema al registrarte.";
 			if (error.code === "auth/email-already-in-use") {
-				Alert.alert("Error", "Este correo ya está registrado.");
+				errorMessage = "Este correo ya está registrado.";
 			} else if (error.code === "auth/invalid-email") {
-				Alert.alert("Error", "El formato del correo es inválido.");
-			} else {
-				Alert.alert("Error", "Ocurrió un problema al registrarte.");
+				errorMessage = "El formato del correo es inválido.";
 			}
+
+			showDialog({
+				title: "Error",
+				message: errorMessage,
+				intent: "error",
+			});
 		}
 	};
 

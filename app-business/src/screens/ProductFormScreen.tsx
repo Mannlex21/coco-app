@@ -6,29 +6,49 @@ import {
 	TextInput,
 	TouchableOpacity,
 	Switch,
-	Alert,
 	ActivityIndicator,
 } from "react-native";
-import { Colors } from "@coco/shared/config/theme";
+import {
+	Spacing,
+	BorderRadius,
+	FontSize,
+	FontWeight,
+	Shadow,
+} from "@coco/shared/config/theme";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { useAppStore } from "@coco/shared/hooks/useAppStore";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { useProducts } from "../../../shared/hooks/useProducts";
 import { db } from "@/infrastructure/firebase/config";
 import { Product } from "@coco/shared/core/entities/Product";
+import { useDialog } from "@coco/shared/providers/DialogContext";
+import { useTheme } from "@coco/shared/hooks/useTheme";
 
 const CATEGORIES = ["tacos", "bebidas", "postres", "combos", "otros"];
 
 export const ProductFormScreen = () => {
 	const navigation = useNavigation();
 	const route = useRoute<any>();
+	const { showDialog } = useDialog();
 
-	// Si viene un productId en los parámetros, estamos en modo Edición
 	const productId = route.params?.productId;
 	const isEditMode = !!productId;
 
 	const { activeBusiness } = useAppStore();
 	const [fetchingProduct, setFetchingProduct] = useState(isEditMode);
+
+	// 💡 Extraemos si es oscuro o no y el businessBg dinámico
+	const { colors, isDark } = useTheme();
+
+	// 🎨 Colores calculados por opacidad (Inmunes a fallos de TypeScript)
+	const textColor = isDark ? "rgba(255,255,255,0.9)" : "rgba(0,0,0,0.85)";
+	const subTextColor = isDark ? "rgba(255,255,255,0.6)" : "rgba(0,0,0,0.55)";
+	const borderColor = isDark ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.1)";
+
+	// 🧱 Fondos estructurales fijos y seguros
+	const backgroundBg = isDark ? "#121212" : "#F8F9FA";
+	const cardBg = isDark ? "#1C1C1E" : "#FFFFFF";
+	const inputBg = isDark ? "#2C2C2E" : "#F5F5F5";
 
 	const [form, setForm] = useState({
 		name: "",
@@ -42,7 +62,7 @@ export const ProductFormScreen = () => {
 		db,
 		activeBusiness?.id,
 	);
-	// 1. Efecto para cargar los datos si estamos editando
+
 	useEffect(() => {
 		const fetchProductData = async () => {
 			if (!isEditMode || !productId) return;
@@ -59,14 +79,20 @@ export const ProductFormScreen = () => {
 						isAvailable: data.isAvailable ?? true,
 					});
 				} else {
-					Alert.alert("Error", "No se encontró el producto.");
+					showDialog({
+						title: "Error",
+						message: "No se encontró el producto.",
+						intent: "error",
+					});
 					navigation.goBack();
 				}
 			} catch (error) {
-				Alert.alert(
-					"Error",
-					"No se pudieron cargar los datos del producto.",
-				);
+				console.error("Error:", error);
+				showDialog({
+					title: "Error",
+					message: "No se pudieron cargar los datos del producto.",
+					intent: "error",
+				});
 			} finally {
 				setFetchingProduct(false);
 			}
@@ -77,7 +103,11 @@ export const ProductFormScreen = () => {
 
 	const handleSave = async () => {
 		if (!form.name.trim() || !form.price) {
-			Alert.alert("Error", "Nombre y precio son obligatorios.");
+			showDialog({
+				title: "Atención",
+				message: "Nombre y precio son obligatorios.",
+				intent: "warning",
+			});
 			return;
 		}
 
@@ -91,111 +121,166 @@ export const ProductFormScreen = () => {
 			};
 
 			if (isEditMode) {
-				// Mandamos el ID y la data limpia
 				await updateProduct(productId, productData);
-				Alert.alert("¡Éxito!", "Producto actualizado correctamente.", [
-					{ text: "OK", onPress: () => navigation.goBack() },
-				]);
 			} else {
 				await saveProduct(productData as any);
-				Alert.alert("¡Éxito!", "Producto guardado correctamente.", [
-					{ text: "OK", onPress: () => navigation.goBack() },
-				]);
 			}
+
+			showDialog({
+				title: "¡Éxito!",
+				message: `Producto ${isEditMode ? "actualizado" : "guardado"} correctamente.`,
+				intent: "success",
+				onConfirm: () => navigation.goBack(),
+			});
 		} catch (error) {
 			console.error("Error en handleSave:", error);
-			Alert.alert(
-				"Error",
-				`No se pudo ${isEditMode ? "actualizar" : "guardar"} el producto.`,
-			);
+			showDialog({
+				title: "Error",
+				message: `No se pudo ${isEditMode ? "actualizar" : "guardar"} el producto.`,
+				intent: "error",
+			});
 		}
 	};
+
 	if (fetchingProduct) {
 		return (
 			<View
-				style={{
-					flex: 1,
-					justifyContent: "center",
-					alignItems: "center",
-				}}
+				style={[
+					styles.loadingContainer,
+					{ backgroundColor: backgroundBg },
+				]}
 			>
-				<ActivityIndicator size="large" color={Colors.businessBg} />
-				<Text style={{ marginTop: 10, color: "#666" }}>
+				<ActivityIndicator size="large" color={colors.businessBg} />
+				<Text style={[styles.loadingText, { color: subTextColor }]}>
 					Cargando datos...
 				</Text>
 			</View>
 		);
 	}
+
 	return (
 		<KeyboardAwareScrollView
-			style={styles.container}
+			style={[styles.container, { backgroundColor: backgroundBg }]}
 			contentContainerStyle={styles.scrollContent}
 			keyboardShouldPersistTaps="handled"
 			enableOnAndroid={true}
-			extraScrollHeight={16}
+			extraScrollHeight={Spacing.md}
 			showsVerticalScrollIndicator={false}
 		>
-			<View style={styles.form}>
-				<Text style={styles.label}>Nombre del producto *</Text>
+			<View style={[styles.form, { backgroundColor: cardBg }]}>
+				<Text style={[styles.label, { color: textColor }]}>
+					Nombre del producto *
+				</Text>
 				<TextInput
-					style={styles.input}
+					style={[
+						styles.input,
+						{
+							backgroundColor: inputBg,
+							color: textColor,
+							borderColor,
+						},
+					]}
 					placeholder="Ej. Tacos de Asada"
+					placeholderTextColor={subTextColor}
 					value={form.name}
 					onChangeText={(t) => setForm({ ...form, name: t })}
 					editable={!loading}
 				/>
 
-				<Text style={styles.label}>Descripción (Opcional)</Text>
+				<Text style={[styles.label, { color: textColor }]}>
+					Descripción (Opcional)
+				</Text>
 				<TextInput
-					style={[styles.input, styles.textArea]}
+					style={[
+						styles.input,
+						styles.textArea,
+						{
+							backgroundColor: inputBg,
+							color: textColor,
+							borderColor,
+						},
+					]}
 					placeholder="¿Qué contiene el platillo?"
+					placeholderTextColor={subTextColor}
 					multiline
 					value={form.description}
 					onChangeText={(t) => setForm({ ...form, description: t })}
 					editable={!loading}
 				/>
 
-				<Text style={styles.label}>Precio ($) *</Text>
+				<Text style={[styles.label, { color: textColor }]}>
+					Precio ($) *
+				</Text>
 				<TextInput
-					style={styles.input}
+					style={[
+						styles.input,
+						{
+							backgroundColor: inputBg,
+							color: textColor,
+							borderColor,
+						},
+					]}
 					placeholder="0.00"
+					placeholderTextColor={subTextColor}
 					keyboardType="numeric"
 					value={form.price}
 					onChangeText={(t) => setForm({ ...form, price: t })}
 					editable={!loading}
 				/>
 
-				<Text style={styles.label}>Categoría</Text>
+				<Text style={[styles.label, { color: textColor }]}>
+					Categoría
+				</Text>
 				<View style={styles.categoryContainer}>
-					{CATEGORIES.map((cat) => (
-						<TouchableOpacity
-							key={cat}
-							style={[
-								styles.chip,
-								form.category === cat && styles.activeChip,
-							]}
-							onPress={() => setForm({ ...form, category: cat })}
-							disabled={loading}
-						>
-							<Text
+					{CATEGORIES.map((cat) => {
+						const isActive = form.category === cat;
+						return (
+							<TouchableOpacity
+								key={cat}
 								style={[
-									styles.chipText,
-									form.category === cat &&
-										styles.activeChipText,
+									styles.chip,
+									{
+										backgroundColor: isDark
+											? "rgba(255,255,255,0.05)"
+											: "#FFFFFF",
+										borderColor,
+									},
+									isActive && {
+										backgroundColor: colors.businessBg,
+										borderColor: colors.businessBg,
+									},
 								]}
+								onPress={() =>
+									setForm({ ...form, category: cat })
+								}
+								disabled={loading}
 							>
-								{cat.toUpperCase()}
-							</Text>
-						</TouchableOpacity>
-					))}
+								<Text
+									style={[
+										styles.chipText,
+										{ color: subTextColor },
+										isActive && { color: "#FFFFFF" },
+									]}
+								>
+									{cat.toUpperCase()}
+								</Text>
+							</TouchableOpacity>
+						);
+					})}
 				</View>
 
-				<View style={styles.switchRow}>
+				<View
+					style={[styles.switchRow, { borderTopColor: borderColor }]}
+				>
 					<View>
-						<Text style={styles.switchLabel}>
+						<Text
+							style={[styles.switchLabel, { color: textColor }]}
+						>
 							Disponible para venta
 						</Text>
-						<Text style={styles.switchSub}>
+						<Text
+							style={[styles.switchSub, { color: subTextColor }]}
+						>
 							Los clientes podrán verlo en el menú
 						</Text>
 					</View>
@@ -205,25 +290,26 @@ export const ProductFormScreen = () => {
 							setForm({ ...form, isAvailable: v })
 						}
 						trackColor={{
-							false: "#D1D1D1",
-							true: Colors.businessBg,
+							false: isDark ? "#3A3A3C" : "rgba(0,0,0,0.1)",
+							true: colors.businessBg,
 						}}
+						thumbColor={isDark ? "#FFFFFF" : "#F5F5F5"}
 						disabled={loading}
 					/>
 				</View>
 
 				<TouchableOpacity
-					style={[styles.saveBtn, loading && styles.disabledBtn]}
+					style={[
+						styles.saveBtn,
+						{ backgroundColor: colors.businessBg },
+						loading && styles.disabledBtn,
+					]}
 					onPress={handleSave}
 					disabled={loading}
 				>
-					{loading ? (
-						<Text style={styles.saveBtnText}>
-							Guardando producto...
-						</Text>
-					) : (
-						<Text style={styles.saveBtnText}>Guardar Producto</Text>
-					)}
+					<Text style={styles.saveBtnText}>
+						{loading ? "Guardando producto..." : "Guardar Producto"}
+					</Text>
 				</TouchableOpacity>
 			</View>
 		</KeyboardAwareScrollView>
@@ -231,81 +317,86 @@ export const ProductFormScreen = () => {
 };
 
 const styles = StyleSheet.create({
-	container: { flex: 1, backgroundColor: "#F8F9FA" },
-	scrollContent: { padding: 20, paddingBottom: 40 },
+	container: {
+		flex: 1,
+	},
+	scrollContent: {
+		padding: Spacing.md,
+		paddingBottom: Spacing.xl,
+	},
+	loadingContainer: {
+		flex: 1,
+		justifyContent: "center",
+		alignItems: "center",
+	},
+	loadingText: {
+		marginTop: Spacing.sm,
+		fontSize: FontSize.sm,
+	},
 	form: {
-		backgroundColor: "white",
-		padding: 24,
-		borderRadius: 20,
-		shadowColor: "#000",
-		shadowOffset: { width: 0, height: 4 },
-		shadowOpacity: 0.05,
-		shadowRadius: 10,
-		elevation: 3,
+		padding: Spacing.lg,
+		borderRadius: BorderRadius.lg,
+		...Shadow.md,
 	},
 	label: {
-		fontSize: 14,
-		fontWeight: "bold",
-		color: "#444",
-		marginBottom: 8,
-		marginTop: 15,
+		fontSize: FontSize.sm,
+		fontWeight: FontWeight.bold,
+		marginBottom: Spacing.xs,
+		marginTop: Spacing.md,
 	},
 	input: {
-		backgroundColor: "#F8F9FA",
 		borderWidth: 1,
-		borderColor: "#E9ECEF",
-		borderRadius: 12,
-		padding: 15,
-		fontSize: 16,
-		color: "#333",
+		borderRadius: BorderRadius.md,
+		padding: Spacing.md,
+		fontSize: FontSize.md,
 	},
-	textArea: { height: 100, textAlignVertical: "top" },
+	textArea: {
+		height: 100,
+		textAlignVertical: "top",
+	},
 	categoryContainer: {
 		flexDirection: "row",
 		flexWrap: "wrap",
-		gap: 10,
-		marginTop: 5,
+		gap: Spacing.sm,
+		marginTop: Spacing.xs,
 	},
 	chip: {
-		paddingHorizontal: 15,
-		paddingVertical: 8,
-		borderRadius: 20,
-		backgroundColor: "#F1F3F5",
+		paddingHorizontal: Spacing.md,
+		paddingVertical: Spacing.sm,
+		borderRadius: BorderRadius.full,
 		borderWidth: 1,
-		borderColor: "#E9ECEF",
 	},
-	activeChip: {
-		backgroundColor: Colors.businessBg,
-		borderColor: Colors.businessBg,
+	chipText: {
+		fontSize: FontSize.xs,
+		fontWeight: FontWeight.semibold,
 	},
-	chipText: { fontSize: 12, color: "#666", fontWeight: "600" },
-	activeChipText: { color: "white" },
 	switchRow: {
 		flexDirection: "row",
 		justifyContent: "space-between",
 		alignItems: "center",
-		marginTop: 30,
-		paddingVertical: 15,
+		marginTop: Spacing.xl,
+		paddingVertical: Spacing.md,
 		borderTopWidth: 1,
-		borderTopColor: "#F1F3F5",
 	},
-	switchLabel: { fontSize: 16, fontWeight: "bold", color: "#333" },
-	switchSub: { fontSize: 12, color: "#888" },
-	footer: {
-		paddingHorizontal: 20,
-		paddingVertical: 15,
-		backgroundColor: "white", // Evita que se vea el contenido scrolleado por debajo
-		borderTopWidth: 1,
-		borderTopColor: "#F1F3F5",
-		// elevation: 10, // Opcional, pero pruébalo sin elevación primero
+	switchLabel: {
+		fontSize: FontSize.md,
+		fontWeight: FontWeight.bold,
+	},
+	switchSub: {
+		fontSize: FontSize.xs,
 	},
 	saveBtn: {
-		backgroundColor: Colors.businessBg,
-		padding: 16,
-		borderRadius: 14,
+		padding: Spacing.md,
+		borderRadius: BorderRadius.md,
 		alignItems: "center",
-		marginTop: 35,
+		marginTop: Spacing.xl,
 	},
-	disabledBtn: { opacity: 0.7 },
-	saveBtnText: { color: "white", fontSize: 16, fontWeight: "bold" },
+	disabledBtn: {
+		opacity: 0.7,
+	},
+	saveBtnText: {
+		color: "#FFFFFF",
+		fontSize: FontSize.md,
+		fontWeight: FontWeight.bold,
+	},
 });

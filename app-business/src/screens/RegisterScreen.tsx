@@ -5,7 +5,6 @@ import {
 	View,
 	TextInput,
 	TouchableOpacity,
-	Alert,
 	StatusBar,
 } from "react-native";
 import { CocoLogo } from "@coco/shared/components/CocoLogo";
@@ -18,42 +17,58 @@ import {
 	Shadow,
 	Spacing,
 } from "@coco/shared/config/theme";
+import { useTheme } from "@coco/shared/hooks/useTheme";
+import { useDialog } from "@coco/shared/providers/DialogContext";
 
 export const RegisterScreen = ({ onBack }: { onBack: () => void }) => {
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
+	const { colors } = useTheme();
+	const { showDialog } = useDialog();
 
 	const handleRegister = async () => {
-		// .trim() elimina espacios al inicio y al final
 		const cleanEmail = email.trim();
 
 		if (cleanEmail === "" || password === "") {
-			Alert.alert("Error", "Por favor llena todos los campos.");
+			showDialog({
+				title: "Error",
+				message: "Por favor llena todos los campos.",
+				intent: "error",
+			});
 			return;
 		}
 
 		if (password.length < 6) {
-			Alert.alert(
-				"Error",
-				"La contraseña debe tener al menos 6 caracteres.",
-			);
+			showDialog({
+				title: "Error",
+				message: "La contraseña debe tener al menos 6 caracteres.",
+				intent: "error",
+			});
 			return;
 		}
 
 		try {
-			// Usamos el correo limpio
 			await AuthService.register(cleanEmail, password);
-			Alert.alert("¡Éxito!", "Cuenta creada");
+			showDialog({
+				title: "¡Éxito!",
+				message: "Cuenta creada",
+				intent: "success",
+			});
 		} catch (error: any) {
-			console.log("Error detallado de Firebase:", error.code); // Para que lo veas en la terminal
+			console.error(error);
 
+			let errorMessage = "Ocurrió un problema al registrarte.";
 			if (error.code === "auth/email-already-in-use") {
-				Alert.alert("Error", "Este correo ya está registrado.");
+				errorMessage = "Este correo ya está registrado.";
 			} else if (error.code === "auth/invalid-email") {
-				Alert.alert("Error", "El formato del correo es inválido.");
-			} else {
-				Alert.alert("Error", "Ocurrió un problema al registrarte.");
+				errorMessage = "El formato del correo es inválido.";
 			}
+
+			showDialog({
+				title: "Error",
+				message: errorMessage,
+				intent: "error",
+			});
 		}
 	};
 
@@ -71,6 +86,7 @@ export const RegisterScreen = ({ onBack }: { onBack: () => void }) => {
 					value={email}
 					onChangeText={setEmail}
 					autoCapitalize="none"
+					keyboardType="email-address"
 				/>
 				<TextInput
 					style={styles.input}
@@ -85,7 +101,14 @@ export const RegisterScreen = ({ onBack }: { onBack: () => void }) => {
 					style={styles.button}
 					onPress={handleRegister}
 				>
-					<Text style={styles.buttonText}>Crear cuenta</Text>
+					<Text
+						style={[
+							styles.buttonText,
+							{ color: colors.businessBg },
+						]}
+					>
+						Crear cuenta
+					</Text>
 				</TouchableOpacity>
 
 				<TouchableOpacity style={styles.backBtn} onPress={onBack}>
@@ -101,7 +124,7 @@ export const RegisterScreen = ({ onBack }: { onBack: () => void }) => {
 const styles = StyleSheet.create({
 	container: {
 		flex: 1,
-		backgroundColor: Colors.businessBg, // Naranja oscuro oficial
+		backgroundColor: Colors.light.businessBg,
 		alignItems: "center",
 		justifyContent: "center",
 		padding: Spacing.lg,
@@ -109,7 +132,7 @@ const styles = StyleSheet.create({
 	title: {
 		fontSize: FontSize.hero,
 		fontWeight: FontWeight.black,
-		color: Colors.surfaceLight, // Blanco #FFFFFF
+		color: Colors.light.backgroundLight,
 		marginBottom: Spacing.lg,
 		letterSpacing: 1,
 	},
@@ -118,14 +141,14 @@ const styles = StyleSheet.create({
 		backgroundColor: "rgba(255,255,255,0.15)",
 		borderRadius: BorderRadius.md,
 		padding: Spacing.md,
-		color: Colors.surfaceLight,
+		color: Colors.light.backgroundLight,
 		marginBottom: Spacing.sm,
 		fontSize: FontSize.md,
 		borderWidth: 1,
 		borderColor: "rgba(255,255,255,0.2)",
 	},
 	button: {
-		backgroundColor: Colors.surfaceLight,
+		backgroundColor: Colors.light.backgroundLight,
 		padding: Spacing.md,
 		borderRadius: BorderRadius.md,
 		alignItems: "center",
@@ -133,7 +156,6 @@ const styles = StyleSheet.create({
 		...Shadow.md,
 	},
 	buttonText: {
-		color: Colors.businessBg, // Texto naranja sobre botón blanco
 		fontWeight: FontWeight.bold,
 		fontSize: FontSize.lg,
 	},
@@ -142,7 +164,7 @@ const styles = StyleSheet.create({
 		alignItems: "center",
 	},
 	backText: {
-		color: Colors.surfaceLight,
+		color: Colors.light.backgroundLight,
 		fontWeight: FontWeight.semibold,
 		opacity: 0.9,
 		textDecorationLine: "underline",

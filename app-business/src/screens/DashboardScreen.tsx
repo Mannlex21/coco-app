@@ -9,15 +9,26 @@ import {
 	Alert,
 	RefreshControl,
 } from "react-native";
-import { Colors } from "@coco/shared/config/theme";
-import { SafeAreaView } from "react-native-safe-area-context";
+import {
+	FontSize,
+	FontWeight,
+	BorderRadius,
+	Spacing,
+	Shadow,
+} from "@coco/shared/config/theme";
 import { useAppStore } from "@coco/shared/hooks/useAppStore";
 import { useBusiness } from "@coco/shared/hooks/useBusiness";
 import { db } from "@/infrastructure/firebase/config";
 import { useNavigation } from "@react-navigation/native";
+import { useTheme } from "@coco/shared/hooks/useTheme";
+import { useDialog } from "@coco/shared/providers/DialogContext";
 
 export const DashboardScreen = () => {
+	// 💡 Extraemos los colores del tema dinámico
+	const { colors } = useTheme();
 	const navigation = useNavigation<any>();
+	const { showDialog } = useDialog();
+
 	// 1. Obtenemos el usuario actual del store global
 	const { user } = useAppStore();
 
@@ -35,56 +46,84 @@ export const DashboardScreen = () => {
 		if (!activeBusiness) return;
 
 		try {
-			// Llamamos a la función del hook
 			await toggleBusinessStatus(
 				activeBusiness.id,
 				activeBusiness.isOpen,
 			);
 		} catch (error) {
 			console.log("Error", error);
-			Alert.alert("Error", "No se pudo cambiar el estado del negocio.");
+			showDialog({
+				title: "Error",
+				message: "No se pudo cambiar el estado del negocio.",
+				intent: "error",
+			});
 		}
 	};
+
 	const handleDelete = () => {
 		if (!activeBusiness) return;
 
-		Alert.alert(
-			"BORRAR NEGOCIO (MODO PRUEBAS)",
-			"¿Estás seguro? Esto eliminará el negocio de Firebase permanentemente.",
-			[
-				{ text: "Cancelar", style: "cancel" },
-				{
-					text: "Eliminar",
-					style: "destructive",
-					onPress: async () => {
-						try {
-							await deleteBusiness(activeBusiness.id);
-							Alert.alert(
-								"Eliminado",
-								"El negocio ha sido borrado.",
-							);
-						} catch (e) {
-							Alert.alert("Error", "No se pudo borrar.");
-						}
-					},
-				},
-			],
-		);
+		showDialog({
+			title: "Borrar Negocio",
+			message:
+				"¿Estás seguro? Esto eliminará el negocio de Firebase permanentemente.",
+			intent: "error",
+			onConfirm: () => {
+				(async () => {
+					try {
+						await deleteBusiness(activeBusiness.id);
+
+						showDialog({
+							title: "Eliminado",
+							message: "El negocio ha sido borrado con éxito.",
+							intent: "success",
+						});
+					} catch (e) {
+						console.log(e);
+						showDialog({
+							title: "Error",
+							message:
+								"No se pudo borrar el negocio. Inténtalo de nuevo.",
+							intent: "error",
+						});
+					}
+				})();
+			},
+		});
 	};
+
 	if (loading) {
 		return (
-			<SafeAreaView style={styles.container}>
-				<Text style={{ textAlign: "center", marginTop: 20 }}>
+			<View>
+				<Text
+					style={[
+						styles.loadingText,
+						{ color: colors.textSecondaryLight },
+					]}
+				>
 					Cargando datos...
 				</Text>
-			</SafeAreaView>
+			</View>
 		);
 	}
 
 	return (
-		<SafeAreaView style={styles.container} edges={["top"]}>
-			<View style={styles.header}>
-				<Text style={styles.welcomeText}>
+		<View>
+			<View
+				style={[
+					styles.header,
+					{
+						backgroundColor: colors.surfaceLight,
+						borderBottomColor: colors.borderLight,
+					},
+				]}
+			>
+				<Text
+					style={[
+						styles.welcomeText,
+						{ color: colors.textSecondaryLight },
+					]}
+				>
 					Hola, {user?.name.split(" ")[0]} 👋
 				</Text>
 				<TouchableOpacity
@@ -92,13 +131,26 @@ export const DashboardScreen = () => {
 					disabled={allBusinesses.length <= 1}
 				>
 					<View style={styles.row}>
-						<Text style={styles.businessName}>
+						<Text
+							style={[
+								styles.businessName,
+								{ color: colors.textPrimaryLight },
+							]}
+						>
 							{activeBusiness
 								? activeBusiness.name
 								: "Configurar mi negocio"}
 						</Text>
 						{allBusinesses.length > 1 && (
-							<Text style={styles.chevron}> ▾</Text>
+							<Text
+								style={[
+									styles.chevron,
+									{ color: colors.textPrimaryLight },
+								]}
+							>
+								{" "}
+								▾
+							</Text>
 						)}
 					</View>
 				</TouchableOpacity>
@@ -110,8 +162,8 @@ export const DashboardScreen = () => {
 					<RefreshControl
 						refreshing={refreshing}
 						onRefresh={onRefresh}
-						colors={["#C45E1A"]} // Color del círculo en Android
-						tintColor={"#C45E1A"} // Color del círculo en iOS
+						colors={[colors.businessBg]} // Color dinámico de marca para Android
+						tintColor={colors.businessBg} // Color dinámico de marca para iOS
 					/>
 				}
 			>
@@ -120,14 +172,20 @@ export const DashboardScreen = () => {
 						style={[
 							styles.mainCard,
 							{
+								backgroundColor: colors.surfaceLight,
 								borderLeftColor: activeBusiness.isOpen
-									? "#2D6A4F"
-									: "#E76F51",
+									? colors.success
+									: colors.error,
 							},
 						]}
 					>
 						<View>
-							<Text style={styles.cardLabel}>
+							<Text
+								style={[
+									styles.cardLabel,
+									{ color: colors.textSecondaryLight },
+								]}
+							>
 								Estado del Negocio
 							</Text>
 							<Text
@@ -135,8 +193,8 @@ export const DashboardScreen = () => {
 									styles.statusTitle,
 									{
 										color: activeBusiness.isOpen
-											? "#2D6A4F"
-											: "#E76F51",
+											? colors.success
+											: colors.error,
 									},
 								]}
 							>
@@ -148,25 +206,51 @@ export const DashboardScreen = () => {
 						<Switch
 							value={activeBusiness.isOpen}
 							onValueChange={handleToggle}
-							trackColor={{ false: "#D1D1D1", true: "#C45E1A" }}
-							thumbColor={"#FFF"}
-							ios_backgroundColor="#D1D1D1"
+							trackColor={{
+								false: colors.borderLight,
+								true: colors.businessBg,
+							}}
+							thumbColor={colors.surfaceLight}
+							ios_backgroundColor={colors.borderLight}
 						/>
 					</View>
 				) : (
 					/* Banner de Registro si no hay negocio */
 					<TouchableOpacity
-						style={styles.registerBanner}
+						style={[
+							styles.registerBanner,
+							{ backgroundColor: colors.businessBg },
+						]}
 						onPress={() => navigation.navigate("BusinessSetup")}
 					>
-						<Text style={styles.bannerTitle}>
+						<Text
+							style={[
+								styles.bannerTitle,
+								{ color: colors.textOnPrimary },
+							]}
+						>
 							¡Haz crecer tu negocio!
 						</Text>
-						<Text style={styles.bannerSub}>
+						<Text
+							style={[
+								styles.bannerSub,
+								{ color: colors.textOnPrimary },
+							]}
+						>
 							Registra tu establecimiento para empezar.
 						</Text>
-						<View style={styles.bannerButton}>
-							<Text style={styles.bannerButtonText}>
+						<View
+							style={[
+								styles.bannerButton,
+								{ backgroundColor: colors.surfaceLight },
+							]}
+						>
+							<Text
+								style={[
+									styles.bannerButtonText,
+									{ color: colors.businessBg },
+								]}
+							>
 								Comenzar
 							</Text>
 						</View>
@@ -175,166 +259,226 @@ export const DashboardScreen = () => {
 
 				{/* 2. FILA DE ESTADÍSTICAS */}
 				<View style={styles.statsRow}>
-					<View style={styles.miniCard}>
-						<Text style={styles.miniCardLabel}>Ventas hoy</Text>
-						<Text style={styles.bigAmount}>
+					<View
+						style={[
+							styles.miniCard,
+							{ backgroundColor: colors.surfaceLight },
+						]}
+					>
+						<Text
+							style={[
+								styles.miniCardLabel,
+								{ color: colors.textSecondaryLight },
+							]}
+						>
+							Ventas hoy
+						</Text>
+						<Text
+							style={[
+								styles.bigAmount,
+								{ color: colors.textPrimaryLight },
+							]}
+						>
 							{activeBusiness ? "$0.00" : "--"}
 						</Text>
-						<Text style={styles.infoNote}>0 pedidos</Text>
+						<Text
+							style={[
+								styles.infoNote,
+								{ color: colors.textSecondaryLight },
+							]}
+						>
+							0 pedidos
+						</Text>
 					</View>
 
-					<View style={styles.miniCard}>
-						<Text style={styles.miniCardLabel}>Fee Coco</Text>
-						<Text style={[styles.bigAmount, { color: "#E76F51" }]}>
+					<View
+						style={[
+							styles.miniCard,
+							{ backgroundColor: colors.surfaceLight },
+						]}
+					>
+						<Text
+							style={[
+								styles.miniCardLabel,
+								{ color: colors.textSecondaryLight },
+							]}
+						>
+							Fee Coco
+						</Text>
+						<Text
+							style={[styles.bigAmount, { color: colors.error }]}
+						>
 							{activeBusiness
 								? `$${activeBusiness.weeklyDebt}`
 								: "--"}
 						</Text>
-						<Text style={styles.infoNote}>Corte: Lunes</Text>
+						<Text
+							style={[
+								styles.infoNote,
+								{ color: colors.textSecondaryLight },
+							]}
+						>
+							Corte: Lunes
+						</Text>
 					</View>
 				</View>
 
-				{/* 3. ACCESOS RÁPIDOS (Próximamente) */}
-				<Text style={styles.sectionTitle}>Gestión</Text>
-				<TouchableOpacity style={styles.menuItem}>
-					<Text style={styles.menuItemText}>
+				{/* 3. ACCESOS RÁPIDOS */}
+				<Text
+					style={[
+						styles.sectionTitle,
+						{ color: colors.textPrimaryLight },
+					]}
+				>
+					Gestión
+				</Text>
+				<TouchableOpacity
+					style={[
+						styles.menuItem,
+						{ backgroundColor: colors.surfaceLight },
+					]}
+					onPress={() => navigation.navigate("Catálogo")} // 💡 Navegación directa al tab de catálogo
+				>
+					<Text
+						style={[
+							styles.menuItemText,
+							{ color: colors.textPrimaryLight },
+						]}
+					>
 						📦 Gestionar Catálogo
 					</Text>
-					<Text style={styles.chevron}>›</Text>
+					<Text
+						style={[
+							styles.chevronInline,
+							{ color: colors.textSecondaryLight },
+						]}
+					>
+						›
+					</Text>
 				</TouchableOpacity>
 
 				{activeBusiness && (
 					<TouchableOpacity
-						style={styles.deleteBtn}
+						style={[
+							styles.cancelBtn,
+							{
+								backgroundColor: colors.errorLight,
+								borderColor: colors.error,
+							},
+						]}
 						onPress={handleDelete}
 					>
-						<Text style={styles.deleteBtnText}>
-							⚠️ Borrar Negocio (Debug)
+						<Text
+							style={[
+								styles.deleteBtnText,
+								{ color: colors.error },
+							]}
+						>
+							Borrar Negocio (Debug)
 						</Text>
 					</TouchableOpacity>
 				)}
 			</ScrollView>
-		</SafeAreaView>
+		</View>
 	);
 };
 
 const styles = StyleSheet.create({
-	container: { flex: 1, backgroundColor: "#F8F9FA" },
 	header: {
-		padding: 20,
-		paddingTop: 60,
-		backgroundColor: "white",
+		padding: Spacing.lg,
+		paddingTop: Spacing.sm + 20,
 		borderBottomWidth: 1,
-		borderBottomColor: "#EEE",
 	},
-	welcomeText: { fontSize: 14, color: "#666" },
-	selector: {
-		marginTop: 5,
-		alignSelf: "flex-start",
+	loadingText: {
+		textAlign: "center",
+		marginTop: Spacing.lg,
+		fontSize: FontSize.sm,
 	},
-	row: {
-		flexDirection: "row",
-		alignItems: "center",
+	welcomeText: {
+		fontSize: FontSize.sm,
+		fontWeight: FontWeight.medium,
 	},
-	businessName: {
-		fontSize: 22,
-		fontWeight: "bold",
-		color: Colors.businessBg,
-	},
-	chevron: {
-		fontSize: 18,
-		color: Colors.businessBg,
-		marginLeft: 5,
-	},
-	content: { padding: 20 },
+	selector: { marginTop: Spacing.xs, alignSelf: "flex-start" },
+	row: { flexDirection: "row", alignItems: "center" },
+	businessName: { fontSize: FontSize.xl, fontWeight: FontWeight.bold },
+	chevron: { fontSize: FontSize.lg, marginLeft: 5 },
+	chevronInline: { fontSize: FontSize.lg },
+	content: { padding: Spacing.lg },
 	registerBanner: {
-		backgroundColor: Colors.businessBg,
-		padding: 20,
-		borderRadius: 15,
-		marginBottom: 20,
+		padding: Spacing.lg,
+		borderRadius: BorderRadius.lg,
+		marginBottom: Spacing.lg,
 	},
-	bannerTitle: { color: "white", fontSize: 18, fontWeight: "bold" },
-	bannerSub: { color: "rgba(255,255,255,0.8)", marginTop: 5, lineHeight: 20 },
+	bannerTitle: { fontSize: FontSize.md, fontWeight: FontWeight.bold },
+	bannerSub: {
+		marginTop: 5,
+		lineHeight: 20,
+		fontSize: FontSize.sm,
+	},
 	bannerButton: {
-		backgroundColor: "white",
 		paddingVertical: 10,
-		paddingHorizontal: 20,
-		borderRadius: 8,
-		marginTop: 15,
+		paddingHorizontal: Spacing.md,
+		borderRadius: BorderRadius.sm,
+		marginTop: Spacing.md,
 		alignSelf: "flex-start",
 	},
-	bannerButtonText: { color: Colors.businessBg, fontWeight: "bold" },
-	bigAmount: { fontSize: 32, fontWeight: "bold", color: "#333" },
-	infoNote: { color: "#999", fontSize: 12, marginTop: 10 },
-
+	bannerButtonText: { fontWeight: FontWeight.bold, fontSize: FontSize.sm },
+	bigAmount: { fontSize: FontSize.xl + 4, fontWeight: FontWeight.bold },
+	infoNote: { fontSize: FontSize.xs, marginTop: 10 },
 	statsRow: {
 		flexDirection: "row",
 		justifyContent: "space-between",
-		marginBottom: 20,
+		marginBottom: Spacing.lg,
 	},
 	miniCard: {
-		backgroundColor: "white",
-		padding: 15,
-		borderRadius: 15,
+		padding: Spacing.md,
+		borderRadius: BorderRadius.lg,
 		width: "48%",
-		elevation: 3,
-		shadowColor: "#000",
-		shadowOffset: { width: 0, height: 2 },
-		shadowOpacity: 0.1,
-		shadowRadius: 4,
+		...Shadow.md,
 	},
 	mainCard: {
-		backgroundColor: "white",
-		padding: 20,
-		borderRadius: 16,
+		padding: Spacing.lg,
+		borderRadius: BorderRadius.lg,
 		flexDirection: "row",
 		justifyContent: "space-between",
 		alignItems: "center",
-		marginBottom: 20,
-		elevation: 4,
-		shadowColor: "#000",
-		shadowOffset: { width: 0, height: 2 },
-		shadowOpacity: 0.1,
-		shadowRadius: 6,
-		borderLeftWidth: 5, // Indicador de color lateral
+		marginBottom: Spacing.lg,
+		...Shadow.md,
+		borderLeftWidth: 5,
 	},
 	cardLabel: {
-		fontSize: 12,
-		color: "#888",
-		fontWeight: "600",
+		fontSize: FontSize.xs,
+		fontWeight: FontWeight.bold,
 		textTransform: "uppercase",
 	},
-	statusTitle: { fontSize: 16, fontWeight: "800", marginTop: 4 },
-	miniCardLabel: { fontSize: 13, color: "#666", fontWeight: "600" },
+	statusTitle: {
+		fontSize: FontSize.md,
+		fontWeight: FontWeight.black,
+		marginTop: 4,
+	},
+	miniCardLabel: { fontSize: FontSize.sm, fontWeight: FontWeight.semibold },
 	sectionTitle: {
-		fontSize: 18,
-		fontWeight: "bold",
-		color: "#333",
-		marginTop: 10,
-		marginBottom: 15,
+		fontSize: FontSize.md,
+		fontWeight: FontWeight.bold,
+		marginTop: Spacing.sm,
+		marginBottom: Spacing.md,
 	},
 	menuItem: {
-		backgroundColor: "white",
-		padding: 18,
-		borderRadius: 12,
+		padding: Spacing.md,
+		borderRadius: BorderRadius.md,
 		flexDirection: "row",
 		justifyContent: "space-between",
 		alignItems: "center",
-		marginBottom: 10,
+		marginBottom: Spacing.sm,
+		...Shadow.sm,
 	},
-	menuItemText: { fontSize: 16, fontWeight: "500", color: "#444" },
-	deleteBtn: {
-		marginTop: 40,
-		padding: 15,
-		backgroundColor: "#FFE5E5",
-		borderRadius: 12,
+	menuItemText: { fontSize: FontSize.md, fontWeight: FontWeight.medium },
+	cancelBtn: {
+		marginTop: Spacing.xl,
+		padding: Spacing.md,
+		borderRadius: BorderRadius.md,
 		borderWidth: 1,
-		borderColor: "#FFBABA",
 		alignItems: "center",
 	},
-	deleteBtnText: {
-		color: "#D8000C",
-		fontWeight: "bold",
-		fontSize: 14,
-	},
+	deleteBtnText: { fontWeight: FontWeight.bold, fontSize: FontSize.sm },
 });
