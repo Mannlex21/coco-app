@@ -1,7 +1,7 @@
 // src/navigation/AuthStack.tsx
 import React from "react";
-import { LoginScreen } from "@/screens/LoginScreen";
-import { RegisterScreen } from "@/screens/RegisterScreen";
+import { LoginScreen } from "@/screens/Start/LoginScreen";
+import { RegisterScreen } from "@/screens/Start/RegisterScreen";
 
 interface AuthStackProps {
 	isRegistering: boolean;

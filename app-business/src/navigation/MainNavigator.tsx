@@ -4,13 +4,13 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createStackNavigator } from "@react-navigation/stack";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { DashboardScreen } from "@/screens/DashboardScreen";
-import { BusinessSetupScreen } from "@/screens/BusinessSetupScreen";
+import { DashboardScreen } from "@/screens/Dashboard/DashboardScreen";
+import { BusinessSetupScreen } from "@/components/BusinessSetupScreen";
 import { FontSize, FontWeight } from "@coco/shared/config/theme";
-import { ProductCatalogScreen } from "@/screens/ProductCardScreen";
-import { ProductFormScreen } from "@/screens/ProductFormScreen";
+import { ProductScreen } from "@/screens/Product/ProductScreen";
+import { ProductForm } from "@/screens/Product/Components/ProductForm";
 import { useTheme } from "@coco/shared/hooks/useTheme"; // 👈 Importamos el hook
-import { ProfileScreen } from "@/screens/ProfileScreen";
+import { ProfileScreen } from "@/screens/Profile/ProfileScreen";
 
 const RootStack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -115,7 +115,7 @@ const TabNavigator = () => {
 					/>
 				)}
 			</Tab.Screen>
-			<Tab.Screen name="Catálogo" component={ProductCatalogScreen} />
+			<Tab.Screen name="Catálogo" component={ProductScreen} />
 			<Tab.Screen name="Perfil" component={ProfileScreen}></Tab.Screen>
 		</Tab.Navigator>
 	);
@@ -135,29 +135,29 @@ export const MainNavigator = () => {
 			<RootStack.Screen
 				name="BusinessSetup"
 				component={BusinessSetupScreen}
-				options={{
+				options={({ route }: any) => ({
 					headerShown: true,
-					title: "Configurar Negocio",
+					title: route.params?.title || "Configurar Negocio",
 					headerTintColor: colors.businessBg,
 					headerTitleStyle: {
 						fontWeight: FontWeight.bold,
 						fontSize: FontSize.lg,
-						color: colors.textPrimaryLight, // 💡 Título dinámico
+						color: colors.textPrimaryLight,
 					},
 					headerBackTitle: "",
 					presentation: "card",
 					headerStyle: {
-						backgroundColor: colors.surfaceLight, // 💡 Header dinámico
+						backgroundColor: colors.surfaceLight,
 						elevation: 0,
 						shadowOpacity: 0,
 						borderBottomWidth: 1,
-						borderBottomColor: colors.borderLight, // 💡 Borde dinámico
+						borderBottomColor: colors.borderLight,
 					},
-				}}
+				})}
 			/>
 			<RootStack.Screen
 				name="ProductForm"
-				component={ProductFormScreen}
+				component={ProductForm}
 				options={({ route }: any) => ({
 					headerShown: true,
 					title: route.params?.title || "Producto",

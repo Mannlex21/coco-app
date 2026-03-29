@@ -18,7 +18,7 @@ import {
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { useAppStore } from "@coco/shared/hooks/useAppStore";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
-import { useProducts } from "../../../shared/hooks/useProducts";
+import { useProducts } from "@coco/shared/hooks/useProducts";
 import { db } from "@/infrastructure/firebase/config";
 import { Product } from "@coco/shared/core/entities/Product";
 import { useDialog } from "@coco/shared/providers/DialogContext";
@@ -26,7 +26,7 @@ import { useTheme } from "@coco/shared/hooks/useTheme";
 
 const CATEGORIES = ["tacos", "bebidas", "postres", "combos", "otros"];
 
-export const ProductFormScreen = () => {
+export const ProductForm = () => {
 	const navigation = useNavigation();
 	const route = useRoute<any>();
 	const { showDialog } = useDialog();
@@ -37,15 +37,11 @@ export const ProductFormScreen = () => {
 	const { activeBusiness } = useAppStore();
 	const [fetchingProduct, setFetchingProduct] = useState(isEditMode);
 
-	// 💡 Extraemos si es oscuro o no y el businessBg dinámico
 	const { colors, isDark } = useTheme();
 
-	// 🎨 Colores calculados por opacidad (Inmunes a fallos de TypeScript)
 	const textColor = isDark ? "rgba(255,255,255,0.9)" : "rgba(0,0,0,0.85)";
 	const subTextColor = isDark ? "rgba(255,255,255,0.6)" : "rgba(0,0,0,0.55)";
 	const borderColor = isDark ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.1)";
-
-	// 🧱 Fondos estructurales fijos y seguros
 	const backgroundBg = isDark ? "#121212" : "#F8F9FA";
 	const cardBg = isDark ? "#1C1C1E" : "#FFFFFF";
 	const inputBg = isDark ? "#2C2C2E" : "#F5F5F5";

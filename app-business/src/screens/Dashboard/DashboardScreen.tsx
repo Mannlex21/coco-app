@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import {
 	View,
 	Text,
@@ -22,26 +22,29 @@ import { db } from "@/infrastructure/firebase/config";
 import { useNavigation } from "@react-navigation/native";
 import { useTheme } from "@coco/shared/hooks/useTheme";
 import { useDialog } from "@coco/shared/providers/DialogContext";
+import { DashboardHeader } from "./components/DashboardHeader";
+import { useUser } from "../../../../shared/hooks/useUser";
 
 export const DashboardScreen = () => {
-	// 💡 Extraemos los colores del tema dinámico
 	const { colors } = useTheme();
 	const navigation = useNavigation<any>();
 	const { showDialog } = useDialog();
-
-	// 1. Obtenemos el usuario actual del store global
 	const { user } = useAppStore();
 
+	// 1. Traemos los datos extendidos del usuario en Firestore
+	const { userData, loadingUser, updateLastActiveBusiness } = useUser(
+		db,
+		user?.id,
+	);
 	const {
+		businesses,
+		loadingBusinesses,
 		activeBusiness,
-		businesses: allBusinesses,
-		toggleBusinessStatus,
-		loading,
-		refreshing,
-		onRefresh,
 		deleteBusiness,
-	} = useBusiness(db, user?.id);
-
+		onRefresh,
+		refreshing,
+		toggleBusinessStatus,
+	} = useBusiness(db, user?.id, userData?.lastActiveBusinessId);
 	const handleToggle = async () => {
 		if (!activeBusiness) return;
 
@@ -59,7 +62,6 @@ export const DashboardScreen = () => {
 			});
 		}
 	};
-
 	const handleDelete = () => {
 		if (!activeBusiness) return;
 
@@ -91,8 +93,13 @@ export const DashboardScreen = () => {
 			},
 		});
 	};
-
-	if (loading) {
+	useEffect(() => {
+		const { activeBusiness } = useAppStore.getState(); // Leemos el store actual
+		if (userData && !userData.lastActiveBusinessId && activeBusiness) {
+			updateLastActiveBusiness(activeBusiness.id);
+		}
+	}, [userData, businesses]);
+	if (loadingUser || loadingBusinesses) {
 		return (
 			<View>
 				<Text
@@ -108,53 +115,8 @@ export const DashboardScreen = () => {
 	}
 
 	return (
-		<View>
-			<View
-				style={[
-					styles.header,
-					{
-						backgroundColor: colors.surfaceLight,
-						borderBottomColor: colors.borderLight,
-					},
-				]}
-			>
-				<Text
-					style={[
-						styles.welcomeText,
-						{ color: colors.textSecondaryLight },
-					]}
-				>
-					Hola, {user?.name.split(" ")[0]} 👋
-				</Text>
-				<TouchableOpacity
-					style={styles.selector}
-					disabled={allBusinesses.length <= 1}
-				>
-					<View style={styles.row}>
-						<Text
-							style={[
-								styles.businessName,
-								{ color: colors.textPrimaryLight },
-							]}
-						>
-							{activeBusiness
-								? activeBusiness.name
-								: "Configurar mi negocio"}
-						</Text>
-						{allBusinesses.length > 1 && (
-							<Text
-								style={[
-									styles.chevron,
-									{ color: colors.textPrimaryLight },
-								]}
-							>
-								{" "}
-								▾
-							</Text>
-						)}
-					</View>
-				</TouchableOpacity>
-			</View>
+		<View style={{ flex: 1 }}>
+			<DashboardHeader />
 
 			<ScrollView
 				contentContainerStyle={styles.content}

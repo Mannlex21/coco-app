@@ -20,15 +20,15 @@ import {
 } from "@coco/shared/config/theme";
 import { useNavigation } from "@react-navigation/native";
 import { Product } from "@coco/shared/core/entities/Product";
-import { useProducts } from "../../../shared/hooks/useProducts";
+import { useProducts } from "@coco/shared/hooks/useProducts";
 import { db } from "@/infrastructure/firebase/config";
 import { useBusiness } from "@coco/shared/hooks/useBusiness";
 import { useAppStore } from "@coco/shared/hooks/useAppStore";
-import { ProductContextMenu } from "../../../shared/components/ProductContextMenu";
+import { ProductContextMenu } from "@coco/shared/components/ProductContextMenu";
 import { useTheme } from "@coco/shared/hooks/useTheme"; // 👈 Importamos el hook
 import { useDialog } from "@coco/shared/providers/DialogContext";
 
-export const ProductCatalogScreen = () => {
+export const ProductScreen = () => {
 	const navigation = useNavigation<any>();
 	const [search, setSearch] = useState("");
 	const { user } = useAppStore();
