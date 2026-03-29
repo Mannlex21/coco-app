@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React from "react";
 import {
 	Modal,
 	View,
@@ -6,7 +6,6 @@ import {
 	TouchableOpacity,
 	TouchableWithoutFeedback,
 	StyleSheet,
-	Animated, // 👈 Seguimos usando Animated
 } from "react-native";
 import {
 	BorderRadius,
@@ -42,53 +41,13 @@ export const AppDialog = ({
 }: AppDialogProps) => {
 	const { colors } = useTheme();
 
-	// 💡 Dos valores animados: Uno para desvanecer y otro para escalar
-	const fadeAnim = useRef(new Animated.Value(0)).current;
-	const scaleAnim = useRef(new Animated.Value(0.95)).current; // Arranca un pelín más pequeño
-
-	useEffect(() => {
-		if (visible) {
-			// Reset de valores al abrir
-			fadeAnim.setValue(0);
-			scaleAnim.setValue(0.95);
-
-			// Animación en paralelo de opacidad y escala (150ms)
-			Animated.parallel([
-				Animated.timing(fadeAnim, {
-					toValue: 1,
-					duration: 150,
-					useNativeDriver: true,
-				}),
-				Animated.timing(scaleAnim, {
-					toValue: 1,
-					duration: 150,
-					useNativeDriver: true,
-				}),
-			]).start();
-		}
-	}, [visible]);
-
 	const handleClose = () => {
-		// Salida rápida (120ms)
-		Animated.parallel([
-			Animated.timing(fadeAnim, {
-				toValue: 0,
-				duration: 120,
-				useNativeDriver: true,
-			}),
-			Animated.timing(scaleAnim, {
-				toValue: 0.95,
-				duration: 120,
-				useNativeDriver: true,
-			}),
-		]).start(() => {
-			onClose(); // Se desmonta el modal al terminar
-		});
+		onClose(); // Cierre directo y desmontado inmediato
 	};
 
 	const handleConfirm = () => {
-		handleClose();
-		setTimeout(onConfirm, 130);
+		onConfirm();
+		onClose();
 	};
 
 	const getConfirmColor = () => {
@@ -112,24 +71,19 @@ export const AppDialog = ({
 		<Modal
 			visible={visible}
 			transparent
-			animationType="none"
+			animationType="none" // 👈 Cero animaciones nativas
 			onRequestClose={handleClose}
 		>
 			<TouchableWithoutFeedback
 				onPress={type === "info" ? handleClose : undefined}
 			>
-				{/* 💡 El overlay ya no se anima, así evitamos el parpadeo del fondo */}
 				<View style={styles.overlay}>
 					<TouchableWithoutFeedback>
-						{/* 💡 Solo animamos la tarjeta del diálogo */}
-						<Animated.View
+						{/* 💡 Ya no es un Animated.View, rinde al instante */}
+						<View
 							style={[
 								styles.alertContainer,
-								{
-									backgroundColor: colors.surfaceLight,
-									opacity: fadeAnim, // Se desvanece solita
-									transform: [{ scale: scaleAnim }], // Crece un poquito al entrar
-								},
+								{ backgroundColor: colors.surfaceLight },
 							]}
 						>
 							<View style={styles.header}>
@@ -212,7 +166,7 @@ export const AppDialog = ({
 									</Text>
 								</TouchableOpacity>
 							</View>
-						</Animated.View>
+						</View>
 					</TouchableWithoutFeedback>
 				</View>
 			</TouchableWithoutFeedback>
@@ -226,14 +180,14 @@ const styles = StyleSheet.create({
 		justifyContent: "center",
 		alignItems: "center",
 		padding: Spacing.xl,
-		backgroundColor: "rgba(0, 0, 0, 0.1)", // 👈 El color oscuro se queda fijo aquí
+		backgroundColor: "rgba(0, 0, 0, 0.1)",
 	},
 	alertContainer: {
 		width: "100%",
 		maxWidth: 340,
 		borderRadius: BorderRadius.lg,
 		padding: Spacing.lg,
-		...Shadow.md, // 👈 Ahora la sombra no hará cosas raras
+		...Shadow.md,
 	},
 	header: {
 		alignItems: "flex-start",
