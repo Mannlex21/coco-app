@@ -32,9 +32,8 @@ const LightTheme = {
 };
 
 const DarkTheme: ColorPalette = {
-	// 1. 🔴 ADAPTAMOS TUS COLORES ORIGINALES AL MODO OSCURO
 	clientBg: "#2980B9",
-	businessBg: "#E07A2F", // El naranja vibrante que querías
+	businessBg: "#E07A2F",
 	driverBg: "#27AE60",
 	cocoBase: "#3E2723",
 	cocoInner: "#5D4037",
@@ -42,7 +41,6 @@ const DarkTheme: ColorPalette = {
 	leafMed: "#388E3C",
 	leafLight: "#689F38",
 
-	// 2. 🔴 COLORES DE INTERFAZ OSCUROS QUE PROPUSISTE
 	businessLight: "#2C1D14",
 	backgroundLight: "#121212",
 	surfaceLight: "#1E1E1E",
@@ -110,28 +108,25 @@ export const FontWeight = {
 };
 
 export const Shadow = {
-	// 💡 Muy sutil, apenas un borde
 	sm: {
 		shadowColor: "#000",
 		shadowOffset: { width: 0, height: 1 },
-		shadowOpacity: 0.04, // 👈 Bajamos un pelín más la opacidad
-		shadowRadius: 2, // 👈 Menos dispersión
-		elevation: 1, // 👈 Elevación 1 para Android
+		shadowOpacity: 0.04, // Bajamos un pelín más la opacidad
+		shadowRadius: 2, // Menos dispersión
+		elevation: 1, // Elevación 1 para Android
 	},
-	// 💡 Tu nuevo MD (Sutil pero define la tarjeta)
 	md: {
 		shadowColor: "#000",
-		shadowOffset: { width: 0, height: 1.5 }, // 👈 Altura muy baja
-		shadowOpacity: 0.06, // 👈 Opacidad súper ligera
-		shadowRadius: 4, // 👈 Dispersión controlada
-		elevation: 2, // 👈 Elevación 2 para Android
+		shadowOffset: { width: 0, height: 1.5 }, // Altura muy baja
+		shadowOpacity: 0.06, // Opacidad súper ligera
+		shadowRadius: 4, // Dispersión controlada
+		elevation: 2, // Elevación 2 para Android
 	},
-	// 💡 Tu nuevo LG (Para elementos que sí necesitan destacar un poco)
 	lg: {
 		shadowColor: "#000",
-		shadowOffset: { width: 0, height: 3 }, // 👈 Altura máxima de 3
-		shadowOpacity: 0.08, // 👈 Sigue siendo muy transparente
-		shadowRadius: 8, // 👈 Difuminado elegante pero no exagerado
-		elevation: 3, // 👈 Elevación 3 para Android
+		shadowOffset: { width: 0, height: 3 }, // Altura máxima de 3
+		shadowOpacity: 0.08, // Sigue siendo muy transparente
+		shadowRadius: 8, // Difuminado elegante pero no exagerado
+		elevation: 3, // Elevación 3 para Android
 	},
 };

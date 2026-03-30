@@ -296,7 +296,7 @@ export const DashboardScreen = () => {
 						styles.menuItem,
 						{ backgroundColor: colors.surfaceLight },
 					]}
-					onPress={() => navigation.navigate("Catálogo")} // 💡 Navegación directa al tab de catálogo
+					onPress={() => navigation.navigate("Catálogo")}
 				>
 					<Text
 						style={[

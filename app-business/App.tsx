@@ -3,7 +3,7 @@ import { StyleSheet, View, ActivityIndicator } from "react-native";
 
 import { auth, db } from "./src/infrastructure/firebase/config";
 import { onAuthStateChanged } from "firebase/auth";
-import { Colors, ColorPalette } from "@coco/shared/config/theme"; // 👈 Importamos ColorPalette
+import { Colors } from "@coco/shared/config/theme";
 import { useBusiness } from "@coco/shared/hooks/useBusiness";
 import { NavigationContainer, DefaultTheme } from "@react-navigation/native";
 import { MainNavigator } from "@/navigation/MainNavigator";
@@ -42,12 +42,11 @@ export default function App() {
 		return () => unsubscribe();
 	}, []);
 
-	const { loading: businessLoading } = useBusiness(db, user?.id);
+	const { loadingBusinesses } = useBusiness(db, user?.id);
 
-	const isGlobalLoading = isLoadingAuth || (user && businessLoading);
+	const isGlobalLoading = isLoadingAuth || (user && loadingBusinesses);
 
-	// 💡 Quitamos el casteo genérico y usamos el tipado exacto que acordamos
-	const currentColors = Colors[themeMode] as ColorPalette;
+	const currentColors = Colors[themeMode];
 	const headerBgColor =
 		currentColors.surfaceLight || (isDark ? "#1C1C1E" : "#FFFFFF");
 	const CocoAppTheme = {
@@ -56,14 +55,13 @@ export default function App() {
 			...DefaultTheme.colors,
 			background: currentColors.backgroundLight,
 			primary: currentColors.businessBg,
-			card: headerBgColor, // Muy importante para los headers nativos
+			card: headerBgColor,
 			text: currentColors.textPrimaryLight,
 		},
 	};
 
 	if (isGlobalLoading) {
 		return (
-			/* 💡 Le pasamos el color de fondo dinámico según el tema del store */
 			<View
 				style={[
 					styles.loadingContainer,

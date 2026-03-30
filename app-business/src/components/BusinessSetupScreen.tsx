@@ -11,7 +11,7 @@ import { useAppStore } from "@coco/shared/hooks/useAppStore";
 import { BUSINESS_CATEGORY_LABELS } from "@coco/shared/constants";
 import { db } from "@/infrastructure/firebase/config";
 import { useTheme } from "@coco/shared/hooks/useTheme";
-import { Colors } from "@coco/shared/config/theme"; // 👈 Importamos Colors directamente
+import { Colors } from "@coco/shared/config/theme";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { useDialog } from "@coco/shared/providers/DialogContext";
 
@@ -20,15 +20,12 @@ export const BusinessSetupScreen = ({ navigation }: any) => {
 	const { registerBusiness } = useBusiness(db, user?.id);
 	const [loading, setLoading] = useState(false);
 	const { showDialog } = useDialog();
-	// 💡 Extraemos si es oscuro o no y el businessBg dinámico
 	const { colors, isDark } = useTheme();
 
-	// 🎨 Colores por opacidad para no errar en las propiedades de texto
 	const textColor = isDark ? "rgba(255,255,255,0.9)" : "rgba(0,0,0,0.85)";
 	const subTextColor = isDark ? "rgba(255,255,255,0.6)" : "rgba(0,0,0,0.55)";
 	const borderColor = isDark ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.1)";
 
-	// 💡 El fondo de la tarjeta usa el color estático que sabemos que existe
 	const cardBg = isDark ? "#1C1C1E" : Colors.light.backgroundLight;
 
 	const [form, setForm] = useState({

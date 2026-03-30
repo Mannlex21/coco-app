@@ -9,7 +9,7 @@ import { BusinessSetupScreen } from "@/components/BusinessSetupScreen";
 import { FontSize, FontWeight } from "@coco/shared/config/theme";
 import { ProductScreen } from "@/screens/Product/ProductScreen";
 import { ProductForm } from "@/screens/Product/Components/ProductForm";
-import { useTheme } from "@coco/shared/hooks/useTheme"; // 👈 Importamos el hook
+import { useTheme } from "@coco/shared/hooks/useTheme";
 import { ProfileScreen } from "@/screens/Profile/ProfileScreen";
 import { UserSetupScreen } from "@/screens/Profile/components/UserSetupScreen";
 
@@ -48,7 +48,7 @@ const PlaceholderScreen = ({
 
 const TabNavigator = () => {
 	const insets = useSafeAreaInsets();
-	const { colors } = useTheme(); // 💡 Colores del tema dinámico
+	const { colors } = useTheme();
 
 	return (
 		<Tab.Navigator
@@ -60,9 +60,9 @@ const TabNavigator = () => {
 					height: Platform.OS === "ios" ? 70 + insets.bottom : 90,
 					paddingBottom: Platform.OS === "ios" ? insets.bottom : 12,
 					paddingTop: 10,
-					backgroundColor: colors.surfaceLight, // 💡 Dinámico
+					backgroundColor: colors.surfaceLight,
 					borderTopWidth: 1,
-					borderTopColor: colors.borderLight, // 💡 Dinámico
+					borderTopColor: colors.borderLight,
 					elevation: 10,
 					shadowColor: "#000",
 					shadowOffset: { width: 0, height: -3 },
@@ -123,13 +123,13 @@ const TabNavigator = () => {
 };
 
 export const MainNavigator = () => {
-	const { colors } = useTheme(); // 💡 Colores del tema dinámico
+	const { colors } = useTheme();
 
 	return (
 		<RootStack.Navigator
 			screenOptions={{
 				headerShown: false,
-				cardStyle: { backgroundColor: colors.surfaceLight }, // 💡 Evita destellos blancos en transiciones
+				cardStyle: { backgroundColor: colors.surfaceLight },
 			}}
 		>
 			<RootStack.Screen name="Tabs" component={TabNavigator} />
@@ -166,16 +166,16 @@ export const MainNavigator = () => {
 					headerTitleStyle: {
 						fontWeight: FontWeight.bold,
 						fontSize: FontSize.lg,
-						color: colors.textPrimaryLight, // 💡 Dinámico
+						color: colors.textPrimaryLight,
 					},
 					headerBackTitle: "",
 					presentation: "card",
 					headerStyle: {
-						backgroundColor: colors.surfaceLight, // 💡 Dinámico
+						backgroundColor: colors.surfaceLight,
 						elevation: 0,
 						shadowOpacity: 0,
 						borderBottomWidth: 1,
-						borderBottomColor: colors.borderLight, // 💡 Dinámico
+						borderBottomColor: colors.borderLight,
 					},
 				})}
 			/>

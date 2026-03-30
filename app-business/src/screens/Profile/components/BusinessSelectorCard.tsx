@@ -27,23 +27,8 @@ export const BusinessSelectorCard = () => {
 	const { colors, isDark } = useTheme();
 	const { showDialog } = useDialog();
 	const navigation = useNavigation<any>();
-	// 1. Extraemos el usuario y las funciones del Store global
 	const { user, activeBusiness, setActiveBusiness } = useAppStore();
-
-	// 2. Ejecutamos tu hook pasándole la BD y el ID del usuario
-	const { businesses, loading } = useBusiness(db, user?.id);
-	// 💡 Aquí extraes los datos reales de tu store.
-	// Por ahora dejo un fallback con datos de prueba por si tu store aún no los tiene listos.
-	// const {
-	// 	user,
-	// 	activeBusinessId = "1",
-	// 	setActiveBusiness,
-	// } = useAppStore() as any;
-
-	// const businesses = user?.businesses || [
-	// 	{ id: "1", name: "Hamburguesas El Jefe" },
-	// 	{ id: "2", name: "Tacos Los Compas" },
-	// ];
+	const { businesses, loadingBusinesses } = useBusiness(db, user?.id);
 
 	const cardBg = isDark ? "#1C1C1E" : "#FFFFFF";
 	const subTextColor = isDark ? "rgba(255,255,255,0.6)" : "rgba(0,0,0,0.55)";
@@ -78,7 +63,7 @@ export const BusinessSelectorCard = () => {
 				Tus Negocios
 			</Text>
 
-			{loading ? (
+			{loadingBusinesses ? (
 				<View style={styles.loadingContainer}>
 					<ActivityIndicator size="small" color={colors.businessBg} />
 					<Text style={[styles.loadingText, { color: subTextColor }]}>

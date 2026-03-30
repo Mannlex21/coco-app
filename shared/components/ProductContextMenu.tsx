@@ -14,7 +14,7 @@ import {
 	Shadow,
 	Spacing,
 } from "../config/theme";
-import { useTheme } from "@coco/shared/hooks/useTheme"; // 👈 Importamos tu hook
+import { useTheme } from "@coco/shared/hooks/useTheme";
 
 export interface ContextMenuItem {
 	label: string;
@@ -39,7 +39,6 @@ export const ProductContextMenu = ({
 	productSubtitle,
 	items,
 }: ProductContextMenuProps) => {
-	// 💡 Extraemos la paleta de colores activa
 	const { colors } = useTheme();
 
 	return (
@@ -50,7 +49,6 @@ export const ProductContextMenu = ({
 			onRequestClose={onClose}
 		>
 			<TouchableWithoutFeedback onPress={onClose}>
-				{/* 💡 Agregamos un fondo semi-transparente que cambia con el tema */}
 				<View
 					style={[
 						styles.overlay,

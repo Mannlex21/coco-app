@@ -71,7 +71,7 @@ export const AppDialog = ({
 		<Modal
 			visible={visible}
 			transparent
-			animationType="none" // 👈 Cero animaciones nativas
+			animationType="none"
 			onRequestClose={handleClose}
 		>
 			<TouchableWithoutFeedback
@@ -79,7 +79,6 @@ export const AppDialog = ({
 			>
 				<View style={styles.overlay}>
 					<TouchableWithoutFeedback>
-						{/* 💡 Ya no es un Animated.View, rinde al instante */}
 						<View
 							style={[
 								styles.alertContainer,

@@ -23,7 +23,7 @@ import { db } from "@/infrastructure/firebase/config";
 import { useBusiness } from "@coco/shared/hooks/useBusiness";
 import { useAppStore } from "@coco/shared/hooks/useAppStore";
 import { ProductContextMenu } from "@coco/shared/components/ProductContextMenu";
-import { useTheme } from "@coco/shared/hooks/useTheme"; // 👈 Importamos el hook
+import { useTheme } from "@coco/shared/hooks/useTheme";
 import { useDialog } from "@coco/shared/providers/DialogContext";
 
 export const ProductScreen = () => {

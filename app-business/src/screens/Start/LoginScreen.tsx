@@ -20,7 +20,7 @@ import {
 	Spacing,
 	Colors,
 } from "@coco/shared/config/theme";
-import { useTheme } from "@coco/shared/hooks/useTheme"; // 👈 Tu hook
+import { useTheme } from "@coco/shared/hooks/useTheme";
 import { useDialog } from "@coco/shared/providers/DialogContext";
 
 interface LoginProps {
@@ -83,7 +83,6 @@ export const LoginScreen: React.FC<LoginProps> = ({ onRegister }) => {
 				/>
 
 				<TouchableOpacity style={styles.button} onPress={handleLogin}>
-					{/* 💡 colors.businessBg es el color dinámico correcto para el texto */}
 					<Text
 						style={[
 							styles.buttonText,
@@ -127,7 +126,7 @@ const styles = StyleSheet.create({
 	title: {
 		fontSize: FontSize.hero,
 		fontWeight: FontWeight.black,
-		color: Colors.light.backgroundLight, // 💡 Ocupamos el color del tema claro estático para asegurar el blanco
+		color: Colors.light.backgroundLight,
 		marginBottom: Spacing.xl,
 		letterSpacing: 2,
 	},
@@ -136,14 +135,14 @@ const styles = StyleSheet.create({
 		backgroundColor: "rgba(255,255,255,0.15)",
 		borderRadius: BorderRadius.md,
 		padding: Spacing.md,
-		color: Colors.light.backgroundLight, // 💡 Texto siempre blanco sobre el fondo naranja
+		color: Colors.light.backgroundLight,
 		marginBottom: Spacing.sm,
 		fontSize: FontSize.md,
 		borderWidth: 1,
 		borderColor: "rgba(255,255,255,0.2)",
 	},
 	button: {
-		backgroundColor: Colors.light.backgroundLight, // 💡 El botón siempre será del color de fondo claro (blanco)
+		backgroundColor: Colors.light.backgroundLight,
 		padding: Spacing.md,
 		borderRadius: BorderRadius.md,
 		alignItems: "center",
@@ -165,7 +164,7 @@ const styles = StyleSheet.create({
 		backgroundColor: "rgba(255,255,255,0.3)",
 	},
 	dividerText: {
-		color: Colors.light.backgroundLight, // 💡 Siempre blanco
+		color: Colors.light.backgroundLight,
 		paddingHorizontal: Spacing.md,
 		fontWeight: FontWeight.semibold,
 		opacity: 0.8,
@@ -175,7 +174,7 @@ const styles = StyleSheet.create({
 		alignItems: "center",
 	},
 	registerText: {
-		color: Colors.light.backgroundLight, // 💡 Siempre blanco
+		color: Colors.light.backgroundLight,
 		fontWeight: FontWeight.semibold,
 		opacity: 0.9,
 		textDecorationLine: "underline",

@@ -55,12 +55,10 @@ export const UserSetupScreen = () => {
 		setForm({
 			name: user?.name || "",
 			phone: user?.phone || "",
-			// Le ponemos el timestamp para que cargue la foto fresca en la vista
 			avatarUrl: user?.avatarUrl
 				? `${user.avatarUrl}?t=${Date.now()}`
 				: "",
 		});
-		// Al cargar o cambiar de usuario, limpiamos la cola de subida
 		setImageToUpload(null);
 	}, [user]);
 

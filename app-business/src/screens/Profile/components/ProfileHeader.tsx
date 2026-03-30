@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo } from "react";
 import {
 	View,
 	Text,
@@ -28,7 +28,6 @@ export const ProfileHeader = () => {
 	const insets = useSafeAreaInsets();
 	const navigation = useNavigation<any>();
 
-	// Obtenemos la data en tiempo real del usuario
 	const { userData } = useUser(db, user?.id);
 	const rawAvatarUrl = userData?.avatarUrl || user?.avatarUrl;
 	const lastUpdate = userData?.updatedAt
@@ -36,9 +35,6 @@ export const ProfileHeader = () => {
 		: 0;
 	const avatarUrl = useMemo(() => {
 		if (!rawAvatarUrl) return null;
-
-		// Si no tenemos fecha de actualización, usamos Date.now() como plan B,
-		// pero lo ideal es usar lastUpdate para no parpadear innecesariamente.
 		const timestamp = lastUpdate || Date.now();
 
 		return rawAvatarUrl.startsWith("http")

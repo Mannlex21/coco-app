@@ -37,7 +37,6 @@ export const DashboardHeader = () => {
 				¡Bienvenido, {firstName}!
 			</Text>
 
-			{/* Cambiamos TouchableOpacity por View para que sea puramente informativo */}
 			<View style={styles.selector}>
 				<Text
 					style={[
