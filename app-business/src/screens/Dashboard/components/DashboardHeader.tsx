@@ -1,16 +1,16 @@
 import React from "react";
-import { View, Text, StyleSheet } from "react-native";
+import { View, Text, StyleSheet, Platform } from "react-native";
 import { useTheme } from "@coco/shared/hooks/useTheme";
 import { useAppStore } from "@coco/shared/hooks/useAppStore";
 import { useBusiness } from "@coco/shared/hooks/useBusiness";
 import { db } from "@/infrastructure/firebase/config";
 import { FontSize, FontWeight, Spacing } from "@coco/shared/config/theme";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export const DashboardHeader = () => {
 	const { colors } = useTheme();
 	const { user } = useAppStore();
-
-	// Solo traemos el activeBusiness para pintar el nombre
+	const insets = useSafeAreaInsets();
 	const { activeBusiness } = useBusiness(db, user?.id);
 	const firstName = user?.name ? user.name.split(" ")[0] : "Socio";
 
@@ -21,6 +21,10 @@ export const DashboardHeader = () => {
 				{
 					backgroundColor: colors.surfaceLight,
 					borderBottomColor: colors.borderLight,
+					paddingTop:
+						Platform.OS === "android"
+							? insets.top - 10
+							: insets.top,
 				},
 			]}
 		>
@@ -30,7 +34,7 @@ export const DashboardHeader = () => {
 					{ color: colors.textSecondaryLight },
 				]}
 			>
-				Hola, {firstName} 👋
+				¡Bienvenido, {firstName}!
 			</Text>
 
 			{/* Cambiamos TouchableOpacity por View para que sea puramente informativo */}
@@ -52,8 +56,8 @@ export const DashboardHeader = () => {
 
 const styles = StyleSheet.create({
 	header: {
-		padding: Spacing.lg,
-		paddingTop: Spacing.sm + 20,
+		paddingHorizontal: Spacing.md,
+		paddingBottom: Spacing.lg,
 		borderBottomWidth: 1,
 	},
 	welcomeText: {

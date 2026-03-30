@@ -11,6 +11,7 @@ import { ProductScreen } from "@/screens/Product/ProductScreen";
 import { ProductForm } from "@/screens/Product/Components/ProductForm";
 import { useTheme } from "@coco/shared/hooks/useTheme"; // 👈 Importamos el hook
 import { ProfileScreen } from "@/screens/Profile/ProfileScreen";
+import { UserSetupScreen } from "@/screens/Profile/components/UserSetupScreen";
 
 const RootStack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -175,6 +176,29 @@ export const MainNavigator = () => {
 						shadowOpacity: 0,
 						borderBottomWidth: 1,
 						borderBottomColor: colors.borderLight, // 💡 Dinámico
+					},
+				})}
+			/>
+			<RootStack.Screen
+				name="UserSetup"
+				component={UserSetupScreen}
+				options={({ route }: any) => ({
+					headerShown: true,
+					title: route.params?.title || "Editar Perfil",
+					headerTintColor: colors.businessBg,
+					headerTitleStyle: {
+						fontWeight: FontWeight.bold,
+						fontSize: FontSize.lg,
+						color: colors.textPrimaryLight,
+					},
+					headerBackTitle: "",
+					presentation: "card",
+					headerStyle: {
+						backgroundColor: colors.surfaceLight,
+						elevation: 0,
+						shadowOpacity: 0,
+						borderBottomWidth: 1,
+						borderBottomColor: colors.borderLight,
 					},
 				})}
 			/>

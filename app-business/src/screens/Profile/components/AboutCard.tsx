@@ -159,7 +159,6 @@ const styles = StyleSheet.create({
 		justifyContent: "space-between",
 		alignItems: "center",
 		paddingVertical: Spacing.md,
-		borderBottomWidth: 0.5,
 		paddingLeft: Spacing.lg,
 	},
 	optionLeft: {

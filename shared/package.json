@@ -4,6 +4,7 @@
 	"private": true,
 	"main": "index.ts",
 	"dependencies": {
+		"@supabase/supabase-js": "^2.100.1",
 		"firebase": "^12.11.0",
 		"zustand": "^4.5.2"
 	},

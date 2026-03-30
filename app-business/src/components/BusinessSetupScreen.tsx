@@ -5,7 +5,6 @@ import {
 	TextInput,
 	TouchableOpacity,
 	StyleSheet,
-	Alert,
 } from "react-native";
 import { useBusiness } from "@coco/shared/hooks/useBusiness";
 import { useAppStore } from "@coco/shared/hooks/useAppStore";

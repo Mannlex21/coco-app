@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React from "react";
 import {
 	View,
 	Text,
@@ -6,7 +6,6 @@ import {
 	TouchableOpacity,
 	ScrollView,
 	Switch,
-	Alert,
 	RefreshControl,
 } from "react-native";
 import {
@@ -45,6 +44,7 @@ export const DashboardScreen = () => {
 		refreshing,
 		toggleBusinessStatus,
 	} = useBusiness(db, user?.id, userData?.lastActiveBusinessId);
+
 	const handleToggle = async () => {
 		if (!activeBusiness) return;
 
@@ -93,12 +93,7 @@ export const DashboardScreen = () => {
 			},
 		});
 	};
-	useEffect(() => {
-		const { activeBusiness } = useAppStore.getState(); // Leemos el store actual
-		if (userData && !userData.lastActiveBusinessId && activeBusiness) {
-			updateLastActiveBusiness(activeBusiness.id);
-		}
-	}, [userData, businesses]);
+
 	if (loadingUser || loadingBusinesses) {
 		return (
 			<View>
@@ -113,7 +108,9 @@ export const DashboardScreen = () => {
 			</View>
 		);
 	}
-
+	if (userData && !userData.lastActiveBusinessId && activeBusiness) {
+		updateLastActiveBusiness(activeBusiness.id);
+	}
 	return (
 		<View style={{ flex: 1 }}>
 			<DashboardHeader />
@@ -346,11 +343,6 @@ export const DashboardScreen = () => {
 };
 
 const styles = StyleSheet.create({
-	header: {
-		padding: Spacing.lg,
-		paddingTop: Spacing.sm + 20,
-		borderBottomWidth: 1,
-	},
 	loadingText: {
 		textAlign: "center",
 		marginTop: Spacing.lg,
