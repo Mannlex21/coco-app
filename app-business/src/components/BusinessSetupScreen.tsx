@@ -6,18 +6,18 @@ import {
 	TouchableOpacity,
 	StyleSheet,
 } from "react-native";
-import { useBusiness } from "@coco/shared/hooks/useBusiness";
 import { useAppStore } from "@coco/shared/hooks/useAppStore";
 import { BUSINESS_CATEGORY_LABELS } from "@coco/shared/constants";
-import { db } from "@/infrastructure/firebase/config";
 import { useTheme } from "@coco/shared/hooks/useTheme";
 import { Colors } from "@coco/shared/config/theme";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { useDialog } from "@coco/shared/providers/DialogContext";
+import { supabase } from "@/infrastructure/supabase/config";
+import { useBusiness } from "@coco/shared/hooks/supabase";
 
 export const BusinessSetupScreen = ({ navigation }: any) => {
 	const { user } = useAppStore();
-	const { registerBusiness } = useBusiness(db, user?.id);
+	const { registerBusiness } = useBusiness(supabase, user?.id);
 	const [loading, setLoading] = useState(false);
 	const { showDialog } = useDialog();
 	const { colors, isDark } = useTheme();
@@ -64,9 +64,10 @@ export const BusinessSetupScreen = ({ navigation }: any) => {
 			await registerBusiness({
 				name: form.name.trim(),
 				category: form.category,
+				description: form.description.trim(), // Añadido que faltaba
 				address: form.address.trim(),
 				phone: form.phone.trim(),
-				deliveryCost: Number(form.deliveryCost),
+				deliveryCost: Number(form.deliveryCost), // Cambiado a snake_case
 			});
 
 			showDialog({

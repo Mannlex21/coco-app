@@ -1,10 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { StyleSheet, View, ActivityIndicator } from "react-native";
-
-import { auth, db } from "./src/infrastructure/firebase/config";
-import { onAuthStateChanged } from "firebase/auth";
 import { Colors } from "@coco/shared/config/theme";
-import { useBusiness } from "@coco/shared/hooks/useBusiness";
 import { NavigationContainer, DefaultTheme } from "@react-navigation/native";
 import { MainNavigator } from "@/navigation/MainNavigator";
 import { AuthStack } from "@/navigation/AuthStack";
@@ -14,38 +10,50 @@ import { User } from "@coco/shared/core/entities/User";
 import { DialogProvider } from "@coco/shared/providers/DialogContext";
 import { useTheme } from "@coco/shared/hooks/useTheme";
 import { StatusBar } from "expo-status-bar";
+import { supabase } from "@/infrastructure/supabase/config";
 
 export default function App() {
 	const { user, setUser, isLoadingAuth, setLoadingAuth, themeMode } =
 		useAppStore();
 	const { isDark } = useTheme();
 	const [isRegistering, setIsRegistering] = useState(false);
-
 	useEffect(() => {
-		const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
-			if (firebaseUser) {
+		supabase.auth.getSession().then(({ data: { session } }) => {
+			handleUserChange(session?.user || null);
+			setLoadingAuth(false);
+		});
+
+		const {
+			data: { subscription },
+		} = supabase.auth.onAuthStateChange((_event, session) => {
+			handleUserChange(session?.user || null);
+			setLoadingAuth(false);
+		});
+
+		const handleUserChange = (supabaseUser: any) => {
+			if (supabaseUser) {
 				const cocoUser: User = {
-					id: firebaseUser.uid,
-					phone: firebaseUser.phoneNumber || "",
-					name: firebaseUser.displayName || "Usuario Coco",
+					id: supabaseUser.id,
+					phone: supabaseUser.phone || "",
+					name:
+						supabaseUser.user_metadata?.name ||
+						supabaseUser.email?.split("@")[0] ||
+						"Usuario Coco",
 					role: "business",
 					status: "active",
-					createdAt: new Date(),
+					createdAt: new Date(supabaseUser.created_at),
 					updatedAt: new Date(),
 				};
-
 				setUser(cocoUser);
 			} else {
 				setUser(null);
 			}
-			setLoadingAuth(false);
-		});
-		return () => unsubscribe();
+		};
+
+		return () => subscription.unsubscribe();
 	}, []);
 
-	const { loadingBusinesses } = useBusiness(db, user?.id);
-
-	const isGlobalLoading = isLoadingAuth || (user && loadingBusinesses);
+	const isGlobalLoading = isLoadingAuth;
 
 	const currentColors = Colors[themeMode];
 	const headerBgColor =

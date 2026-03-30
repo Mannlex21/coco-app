@@ -2,16 +2,16 @@ import React from "react";
 import { View, Text, StyleSheet, Platform } from "react-native";
 import { useTheme } from "@coco/shared/hooks/useTheme";
 import { useAppStore } from "@coco/shared/hooks/useAppStore";
-import { useBusiness } from "@coco/shared/hooks/useBusiness";
-import { db } from "@/infrastructure/firebase/config";
+import { useBusiness } from "@coco/shared/hooks/supabase";
 import { FontSize, FontWeight, Spacing } from "@coco/shared/config/theme";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { supabase } from "@/infrastructure/supabase/config";
 
 export const DashboardHeader = () => {
 	const { colors } = useTheme();
 	const { user } = useAppStore();
 	const insets = useSafeAreaInsets();
-	const { activeBusiness } = useBusiness(db, user?.id);
+	const { activeBusiness } = useBusiness(supabase, user?.id);
 	const firstName = user?.name ? user.name.split(" ")[0] : "Socio";
 
 	return (

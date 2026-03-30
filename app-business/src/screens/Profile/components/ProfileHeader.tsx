@@ -11,8 +11,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useAppStore } from "@coco/shared/hooks/useAppStore";
 import { useTheme } from "@coco/shared/hooks/useTheme";
-import { useUser } from "@coco/shared/hooks/useUser";
-import { db } from "@/infrastructure/firebase/config";
+import { useUser } from "@coco/shared/hooks/supabase";
 import {
 	FontSize,
 	FontWeight,
@@ -21,6 +20,7 @@ import {
 	Shadow,
 } from "@coco/shared/config/theme";
 import { useNavigation } from "@react-navigation/native";
+import { supabase } from "@/infrastructure/supabase/config";
 
 export const ProfileHeader = () => {
 	const { user } = useAppStore();
@@ -28,7 +28,7 @@ export const ProfileHeader = () => {
 	const insets = useSafeAreaInsets();
 	const navigation = useNavigation<any>();
 
-	const { userData } = useUser(db, user?.id);
+	const { userData } = useUser(supabase, user?.id);
 	const rawAvatarUrl = userData?.avatarUrl || user?.avatarUrl;
 	const lastUpdate = userData?.updatedAt
 		? new Date(userData.updatedAt).getTime()
@@ -96,7 +96,7 @@ export const ProfileHeader = () => {
 					</Text>
 					<Text style={[styles.userPhone, { color: subTextColor }]}>
 						{userData?.phone || user?.phone
-							? `WhatsApp: ${userData?.phone || user?.phone}`
+							? `${userData?.phone || user?.phone}`
 							: "Sin teléfono"}
 					</Text>
 

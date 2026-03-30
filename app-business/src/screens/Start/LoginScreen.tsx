@@ -7,6 +7,7 @@ import {
 	TouchableOpacity,
 	KeyboardAvoidingView,
 	Platform,
+	ActivityIndicator,
 } from "react-native";
 import { CocoLogo } from "@coco/shared/components/CocoLogo";
 import { AuthService } from "@/infrastructure/auth/AuthService";
@@ -22,6 +23,7 @@ import {
 import { useTheme } from "@coco/shared/hooks/useTheme";
 import { useDialog } from "@coco/shared/providers/DialogContext";
 import { StatusBar } from "expo-status-bar";
+import { supabase } from "@/infrastructure/supabase/config";
 
 interface LoginProps {
 	onRegister: () => void;
@@ -32,11 +34,27 @@ export const LoginScreen: React.FC<LoginProps> = ({ onRegister }) => {
 	const [password, setPassword] = useState("");
 	const { colors } = useTheme();
 	const { showDialog } = useDialog();
+	const [loading, setLoading] = useState(false);
 
 	const handleLogin = async () => {
-		try {
-			await AuthService.login(email, password);
+		const cleanEmail = email.trim();
+		setLoading(true);
+		if (cleanEmail === "" || password === "") {
+			showDialog({
+				title: "Error",
+				message: "Por favor llena todos los campos.",
+				intent: "error",
+			});
+			return;
+		}
 
+		try {
+			// await AuthService.login(email, password);
+			const { data, error } = await supabase.auth.signInWithPassword({
+				email: cleanEmail,
+				password: password,
+			});
+			if (error) throw error;
 			showDialog({
 				title: "¡Bienvenido!",
 				message: "Ya puedes pedir tu coco",
@@ -45,11 +63,23 @@ export const LoginScreen: React.FC<LoginProps> = ({ onRegister }) => {
 		} catch (error: any) {
 			console.error(error);
 
+			let errorMessage = "Revisa tus datos o regístrate.";
+
+			// 👈 5. Errores específicos de Supabase
+			if (error.message === "Invalid login credentials") {
+				errorMessage = "El correo o la contraseña son incorrectos.";
+			} else if (error.message === "Email not confirmed") {
+				errorMessage =
+					"Por favor confirma tu correo electrónico primero.";
+			}
+
 			showDialog({
 				title: "Error",
-				message: "Revisa tus datos o regístrate.",
+				message: errorMessage,
 				intent: "error",
 			});
+		} finally {
+			setLoading(false); // Desbloqueamos UI
 		}
 	};
 
@@ -83,14 +113,18 @@ export const LoginScreen: React.FC<LoginProps> = ({ onRegister }) => {
 				/>
 
 				<TouchableOpacity style={styles.button} onPress={handleLogin}>
-					<Text
-						style={[
-							styles.buttonText,
-							{ color: colors.businessBg },
-						]}
-					>
-						Iniciar Sesión
-					</Text>
+					{loading ? (
+						<ActivityIndicator color={colors.businessBg} />
+					) : (
+						<Text
+							style={[
+								styles.buttonText,
+								{ color: colors.businessBg },
+							]}
+						>
+							Iniciar Sesión
+						</Text>
+					)}
 				</TouchableOpacity>
 
 				{/* Separador visual */}

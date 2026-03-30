@@ -129,4 +129,11 @@ export const Shadow = {
 		shadowRadius: 8, // Difuminado elegante pero no exagerado
 		elevation: 3, // Elevación 3 para Android
 	},
+	xl: {
+		shadowColor: "#000",
+		shadowOffset: { width: 0, height: 6 }, // Altura más pronunciada para simular distancia
+		shadowOpacity: 0.12, // Subimos sutilmente para que la sombra no desaparezca al difuminarse tanto
+		shadowRadius: 15, // Un difuminado bien amplio y suave
+		elevation: 10, // Elevación 10 para Android
+	},
 };

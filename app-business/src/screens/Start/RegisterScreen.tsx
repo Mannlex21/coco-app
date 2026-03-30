@@ -5,9 +5,9 @@ import {
 	View,
 	TextInput,
 	TouchableOpacity,
+	ActivityIndicator,
 } from "react-native";
 import { CocoLogo } from "@coco/shared/components/CocoLogo";
-import { AuthService } from "@/infrastructure/auth/AuthService";
 import {
 	BorderRadius,
 	Colors,
@@ -19,16 +19,18 @@ import {
 import { useTheme } from "@coco/shared/hooks/useTheme";
 import { useDialog } from "@coco/shared/providers/DialogContext";
 import { StatusBar } from "expo-status-bar";
+import { supabase } from "@/infrastructure/supabase/config";
 
 export const RegisterScreen = ({ onBack }: { onBack: () => void }) => {
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
+	const [loading, setLoading] = useState(false);
 	const { colors } = useTheme();
 	const { showDialog } = useDialog();
 
 	const handleRegister = async () => {
 		const cleanEmail = email.trim();
-
+		setLoading(true);
 		if (cleanEmail === "" || password === "") {
 			showDialog({
 				title: "Error",
@@ -48,7 +50,11 @@ export const RegisterScreen = ({ onBack }: { onBack: () => void }) => {
 		}
 
 		try {
-			await AuthService.register(cleanEmail, password);
+			const { error } = await supabase.auth.signUp({
+				email: cleanEmail,
+				password: password,
+			});
+			if (error) throw error;
 			showDialog({
 				title: "¡Éxito!",
 				message: "Cuenta creada",
@@ -58,10 +64,17 @@ export const RegisterScreen = ({ onBack }: { onBack: () => void }) => {
 			console.error(error);
 
 			let errorMessage = "Ocurrió un problema al registrarte.";
-			if (error.code === "auth/email-already-in-use") {
+
+			if (error.message === "User already registered") {
 				errorMessage = "Este correo ya está registrado.";
-			} else if (error.code === "auth/invalid-email") {
+			} else if (
+				error.message ===
+				"Unable to validate email address: invalid format"
+			) {
 				errorMessage = "El formato del correo es inválido.";
+			} else if (error.status === 429) {
+				errorMessage =
+					"Demasiados intentos. Por favor intenta más tarde.";
 			}
 
 			showDialog({
@@ -69,6 +82,8 @@ export const RegisterScreen = ({ onBack }: { onBack: () => void }) => {
 				message: errorMessage,
 				intent: "error",
 			});
+		} finally {
+			setLoading(false);
 		}
 	};
 
@@ -101,14 +116,18 @@ export const RegisterScreen = ({ onBack }: { onBack: () => void }) => {
 					style={styles.button}
 					onPress={handleRegister}
 				>
-					<Text
-						style={[
-							styles.buttonText,
-							{ color: colors.businessBg },
-						]}
-					>
-						Crear cuenta
-					</Text>
+					{loading ? (
+						<ActivityIndicator color={colors.businessBg} />
+					) : (
+						<Text
+							style={[
+								styles.buttonText,
+								{ color: colors.businessBg },
+							]}
+						>
+							Crear cuenta
+						</Text>
+					)}
 				</TouchableOpacity>
 
 				<TouchableOpacity style={styles.backBtn} onPress={onBack}>

@@ -11,10 +11,13 @@ import {
 	Spacing,
 	Shadow,
 } from "@coco/shared/config/theme";
+import { supabase } from "@/infrastructure/supabase/config";
+import { useAppStore } from "@coco/shared/hooks/useAppStore";
 
 export const LogoutCard = () => {
-	const { colors, isDark } = useTheme();
+	const { isDark } = useTheme();
 	const { showDialog } = useDialog();
+	const { setActiveBusiness, setUser } = useAppStore();
 
 	const cardBg = isDark ? "#1C1C1E" : "#FFFFFF";
 	const subTextColor = isDark ? "rgba(255,255,255,0.6)" : "rgba(0,0,0,0.55)";
@@ -25,12 +28,16 @@ export const LogoutCard = () => {
 			title: "Cerrar Sesión",
 			message: "¿Estás seguro de que quieres salir de tu cuenta?",
 			intent: "error",
+			type: "options",
 			onConfirm: () => {
 				(async () => {
 					try {
-						await AuthService.logout();
-					} catch (error) {
-						console.error(error);
+						const { error } = await supabase.auth.signOut();
+						if (error) throw error;
+						setActiveBusiness(null);
+						setUser(null);
+					} catch (error: any) {
+						console.error("Error al cerrar sesión:", error.message);
 						showDialog({
 							title: "Error",
 							message: "No se pudo cerrar sesión.",
@@ -65,11 +72,6 @@ export const LogoutCard = () => {
 					</View>
 				</TouchableOpacity>
 			</View>
-
-			{/* Texto de la Versión */}
-			<Text style={[styles.versionText, { color: subTextColor }]}>
-				Coco App - Socio v1.0.0 (Beta)
-			</Text>
 		</>
 	);
 };

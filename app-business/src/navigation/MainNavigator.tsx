@@ -7,11 +7,12 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { DashboardScreen } from "@/screens/Dashboard/DashboardScreen";
 import { BusinessSetupScreen } from "@/components/BusinessSetupScreen";
 import { FontSize, FontWeight } from "@coco/shared/config/theme";
-import { ProductScreen } from "@/screens/Product/ProductScreen";
+import { CatalogScreen } from "@/screens/Product/CatalogScreen";
 import { ProductForm } from "@/screens/Product/Components/ProductForm";
 import { useTheme } from "@coco/shared/hooks/useTheme";
 import { ProfileScreen } from "@/screens/Profile/ProfileScreen";
 import { UserSetupScreen } from "@/screens/Profile/components/UserSetupScreen";
+import { SectionFormScreen } from "@/screens/Product/Components/Secciones/SectionFormScreen";
 
 const RootStack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -116,7 +117,7 @@ const TabNavigator = () => {
 					/>
 				)}
 			</Tab.Screen>
-			<Tab.Screen name="Catálogo" component={ProductScreen} />
+			<Tab.Screen name="Catálogo" component={CatalogScreen} />
 			<Tab.Screen name="Perfil" component={ProfileScreen}></Tab.Screen>
 		</Tab.Navigator>
 	);
@@ -162,6 +163,29 @@ export const MainNavigator = () => {
 				options={({ route }: any) => ({
 					headerShown: true,
 					title: route.params?.title || "Producto",
+					headerTintColor: colors.businessBg,
+					headerTitleStyle: {
+						fontWeight: FontWeight.bold,
+						fontSize: FontSize.lg,
+						color: colors.textPrimaryLight,
+					},
+					headerBackTitle: "",
+					presentation: "card",
+					headerStyle: {
+						backgroundColor: colors.surfaceLight,
+						elevation: 0,
+						shadowOpacity: 0,
+						borderBottomWidth: 1,
+						borderBottomColor: colors.borderLight,
+					},
+				})}
+			/>
+			<RootStack.Screen
+				name="SectionForm"
+				component={SectionFormScreen}
+				options={({ route }: any) => ({
+					headerShown: true,
+					title: route.params?.title || "Sección",
 					headerTintColor: colors.businessBg,
 					headerTitleStyle: {
 						fontWeight: FontWeight.bold,

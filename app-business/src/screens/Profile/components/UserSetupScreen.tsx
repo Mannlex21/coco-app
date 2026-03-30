@@ -11,9 +11,8 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAppStore } from "@coco/shared/hooks/useAppStore";
-import { useUser } from "@coco/shared/hooks/useUser";
+import { useUser } from "@coco/shared/hooks/supabase";
 import { useTheme } from "@coco/shared/hooks/useTheme";
-import { db } from "@/infrastructure/firebase/config";
 import {
 	FontSize,
 	FontWeight,
@@ -25,14 +24,8 @@ import { useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import { User } from "@coco/shared/core/entities/User";
-import { getSupabaseClient } from "@coco/shared/infrastructure/supabase/Client";
-import { StorageRepository } from "@coco/shared/infrastructure/supabase/StorageRepository";
-import { SUPABASE_URL, SUPABASE_ANON_KEY } from "@env";
 import { useDialog } from "@coco/shared/providers/DialogContext";
-
-const storageRepository = new StorageRepository(
-	getSupabaseClient(SUPABASE_URL, SUPABASE_ANON_KEY),
-);
+import { supabase } from "@/infrastructure/supabase/config";
 
 export const UserSetupScreen = () => {
 	const { user } = useAppStore();
@@ -40,7 +33,7 @@ export const UserSetupScreen = () => {
 	const insets = useSafeAreaInsets();
 	const navigation = useNavigation();
 	const { showDialog } = useDialog();
-	const { updateProfile } = useUser(db, user?.id);
+	const { updateProfile } = useUser(supabase, user?.id);
 	const [form, setForm] = useState({
 		name: "",
 		phone: "",
@@ -113,10 +106,7 @@ export const UserSetupScreen = () => {
 				avatarUrl: imageToUpload || user?.avatarUrl || "",
 			};
 
-			const response = await updateProfile(
-				dataToUpdate,
-				storageRepository,
-			);
+			const response = await updateProfile(dataToUpdate);
 
 			if (response.success) {
 				navigation.goBack();

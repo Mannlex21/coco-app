@@ -18,27 +18,27 @@ import { useTheme } from "@coco/shared/hooks/useTheme";
 
 export interface ContextMenuItem {
 	label: string;
-	icon: string;
+	icon: string | React.ReactNode; // 💥 Ahora soporta un string (emojis) o un elemento React (Iconos)
 	textColor?: string;
 	iconBg?: string;
 	onPress: () => void;
 }
 
-interface ProductContextMenuProps {
+interface CustomContextMenuProps {
 	visible: boolean;
 	onClose: () => void;
-	productName: string;
-	productSubtitle?: string;
+	title: string;
+	subtitle?: string;
 	items: ContextMenuItem[];
 }
 
-export const ProductContextMenu = ({
+export const CustomContextMenu = ({
 	visible,
 	onClose,
-	productName,
-	productSubtitle,
+	title,
+	subtitle,
 	items,
-}: ProductContextMenuProps) => {
+}: CustomContextMenuProps) => {
 	const { colors } = useTheme();
 
 	return (
@@ -49,14 +49,7 @@ export const ProductContextMenu = ({
 			onRequestClose={onClose}
 		>
 			<TouchableWithoutFeedback onPress={onClose}>
-				<View
-					style={[
-						styles.overlay,
-						{
-							backgroundColor: "transparent",
-						},
-					]}
-				>
+				<View style={styles.overlay}>
 					<TouchableWithoutFeedback>
 						<View
 							style={[
@@ -64,97 +57,87 @@ export const ProductContextMenu = ({
 								{ backgroundColor: colors.surfaceLight },
 							]}
 						>
-							{/* Menú */}
-							<View
-								style={[
-									styles.menu,
-									{ backgroundColor: colors.surfaceLight },
-								]}
-							>
-								{/* Header */}
-								<View
+							<View style={styles.menuHeader}>
+								<Text
 									style={[
-										styles.menuHeader,
-										{
-											borderBottomColor:
-												colors.borderLight,
-										},
+										styles.titleText,
+										{ color: colors.textPrimaryLight },
 									]}
+									numberOfLines={1}
 								>
+									{title}
+								</Text>
+								{subtitle ? (
 									<Text
 										style={[
-											styles.productName,
-											{ color: colors.textPrimaryLight },
+											styles.subtitleText,
+											{
+												color: colors.textSecondaryLight,
+											},
 										]}
 										numberOfLines={1}
 									>
-										{productName}
+										{subtitle}
 									</Text>
-									{productSubtitle ? (
-										<Text
-											style={[
-												styles.productSubtitle,
-												{
-													color: colors.textSecondaryLight,
-												},
-											]}
-											numberOfLines={1}
-										>
-											{productSubtitle}
-										</Text>
-									) : null}
-								</View>
+								) : null}
+							</View>
 
-								{/* Items */}
-								{items.map((item, index) => (
-									<TouchableOpacity
-										key={index}
+							{/* Mapeo dinámico de acciones */}
+							{items.map((item, index) => (
+								<TouchableOpacity
+									key={index}
+									style={[
+										styles.menuItem,
+										{
+											borderBottomColor:
+												colors.borderLight,
+											borderBottomWidth:
+												index === items.length - 1
+													? 0
+													: 0.5,
+										},
+									]}
+									onPress={() => {
+										onClose();
+										setTimeout(item.onPress, 200);
+									}}
+									activeOpacity={0.7}
+								>
+									<View
 										style={[
-											styles.menuItem,
+											styles.iconWrapper,
 											{
-												borderBottomColor:
-													colors.borderLight,
 												backgroundColor:
-													colors.surfaceLight,
+													item.iconBg ??
+													colors.backgroundLight,
 											},
 										]}
-										onPress={() => {
-											onClose();
-											setTimeout(item.onPress, 200);
-										}}
-										activeOpacity={0.7}
 									>
-										<View
-											style={[
-												styles.iconWrapper,
-												{
-													backgroundColor:
-														item.iconBg ??
-														colors.backgroundLight,
-												},
-											]}
-										>
+										{/* 💥 Validación de tipo de icono */}
+										{typeof item.icon === "string" ? (
 											<Text style={styles.icon}>
 												{item.icon}
 											</Text>
-										</View>
-										<Text
-											style={[
-												styles.itemLabel,
-												{
-													color:
-														item.textColor ??
-														colors.textPrimaryLight,
-												},
-											]}
-										>
-											{item.label}
-										</Text>
-									</TouchableOpacity>
-								))}
-							</View>
+										) : (
+											item.icon
+										)}
+									</View>
+									<Text
+										style={[
+											styles.itemLabel,
+											{
+												color:
+													item.textColor ??
+													colors.textPrimaryLight,
+											},
+										]}
+									>
+										{item.label}
+									</Text>
+								</TouchableOpacity>
+							))}
 
-							{/* Cancelar (Botón adaptado dinámicamente) */}
+							{/* Botón Cancelar */}
 							<TouchableOpacity
 								style={[
 									styles.cancelBtn,
@@ -188,26 +171,23 @@ const styles = StyleSheet.create({
 	overlay: {
 		flex: 1,
 		justifyContent: "flex-end",
-		backgroundColor: "transparent",
 	},
 	container: {
 		width: "100%",
 		padding: Spacing.lg,
 		borderTopLeftRadius: BorderRadius.xl,
 		borderTopRightRadius: BorderRadius.xl,
-		...Shadow.lg,
+		...Shadow.xl,
 	},
-	menu: {},
 	menuHeader: {
 		paddingBottom: Spacing.md,
-		borderBottomWidth: 1,
 		marginBottom: Spacing.sm,
 	},
-	productName: {
+	titleText: {
 		fontSize: FontSize.lg,
 		fontWeight: FontWeight.bold,
 	},
-	productSubtitle: {
+	subtitleText: {
 		fontSize: FontSize.sm,
 		marginTop: 2,
 	},
@@ -217,7 +197,6 @@ const styles = StyleSheet.create({
 		gap: Spacing.md,
 		paddingVertical: Spacing.md,
 		paddingHorizontal: Spacing.sm,
-		borderBottomWidth: 0.5,
 	},
 	iconWrapper: {
 		width: 32,
