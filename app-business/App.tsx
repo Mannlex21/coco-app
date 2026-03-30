@@ -13,6 +13,7 @@ import { useAppStore } from "@coco/shared/hooks/useAppStore";
 import { User } from "@coco/shared/core/entities/User";
 import { DialogProvider } from "@coco/shared/providers/DialogContext";
 import { useTheme } from "@coco/shared/hooks/useTheme";
+import { StatusBar } from "expo-status-bar";
 
 export default function App() {
 	const { user, setUser, isLoadingAuth, setLoadingAuth, themeMode } =
@@ -82,6 +83,7 @@ export default function App() {
 				style={[styles.container, { backgroundColor: headerBgColor }]}
 				edges={["top"]}
 			>
+				<StatusBar style={isDark ? "light" : "dark"} animated={true} />
 				<DialogProvider>
 					<NavigationContainer theme={CocoAppTheme}>
 						{user ? (

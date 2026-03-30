@@ -5,7 +5,6 @@ import {
 	View,
 	TextInput,
 	TouchableOpacity,
-	StatusBar,
 } from "react-native";
 import { CocoLogo } from "@coco/shared/components/CocoLogo";
 import { AuthService } from "@/infrastructure/auth/AuthService";
@@ -19,6 +18,7 @@ import {
 } from "@coco/shared/config/theme";
 import { useTheme } from "@coco/shared/hooks/useTheme";
 import { useDialog } from "@coco/shared/providers/DialogContext";
+import { StatusBar } from "expo-status-bar";
 
 export const RegisterScreen = ({ onBack }: { onBack: () => void }) => {
 	const [email, setEmail] = useState("");
@@ -74,7 +74,7 @@ export const RegisterScreen = ({ onBack }: { onBack: () => void }) => {
 
 	return (
 		<View style={styles.container}>
-			<StatusBar barStyle="light-content" />
+			<StatusBar style={"light"} animated={true} />
 			<CocoLogo variant="business" />
 			<Text style={styles.title}>Registro</Text>
 

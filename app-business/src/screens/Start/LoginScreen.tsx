@@ -7,7 +7,6 @@ import {
 	TouchableOpacity,
 	KeyboardAvoidingView,
 	Platform,
-	StatusBar,
 } from "react-native";
 import { CocoLogo } from "@coco/shared/components/CocoLogo";
 import { AuthService } from "@/infrastructure/auth/AuthService";
@@ -22,6 +21,7 @@ import {
 } from "@coco/shared/config/theme";
 import { useTheme } from "@coco/shared/hooks/useTheme";
 import { useDialog } from "@coco/shared/providers/DialogContext";
+import { StatusBar } from "expo-status-bar";
 
 interface LoginProps {
 	onRegister: () => void;
@@ -58,7 +58,7 @@ export const LoginScreen: React.FC<LoginProps> = ({ onRegister }) => {
 			behavior={Platform.OS === "ios" ? "padding" : "height"}
 			style={styles.container}
 		>
-			<StatusBar barStyle="light-content" />
+			<StatusBar style={"light"} animated={true} />
 
 			<CocoLogo variant="business" />
 			<Text style={styles.title}>Coco</Text>

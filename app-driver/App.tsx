@@ -1,21 +1,16 @@
 import React, { useEffect, useState } from "react";
-import {
-	StyleSheet,
-	Text,
-	View,
-	ActivityIndicator,
-	StatusBar,
-} from "react-native";
+import { StyleSheet, Text, View, ActivityIndicator } from "react-native";
 
-// IMPORT LOCAL: Usando tu infraestructura de Firebase
 import { auth } from "./src/infrastructure/firebase/config";
 import { onAuthStateChanged, User } from "firebase/auth";
 import { CocoLogo } from "./src/components/CocoLogo";
+import { StatusBar } from "expo-status-bar";
+import { useTheme } from "../shared/hooks/useTheme";
 
 export default function App() {
 	const [loading, setLoading] = useState(true);
 	const [user, setUser] = useState<User | null>(null);
-
+	const { isDark } = useTheme();
 	useEffect(() => {
 		console.log("Checking Firebase connection (Driver)...");
 		const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -34,10 +29,10 @@ export default function App() {
 				</Text>
 			</View>
 		);
-
+	console.log(isDark);
 	return (
 		<View style={styles.container}>
-			<StatusBar barStyle="light-content" />
+			<StatusBar style={isDark ? "light" : "dark"} animated={true} />
 			<CocoLogo size={280} />
 			<Text style={styles.title}>Coco Driver</Text>
 
