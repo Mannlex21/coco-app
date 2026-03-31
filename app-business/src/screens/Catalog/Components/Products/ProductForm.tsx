@@ -21,12 +21,15 @@ interface RouteParams {
 	title?: string;
 	productId?: string;
 	businessId?: string;
+	sectionId?: string; // 🪄 Agregamos sectionId a los parámetros de la ruta
 }
 
 export const ProductForm = () => {
 	const navigation = useNavigation();
 	const route = useRoute();
-	const { productId } = (route.params as RouteParams) || {};
+
+	// 🪄 Extraemos sectionId junto con productId
+	const { productId, sectionId } = (route.params as RouteParams) || {};
 
 	const { colors, isDark } = useTheme();
 	const { showDialog } = useDialog();
@@ -34,7 +37,6 @@ export const ProductForm = () => {
 	// Hooks de datos
 	const { user } = useAppStore();
 
-	// ⚡ EXTRAEMOS 'saveProduct' Y 'getProductById' DEL HOOK
 	const { products, saveProduct, getProductById } = useProduct(
 		supabase,
 		user?.lastActiveBusinessId,
@@ -44,7 +46,7 @@ export const ProductForm = () => {
 		user?.lastActiveBusinessId,
 	);
 
-	// --- VARIABLES DE ESTILO CLONADAS ---
+	// --- VARIABLES DE ESTILO ---
 	const textColor = isDark ? "rgba(255,255,255,0.9)" : "rgba(0,0,0,0.85)";
 	const subTextColor = isDark ? "rgba(255,255,255,0.6)" : "rgba(0,0,0,0.55)";
 	const borderColor = isDark ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.1)";
@@ -74,7 +76,7 @@ export const ProductForm = () => {
 			await fetchSections("");
 
 			if (productId) {
-				// ⚡ LEEMOS EL PRODUCTO DESDE EL HOOK (que ya trae las relaciones)
+				// Modo Edición: Traemos la data del producto
 				const currentProduct = await getProductById(productId);
 
 				if (currentProduct) {
@@ -85,9 +87,12 @@ export const ProductForm = () => {
 						isAvailable: currentProduct.isAvailable,
 					});
 
-					// ⚡ LLENAMOS LAS SECCIONES SELECCIONADAS DIRECTO DEL PRODUCTO
 					setSelectedSectionIds(currentProduct.sectionIds || []);
 				}
+			} else if (sectionId) {
+				// 🪄 Modo Creación con sección por defecto:
+				// Si no hay productId pero sí viene un sectionId, lo preseleccionamos
+				setSelectedSectionIds([sectionId]);
 			}
 		} catch (error) {
 			console.error(error);
@@ -96,11 +101,11 @@ export const ProductForm = () => {
 		}
 	};
 
-	const toggleSectionSelection = (sectionId: string) => {
+	const toggleSectionSelection = (id: string) => {
 		setSelectedSectionIds((prev) =>
-			prev.includes(sectionId)
-				? prev.filter((id) => id !== sectionId)
-				: [...prev, sectionId],
+			prev.includes(id)
+				? prev.filter((item) => item !== id)
+				: [...prev, id],
 		);
 	};
 
@@ -113,15 +118,23 @@ export const ProductForm = () => {
 			});
 		}
 
+		if (selectedSectionIds.length === 0) {
+			return showDialog({
+				title: "Atención",
+				message:
+					"Debes seleccionar al menos una sección para este producto.",
+				intent: "info",
+			});
+		}
+
 		setSaving(true);
 		try {
-			// ⚡ REEMPLAZAMOS TODO EL CODESAGRADO MANUAL POR EL MÉTODO DEL HOOK
 			await saveProduct(productId, {
 				name: form.name.trim(),
 				description: form.description.trim(),
-				price: parseFloat(form.price) || 0,
+				price: Number.parseFloat(form.price) || 0,
 				isAvailable: form.isAvailable,
-				sectionIds: selectedSectionIds, // Envia el array completo 🚀
+				sectionIds: selectedSectionIds,
 			});
 			showDialog({
 				title: "¡Éxito!",
@@ -171,7 +184,6 @@ export const ProductForm = () => {
 			extraScrollHeight={16}
 			showsVerticalScrollIndicator={false}
 		>
-			{/* El resto del JSX se mantiene exactamente igual */}
 			<Text style={[styles.headerTitle, { color: textColor }]}>
 				{productId ? "Editar Producto" : "Nuevo Producto"}
 			</Text>
@@ -371,20 +383,12 @@ export const ProductForm = () => {
 	);
 };
 
-// ... Los estilos se mantienen exactamente iguales
 const styles = StyleSheet.create({
 	container: { flex: 1 },
 	scrollContent: { padding: 20, paddingBottom: 40 },
 	centered: { flex: 1, justifyContent: "center", alignItems: "center" },
-	headerTitle: {
-		fontSize: 26,
-		fontWeight: "800",
-	},
-	headerSub: {
-		fontSize: 15,
-		marginBottom: 25,
-		marginTop: 5,
-	},
+	headerTitle: { fontSize: 26, fontWeight: "800" },
+	headerSub: { fontSize: 15, marginBottom: 25, marginTop: 5 },
 	form: {
 		padding: 24,
 		borderRadius: 20,
@@ -402,26 +406,14 @@ const styles = StyleSheet.create({
 		marginBottom: 8,
 		marginTop: 20,
 	},
-	input: {
-		borderBottomWidth: 1,
-		paddingVertical: 10,
-		fontSize: 16,
-	},
+	input: { borderBottomWidth: 1, paddingVertical: 10, fontSize: 16 },
 	priceInputContainer: {
 		flexDirection: "row",
 		alignItems: "center",
 		borderBottomWidth: 1,
 	},
-	currencyPrefix: {
-		fontSize: 16,
-		fontWeight: "600",
-		marginRight: 5,
-	},
-	chipContainer: {
-		flexDirection: "row",
-		flexWrap: "wrap",
-		marginTop: 5,
-	},
+	currencyPrefix: { fontSize: 16, fontWeight: "600", marginRight: 5 },
+	chipContainer: { flexDirection: "row", flexWrap: "wrap", marginTop: 5 },
 	chip: {
 		paddingVertical: 8,
 		paddingHorizontal: 16,
@@ -440,10 +432,7 @@ const styles = StyleSheet.create({
 		borderWidth: 1,
 		marginTop: 5,
 	},
-	toggleTitle: {
-		fontSize: 14,
-		fontWeight: "700",
-	},
+	toggleTitle: { fontSize: 14, fontWeight: "700" },
 	saveBtn: {
 		padding: 16,
 		borderRadius: 14,

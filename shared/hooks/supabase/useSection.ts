@@ -1,14 +1,14 @@
 import { useState, useEffect, useCallback } from "react";
 import { SupabaseClient } from "@supabase/supabase-js";
 import { Section } from "core/entities";
-// 💥 Importamos el nuevo store en lugar del anterior
+// Importamos el nuevo store en lugar del anterior
 import { useCatalogStore } from "@coco/shared/hooks/useCatalogStore";
 import { TABLES } from "@coco/shared/constants";
 
 export const useSection = (supabase: SupabaseClient, businessId?: string) => {
 	const [searchTerm, setSearchTerm] = useState("");
 
-	// 💥 Leemos las secciones y la función setSections de useCatalogStore
+	// Leemos las secciones y la función setSections de useCatalogStore
 	const sections = useCatalogStore((state) => state.sections);
 	const setSections = useCatalogStore((state) => state.setSections);
 
@@ -25,17 +25,36 @@ export const useSection = (supabase: SupabaseClient, businessId?: string) => {
 			setError(null);
 
 			try {
-				// 1. Iniciamos la query base apuntando a 'sections'
+				// 🚨 MODIFICACIÓN 1: Cambiamos el select para traer relaciones
 				let query = supabase
 					.from(TABLES.SECTIONS)
-					.select("*")
+					.select(
+						`
+							id,
+							business_id,
+							name,
+							description,
+							position,
+							is_available,
+							visualization_type,
+							created_at,
+							updated_at,
+							product_sections (
+								products (
+									id,
+									name,
+									description,
+									price,
+									is_available
+								)
+							)
+						`,
+					)
 					.eq("business_id", businessId)
 					.order("position", { ascending: true });
 
-				// 🔍 2. Si el usuario escribió algo en el buscador, aplicamos el filtro
+				// 🔍 Si el usuario escribió algo en el buscador, aplicamos el filtro
 				if (searchQuery.trim() !== "") {
-					// ILIKE no distingue entre mayúsculas y minúsculas.
-					// El % al principio y al final busca coincidencias en cualquier parte del texto.
 					query = query.or(
 						`name.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%`,
 					);
@@ -45,20 +64,33 @@ export const useSection = (supabase: SupabaseClient, businessId?: string) => {
 
 				if (supabaseError) throw supabaseError;
 
-				const mappedSections: Section[] = (data || []).map(
-					(item: any) => ({
+				const mappedSections = (data || []).map((item: any) => {
+					// 1. Extraemos los productos si es que existen, si no, devolvemos un arreglo vacío
+					const rawProducts =
+						item.product_sections?.map((ps: any) => ps.products) ||
+						[];
+
+					// 2. Quitamos nulos por si acaso
+					const validProducts = rawProducts.filter(
+						(p: any) => p !== null && p !== undefined,
+					);
+
+					return {
 						id: item.id,
 						businessId: item.business_id,
 						name: item.name,
 						description: item.description,
 						position: item.position,
 						isAvailable: item.is_available,
+						visualizationType: item.visualization_type,
 						createdAt: new Date(item.created_at),
 						updatedAt: new Date(item.updated_at),
-					}),
-				);
+						// 🚨 Aquí está la clave para el SectionList:
+						products: validProducts, // Al ser un array (aunque esté vacío), React Native ya no chilla.
+					};
+				});
 
-				// 💥 Guardamos en Zustand en el store volátil (sin persistencia)
+				// Guardamos en Zustand en el store volátil (sin persistencia)
 				setSections(mappedSections);
 			} catch (err: any) {
 				console.error("Error fetching sections:", err);
@@ -78,10 +110,8 @@ export const useSection = (supabase: SupabaseClient, businessId?: string) => {
 		],
 	);
 
-	// 2. Obtener UNA sección por ID
 	const getSectionById = useCallback(
 		async (sectionId: string) => {
-			// Optimización 💡: Primero buscamos si ya la tenemos en el store global
 			const sectionInMemory = sections.find((s) => s.id === sectionId);
 			if (sectionInMemory) return sectionInMemory;
 
@@ -102,6 +132,7 @@ export const useSection = (supabase: SupabaseClient, businessId?: string) => {
 						description: data.description,
 						position: data.position,
 						isAvailable: data.is_available,
+						visualizationType: data.visualization_type,
 						createdAt: new Date(data.created_at),
 						updatedAt: new Date(data.updated_at),
 					};
@@ -115,65 +146,110 @@ export const useSection = (supabase: SupabaseClient, businessId?: string) => {
 		[supabase, sections],
 	);
 
-	// 3. Crear o Actualizar una sección
 	const saveSection = async (
 		sectionId?: string,
 		dataToSave?: {
 			name: string;
 			description: string;
 			isAvailable: boolean;
+			visualizationType: string;
+			productIds?: string[]; // 👈 Aquí recibimos los IDs
 		},
 	) => {
 		if (!businessId || !dataToSave) return;
 
 		try {
+			setLoading(true);
+			const {
+				name,
+				description,
+				isAvailable,
+				visualizationType,
+				productIds = [],
+			} = dataToSave;
+
+			let targetSectionId = sectionId;
+
 			if (sectionId) {
-				// Modo Edición
+				// 1. Actualizar la sección existente
 				const { error: supabaseError } = await supabase
 					.from(TABLES.SECTIONS)
 					.update({
-						name: dataToSave.name.trim(),
-						description: dataToSave.description.trim(),
-						is_available: dataToSave.isAvailable,
+						name: name.trim(),
+						description: description.trim(),
+						is_available: isAvailable,
+						visualization_type: visualizationType,
 						updated_at: new Date().toISOString(),
 					})
 					.eq("id", sectionId);
 
 				if (supabaseError) throw supabaseError;
+
+				// 2. Limpiar las relaciones viejas en la tabla intermedia para esta sección
+				const { error: deleteError } = await supabase
+					.from("product_sections") // Ajusta el nombre de la tabla si no es exactamente este
+					.delete()
+					.eq("section_id", sectionId);
+
+				if (deleteError) throw deleteError;
 			} else {
-				// Modo Creación
+				// 1. Obtener la última posición para la nueva sección
 				const { data: lastSection } = await supabase
 					.from(TABLES.SECTIONS)
 					.select("position")
 					.eq("business_id", businessId)
 					.order("position", { ascending: false })
 					.limit(1)
-					.single();
+					.maybeSingle();
 
 				const nextPosition = lastSection ? lastSection.position + 1 : 1;
 
-				const { error: supabaseError } = await supabase
-					.from(TABLES.SECTIONS)
-					.insert({
-						business_id: businessId,
-						name: dataToSave.name.trim(),
-						description: dataToSave.description.trim(),
-						position: nextPosition,
-						is_available: dataToSave.isAvailable,
-					});
+				// 2. Insertar la nueva sección
+				const { data: newSectionData, error: supabaseError } =
+					await supabase
+						.from(TABLES.SECTIONS)
+						.insert({
+							business_id: businessId,
+							name: name.trim(),
+							description: description.trim(),
+							position: nextPosition,
+							is_available: isAvailable,
+							visualization_type: visualizationType,
+						})
+						.select()
+						.single();
 
 				if (supabaseError) throw supabaseError;
+
+				targetSectionId = newSectionData.id;
 			}
 
-			// 💥 Actualizamos Zustand pidiendo los datos actualizados
-			await fetchSections("");
+			// 3. Si hay productos seleccionados, los insertamos en la tabla intermedia
+			if (productIds.length > 0 && targetSectionId) {
+				const relationRows = productIds.map((productId) => ({
+					section_id: targetSectionId,
+					product_id: productId,
+				}));
+
+				const { error: relationError } = await supabase
+					.from("product_sections") // Ajusta el nombre de la tabla si no es exactamente este
+					.insert(relationRows);
+
+				if (relationError) throw relationError;
+			}
+
+			// 4. Volvemos a sincronizar todo con fetchSections para que traiga los productos
+			// mapeados con su nombre, precio, etc., tal cual lo espera tu SectionList.
+			await fetchSections(searchTerm);
 		} catch (err: any) {
-			console.error("Error saving section:", err);
+			console.error("Error saving section with products:", err);
+			setError(err.message || "No se pudo guardar la sección");
 			throw err;
+		} finally {
+			setLoading(false);
 		}
 	};
 
-	// 4. Eliminar una sección
 	const deleteSection = async (sectionId: string) => {
 		try {
 			const { error: supabaseError } = await supabase
@@ -183,7 +259,6 @@ export const useSection = (supabase: SupabaseClient, businessId?: string) => {
 
 			if (supabaseError) throw supabaseError;
 
-			// 💥 Actualizamos el store global filtrando la eliminada
 			setSections(sections.filter((s) => s.id !== sectionId));
 		} catch (err: any) {
 			console.error("Error deleting section:", err);
@@ -191,7 +266,6 @@ export const useSection = (supabase: SupabaseClient, businessId?: string) => {
 		}
 	};
 
-	// 5. Toggle de disponibilidad
 	const toggleSectionAvailability = async (
 		sectionId: string,
 		currentStatus: boolean,
@@ -206,7 +280,6 @@ export const useSection = (supabase: SupabaseClient, businessId?: string) => {
 
 			if (supabaseError) throw supabaseError;
 
-			// 💥 Actualizamos el store global inmediatamente
 			setSections(
 				sections.map((s) =>
 					s.id === sectionId ? { ...s, isAvailable: newStatus } : s,
@@ -218,12 +291,8 @@ export const useSection = (supabase: SupabaseClient, businessId?: string) => {
 		}
 	};
 
-	/**
-	 * 1. updateSectionsOrder (Actualización Masiva - Drag & Drop)
-	 */
 	const updateSectionsOrder = async (updatedSections: Section[]) => {
 		try {
-			// Optimistic Update: Actualizamos la UI primero para que se sienta instantáneo
 			setSections(updatedSections);
 
 			const updates = updatedSections.map((section) => ({
@@ -243,9 +312,6 @@ export const useSection = (supabase: SupabaseClient, businessId?: string) => {
 		}
 	};
 
-	/**
-	 * 2. updateSectionPosition (Actualización Individual - Flechas o Input)
-	 */
 	const updateSectionPosition = async (
 		sectionId: string,
 		newPosition: number,
@@ -274,7 +340,6 @@ export const useSection = (supabase: SupabaseClient, businessId?: string) => {
 		}
 	};
 
-	// 🧠 Toda la lógica pesada de base de datos se muda para acá
 	const moveSection = async (
 		currentSection: Section,
 		direction: "up" | "down",

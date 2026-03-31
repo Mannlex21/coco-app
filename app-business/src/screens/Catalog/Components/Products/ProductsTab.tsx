@@ -30,8 +30,6 @@ export const ProductsTab = ({ businessId }: { businessId?: string }) => {
 	const navigation = useNavigation<any>();
 	const { colors } = useTheme();
 	const { showDialog } = useDialog();
-	const [isFirst, setIsFirst] = useState(false);
-	const [isLast, setIsLast] = useState(false);
 
 	// 🔄 Adaptado para usar el hook de productos
 	const {
@@ -42,7 +40,6 @@ export const ProductsTab = ({ businessId }: { businessId?: string }) => {
 		setSearchTerm,
 		deleteProduct,
 		toggleProductAvailability,
-		moveProduct,
 		fetchProducts,
 	} = useProduct(supabase, businessId);
 	const { showContextMenu } = useContextMenu();
@@ -52,40 +49,11 @@ export const ProductsTab = ({ businessId }: { businessId?: string }) => {
 		}, [businessId, searchTerm, fetchProducts]),
 	);
 	const handleOpenMenu = (product: Product) => {
-		// 🔍 Buscamos el index real dentro de la lista que estamos viendo
-		const index = products.findIndex((p) => p.id === product.id);
-
-		// ⚡ Cálculos síncronos e instantáneos
-		setIsFirst(index === 0);
-		setIsLast(index === products.length - 1);
-
 		showContextMenu(
 			product?.name || "",
 			getMenuOptions(product),
 			product?.description || "Sin descripción",
 		);
-	};
-
-	const handleMoveProduct = async (
-		currentProduct: Product,
-		direction: "up" | "down",
-	) => {
-		const result = await moveProduct(currentProduct, direction);
-
-		if (!result.success) {
-			showDialog({
-				title: "¡Atención!",
-				message: result.message || "Ocurrió un error inesperado.",
-				intent: "info",
-			});
-			return;
-		}
-
-		showDialog({
-			title: "¡Éxito!",
-			message: "Posición actualizada correctamente.",
-			intent: "success",
-		});
 	};
 
 	const handleDelete = (productId: string, productName: string) => {
@@ -126,44 +94,8 @@ export const ProductsTab = ({ businessId }: { businessId?: string }) => {
 	const getMenuOptions = (product: Product): ContextMenuItem[] => {
 		if (!product) return [];
 
-		const options: ContextMenuItem[] = [];
-
-		// 🎯 VALIDACIÓN: Solo permitir mover si el buscador está vacío
-		const isFiltering = searchTerm.trim().length > 0;
-
-		if (!isFiltering) {
-			if (!isFirst) {
-				options.push({
-					label: "Subir Posición",
-					icon: (
-						<MaterialIcons
-							name="arrow-upward"
-							size={20}
-							color={colors.textPrimaryLight}
-						/>
-					),
-					onPress: () => handleMoveProduct(product, "up"),
-				});
-			}
-
-			if (!isLast) {
-				options.push({
-					label: "Bajar Posición",
-					icon: (
-						<MaterialIcons
-							name="arrow-downward"
-							size={20}
-							color={colors.textPrimaryLight}
-						/>
-					),
-					onPress: () => handleMoveProduct(product, "down"),
-				});
-			}
-		}
-
 		// --- OPCIONES DE CRUD ---
 		return [
-			...options,
 			{
 				label: product.isAvailable
 					? "Pausar Producto"
@@ -300,7 +232,6 @@ export const ProductsTab = ({ businessId }: { businessId?: string }) => {
 								</Text>
 
 								<View style={styles.badgesContainer}>
-									{/* 🏷️ Badge de Precio (Opcional pero recomendado para productos) */}
 									{item.price !== undefined && (
 										<View
 											style={[
@@ -323,27 +254,6 @@ export const ProductsTab = ({ businessId }: { businessId?: string }) => {
 											</Text>
 										</View>
 									)}
-
-									<View
-										style={[
-											styles.positionBadge,
-											{
-												backgroundColor:
-													colors.backgroundLight,
-											},
-										]}
-									>
-										<Text
-											style={[
-												styles.positionText,
-												{
-													color: colors.textSecondaryLight,
-												},
-											]}
-										>
-											#{item.position ?? 0}
-										</Text>
-									</View>
 
 									<View
 										style={[

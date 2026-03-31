@@ -13,6 +13,7 @@ import { ProfileScreen } from "@/screens/Profile/ProfileScreen";
 import { UserSetupScreen } from "@/screens/Profile/components/UserSetupScreen";
 import { SectionForm } from "@/screens/Catalog/Components/Secciones/SectionForm";
 import { ProductForm } from "@/screens/Catalog/Components/Products/ProductForm";
+import { ProductPickerScreen } from "@/screens/Catalog/Components/Secciones/ProductPickerScreen";
 
 const RootStack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -171,6 +172,34 @@ export const MainNavigator = () => {
 					},
 					headerBackTitle: "",
 					presentation: "card",
+					headerStyle: {
+						backgroundColor: colors.surfaceLight,
+						elevation: 0,
+						shadowOpacity: 0,
+						borderBottomWidth: 1,
+						borderBottomColor: colors.borderLight,
+					},
+				})}
+			/>
+
+			<RootStack.Screen
+				name="ProductPicker"
+				component={ProductPickerScreen} // Asegúrate de importar tu componente
+				options={({ route }: any) => ({
+					headerShown: true,
+					title: route.params?.title || "Seleccionar Productos",
+					headerTintColor: colors.businessBg,
+					headerTitleStyle: {
+						fontWeight: FontWeight.bold,
+						fontSize: FontSize.lg,
+						color: colors.textPrimaryLight,
+					},
+					headerBackTitle: "",
+
+					// 🌟 CONFIGURACIÓN CLAVE PARA EL PICKER 🌟
+					presentation: "modal", // Lo muestra como modal levantándose desde abajo
+					animation: "slide_from_bottom", // Animación natural de modal
+
 					headerStyle: {
 						backgroundColor: colors.surfaceLight,
 						elevation: 0,

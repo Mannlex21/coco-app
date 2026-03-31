@@ -5,6 +5,7 @@ export interface Section {
 	description?: string;
 	position: number;
 	isAvailable: boolean;
+	visualizationType: string;
 	createdAt: Date;
 	updatedAt: Date;
 }

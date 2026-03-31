@@ -1,30 +1,33 @@
 import React, { useState } from "react";
-import { supabase } from "@/infrastructure/supabase/config";
-import {
-	BorderRadius,
-	FontSize,
-	FontWeight,
-	Shadow,
-	Spacing,
-} from "@coco/shared/config/theme";
-import { useSection } from "@coco/shared/hooks/supabase";
-import { useTheme } from "@coco/shared/hooks/useTheme";
-import { useDialog } from "@coco/shared/providers/DialogContext";
-import { useNavigation } from "@react-navigation/native";
-import { ContextMenuItem } from "@coco/shared/components/CustomContextMenu";
 import {
 	FlatList,
-	RefreshControl,
 	StyleSheet,
 	Text,
-	TextInput,
 	TouchableOpacity,
 	View,
+	RefreshControl,
+	TextInput,
 } from "react-native";
-import { Section } from "@coco/shared/core/entities/";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
-import { EmptyState } from "../EmptyState";
-import { useContextMenu } from "@coco/shared/providers";
+import { useNavigation } from "@react-navigation/native";
+import { supabase } from "@/infrastructure/supabase/config";
+import { useTheme } from "@coco/shared/hooks/useTheme";
+import { useSection } from "@coco/shared/hooks/supabase";
+import {
+	FontSize,
+	FontWeight,
+	Spacing,
+	BorderRadius,
+	Shadow,
+} from "@coco/shared/config/theme";
+import { EmptyState } from "../EmptyState"; // Ajusta la ruta según tu proyecto
+
+// Importamos los componentes aislados
+import { ProductListItem } from "../Products/ProductListItem";
+import { ProductGridItem } from "../Products/ProductGridItem";
+import { useContextMenu, useDialog } from "@coco/shared/providers";
+import { Section } from "@coco/shared/core/entities";
+import { ContextMenuItem } from "@coco/shared/components";
 
 export const SectionsTab = ({ businessId }: { businessId?: string }) => {
 	const navigation = useNavigation<any>();
@@ -60,7 +63,6 @@ export const SectionsTab = ({ businessId }: { businessId?: string }) => {
 			section?.description || "Sin descripción",
 		);
 	};
-
 	const handleMoveSection = async (
 		currentSection: Section,
 		direction: "up" | "down",
@@ -82,7 +84,6 @@ export const SectionsTab = ({ businessId }: { businessId?: string }) => {
 			intent: "success",
 		});
 	};
-
 	const handleDelete = (sectionId: string, sectionName: string) => {
 		showDialog({
 			title: "Eliminar Sección",
@@ -155,7 +156,23 @@ export const SectionsTab = ({ businessId }: { businessId?: string }) => {
 
 		// --- OPCIONES DE CRUD ---
 		return [
+			{
+				label: "Agregar Producto",
+				icon: (
+					<Ionicons
+						name="fast-food-outline" // Puedes usar "add" o "fast-food-outline"
+						size={20}
+						color={colors.textPrimaryLight}
+					/>
+				),
+				onPress: () =>
+					navigation.navigate("ProductForm", {
+						title: "Nuevo Producto",
+						sectionId: section.id, // Pasamos el ID para asociarlo
+					}),
+			},
 			...options,
+
 			{
 				label: section.isAvailable
 					? "Pausar Sección"
@@ -207,6 +224,113 @@ export const SectionsTab = ({ businessId }: { businessId?: string }) => {
 		];
 	};
 
+	const renderSection = ({ item: section }: { item: any }) => {
+		const isGrid = section.visualizationType === "grid";
+
+		return (
+			<View style={styles.sectionContainer}>
+				{/* 1. Cabecera de la Sección (Título + Descripción + Botón de menú) */}
+				<View
+					style={[
+						styles.sectionHeader,
+						{ backgroundColor: colors.backgroundLight },
+					]}
+				>
+					<View style={{ flex: 1, marginRight: 8 }}>
+						<Text
+							style={[
+								styles.sectionTitle,
+								{ color: colors.textPrimaryLight },
+							]}
+						>
+							{section.name}
+						</Text>
+
+						{/* Agregando la descripción si existe */}
+						{section.description ? (
+							<Text
+								style={{
+									color: colors.textSecondaryLight,
+									fontSize: 13,
+									marginTop: 3,
+								}}
+								numberOfLines={2} // Limita a 2 líneas para que no rompa el diseño
+							>
+								{section.description}
+							</Text>
+						) : null}
+					</View>
+
+					<TouchableOpacity
+						style={styles.menuIconButton}
+						onPress={() => handleOpenMenu(section)}
+					>
+						<Ionicons
+							name="ellipsis-vertical"
+							size={20}
+							color={colors.textSecondaryLight}
+						/>
+					</TouchableOpacity>
+				</View>
+
+				{/* 2. Contenedor de Productos */}
+				{/* Si es grid aplica estilos envolventes de filas, si no se queda apilado */}
+				<View
+					style={[
+						isGrid
+							? styles.gridProductsContainer
+							: styles.listProductsContainer,
+						{ marginTop: 5 },
+					]}
+				>
+					{section.products && section.products.length > 0 ? (
+						section.products.map((product: any) => {
+							const onPressItem = () =>
+								navigation.navigate("ProductForm", {
+									productId: product.id,
+								});
+
+							return isGrid ? (
+								<ProductGridItem
+									key={product.id}
+									item={product}
+									colors={colors}
+									onPress={onPressItem}
+								/>
+							) : (
+								<ProductListItem
+									key={product.id}
+									item={product}
+									colors={colors}
+									onPress={onPressItem}
+								/>
+							);
+						})
+					) : (
+						/* Componente de estado vacío */
+						<View style={styles.emptyProductsContainer}>
+							<Ionicons
+								name="basket-outline"
+								size={24}
+								color={colors.textSecondaryLight}
+								style={{ marginBottom: 4 }}
+							/>
+							<Text
+								style={{
+									color: colors.textSecondaryLight,
+									fontSize: 14,
+									textAlign: "center",
+								}}
+							>
+								No hay productos en esta sección
+							</Text>
+						</View>
+					)}
+				</View>
+			</View>
+		);
+	};
+
 	return (
 		<>
 			<View
@@ -215,20 +339,18 @@ export const SectionsTab = ({ businessId }: { businessId?: string }) => {
 					{ backgroundColor: colors.surfaceLight },
 				]}
 			>
-				{/* 🔍 2. Icono de búsqueda en vez de emoji */}
 				<Ionicons
-					name="search-outline"
+					name="search"
 					size={20}
 					color={colors.textSecondaryLight}
 					style={styles.searchIcon}
 				/>
-
 				<TextInput
 					style={[
 						styles.searchInput,
 						{ color: colors.textPrimaryLight },
 					]}
-					placeholder="Buscar sección por nombre o descripción..."
+					placeholder="Buscar sección"
 					placeholderTextColor={colors.textSecondaryLight}
 					value={searchTerm}
 					onChangeText={setSearchTerm}
@@ -240,17 +362,18 @@ export const SectionsTab = ({ businessId }: { businessId?: string }) => {
 					<TouchableOpacity onPress={handleClearSearch}>
 						<Ionicons
 							name="close-circle"
-							size={20}
+							size={18}
 							color={colors.textSecondaryLight}
-							style={styles.clearIcon}
 						/>
 					</TouchableOpacity>
 				)}
 			</View>
 
+			{/* Lista Principal (Usando FlatList para permitir vistas mixtas) */}
 			<FlatList
 				data={sections}
 				keyExtractor={(item) => item.id}
+				renderItem={renderSection}
 				contentContainerStyle={styles.listContent}
 				refreshControl={
 					<RefreshControl
@@ -265,129 +388,9 @@ export const SectionsTab = ({ businessId }: { businessId?: string }) => {
 						colors={colors}
 					/>
 				}
-				renderItem={({ item }) => (
-					<TouchableOpacity
-						style={[
-							styles.productCard,
-							{
-								backgroundColor: colors.surfaceLight,
-								borderLeftWidth: 4,
-								borderLeftColor: item.isAvailable
-									? colors.businessBg
-									: colors.textSecondaryLight,
-							},
-						]}
-						activeOpacity={0.7}
-						onPress={() => handleOpenMenu(item)}
-					>
-						<View style={styles.productInfo}>
-							<View style={styles.headerRow}>
-								<Text
-									style={[
-										styles.productName,
-										{ color: colors.textPrimaryLight },
-									]}
-									numberOfLines={1}
-								>
-									{item.name}
-								</Text>
-
-								<View style={styles.badgesContainer}>
-									<View
-										style={[
-											styles.positionBadge,
-											{
-												backgroundColor:
-													colors.backgroundLight,
-											},
-										]}
-									>
-										<Text
-											style={[
-												styles.positionText,
-												{
-													color: colors.textSecondaryLight,
-												},
-											]}
-										>
-											#{item.position ?? 0}
-										</Text>
-									</View>
-
-									<View
-										style={[
-											styles.statusBadge,
-											{
-												backgroundColor:
-													item.isAvailable
-														? colors.businessBg +
-															"15"
-														: colors.textSecondaryLight +
-															"15",
-											},
-										]}
-									>
-										<View
-											style={[
-												styles.statusDot,
-												{
-													backgroundColor:
-														item.isAvailable
-															? colors.businessBg
-															: colors.textSecondaryLight,
-												},
-											]}
-										/>
-										<Text
-											style={[
-												styles.statusText,
-												{
-													color: item.isAvailable
-														? colors.businessBg
-														: colors.textSecondaryLight,
-												},
-											]}
-										>
-											{item.isAvailable
-												? "Activo"
-												: "Pausado"}
-										</Text>
-									</View>
-								</View>
-							</View>
-
-							<View style={styles.descriptionRow}>
-								{/* 📝 4. Icono de descripción para las notas */}
-								<MaterialIcons
-									name="description"
-									size={16}
-									color={colors.textSecondaryLight}
-									style={styles.descIcon}
-								/>
-								<Text
-									style={[
-										styles.productDesc,
-										{ color: colors.textSecondaryLight },
-									]}
-									numberOfLines={2}
-								>
-									{item.description ||
-										"Sin descripción asignada"}
-								</Text>
-							</View>
-						</View>
-					</TouchableOpacity>
-				)}
 			/>
 
-			{/* <CustomContextMenu
-				visible={menuVisible}
-				onClose={() => setMenuVisible(false)}
-				title={selectedSection?.name || ""}
-				subtitle={selectedSection?.description || "Sin descripción"}
-				items={menuOptions}
-			/> */}
-
+			{/* Botón Flotante (FAB) para crear nueva sección */}
 			<TouchableOpacity
 				style={[styles.fab, { backgroundColor: colors.businessBg }]}
 				onPress={() =>
@@ -396,117 +399,83 @@ export const SectionsTab = ({ businessId }: { businessId?: string }) => {
 					})
 				}
 			>
-				{/* ➕ 5. Icono de suma para el FAB */}
 				<Ionicons name="add" size={32} color={colors.textOnPrimary} />
 			</TouchableOpacity>
 		</>
 	);
 };
+
+// 🎨 HOJA DE ESTILOS
 const styles = StyleSheet.create({
 	listContent: {
-		padding: Spacing.md,
-		paddingBottom: 100,
+		paddingHorizontal: Spacing.md,
+		paddingBottom: 100, // Espacio para que el FAB no tape el último producto
 	},
-	productCard: {
-		padding: Spacing.md,
-		flexDirection: "row",
-		alignItems: "center",
-		marginBottom: Spacing.md,
-		borderRadius: BorderRadius.lg,
-		...Shadow.md,
-		overflow: "hidden",
+	sectionContainer: {
+		marginBottom: Spacing.sm,
 	},
-	productInfo: {
-		flex: 1,
-		gap: 6,
-	},
-	headerRow: {
+	sectionHeader: {
 		flexDirection: "row",
 		justifyContent: "space-between",
 		alignItems: "center",
+		paddingVertical: Spacing.sm,
+		paddingHorizontal: Spacing.xs,
+		marginTop: Spacing.md,
 	},
-	productName: {
-		fontSize: FontSize.md,
-		fontWeight: FontWeight.bold,
-		flex: 1,
-		marginRight: Spacing.sm,
-	},
-	badgesContainer: {
-		flexDirection: "row",
-		alignItems: "center",
-		gap: 6,
-	},
-	positionBadge: {
-		paddingHorizontal: Spacing.sm,
-		paddingVertical: 3,
-		borderRadius: BorderRadius.sm,
-		borderWidth: 0.5,
-		borderColor: "rgba(0,0,0,0.05)",
-	},
-	positionText: {
-		fontSize: 11,
+	sectionTitle: {
+		fontSize: FontSize.lg,
 		fontWeight: FontWeight.bold,
 	},
-	statusBadge: {
+	menuIconButton: {
+		padding: Spacing.xs,
+	},
+
+	// 🪄 Estilos clave para simular la cuadrícula de Uber Eats
+	gridProductsContainer: {
 		flexDirection: "row",
-		alignItems: "center",
-		paddingHorizontal: Spacing.sm,
-		paddingVertical: 3,
-		borderRadius: BorderRadius.sm,
-		gap: 4,
+		flexWrap: "wrap", // Clave: permite que los elementos brinquen a la siguiente fila
+		justifyContent: "space-between", // Espacio uniforme entre las 2 columnas
+		marginTop: Spacing.xs,
 	},
-	statusDot: {
-		width: 6,
-		height: 6,
-		borderRadius: 3,
+	listProductsContainer: {
+		// No requiere estilos especiales ya que Flexbox por defecto apila en columna
 	},
-	statusText: {
-		fontSize: 11,
-		fontWeight: FontWeight.bold,
-		textTransform: "uppercase",
-	},
-	descriptionRow: {
-		flexDirection: "row",
-		alignItems: "flex-start",
-		gap: 6,
-	},
-	descIcon: {
-		marginTop: 1,
-	},
-	productDesc: {
-		fontSize: FontSize.sm,
-		flex: 1,
-	},
-	fab: {
-		position: "absolute",
-		bottom: 30,
-		right: 30,
-		width: 60,
-		height: 60,
-		borderRadius: 30,
-		justifyContent: "center",
-		alignItems: "center",
-		...Shadow.lg,
-	},
+
+	// Estilos del buscador
 	searchContainer: {
 		flexDirection: "row",
 		alignItems: "center",
-		margin: Spacing.md,
-		marginBottom: Spacing.xs,
-		paddingHorizontal: Spacing.md,
-		height: 50,
-		borderRadius: BorderRadius.lg,
+		marginHorizontal: Spacing.md,
+		marginVertical: Spacing.sm,
+		paddingHorizontal: Spacing.sm,
+		height: 45,
+		borderRadius: BorderRadius.md,
 		...Shadow.sm,
 	},
 	searchIcon: {
-		marginRight: Spacing.sm,
+		marginRight: Spacing.xs,
 	},
 	searchInput: {
 		flex: 1,
 		fontSize: FontSize.md,
-		height: "100%",
 	},
-	clearIcon: {
-		padding: Spacing.xs,
+
+	// Estilos del FAB
+	fab: {
+		position: "absolute",
+		bottom: Spacing.xl,
+		right: Spacing.xl,
+		width: 56,
+		height: 56,
+		borderRadius: 28,
+		justifyContent: "center",
+		alignItems: "center",
+		...Shadow.md,
+	},
+	emptyProductsContainer: {
+		paddingVertical: 20,
+		alignItems: "center",
+		justifyContent: "center",
+		width: "100%",
 	},
 });
