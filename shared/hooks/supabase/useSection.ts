@@ -1,14 +1,16 @@
 import { useState, useEffect, useCallback } from "react";
 import { SupabaseClient } from "@supabase/supabase-js";
 import { Section } from "core/entities";
-import { useAppStore } from "@coco/shared/hooks/useAppStore"; // 👈 Importamos el store
+// 💥 Importamos el nuevo store en lugar del anterior
+import { useCatalogStore } from "@coco/shared/hooks/useCatalogStore";
 import { TABLES } from "@coco/shared/constants";
 
 export const useSection = (supabase: SupabaseClient, businessId?: string) => {
 	const [searchTerm, setSearchTerm] = useState("");
-	// 💥 Leemos las secciones y la función setSections directamente de Zustand
-	const sections = useAppStore((state) => state.sections);
-	const setSections = useAppStore((state) => state.setSections);
+
+	// 💥 Leemos las secciones y la función setSections de useCatalogStore
+	const sections = useCatalogStore((state) => state.sections);
+	const setSections = useCatalogStore((state) => state.setSections);
 
 	const [refreshing, setRefreshing] = useState(false);
 	const [loading, setLoading] = useState(false);
@@ -56,14 +58,14 @@ export const useSection = (supabase: SupabaseClient, businessId?: string) => {
 					}),
 				);
 
-				// 💥 Guardamos en Zustand en lugar del estado local
+				// 💥 Guardamos en Zustand en el store volátil (sin persistencia)
 				setSections(mappedSections);
 			} catch (err: any) {
 				console.error("Error fetching sections:", err);
 				setError(err.message || "No se pudieron cargar las secciones");
 			} finally {
 				setLoading(false);
-				setRefreshing(false); // Asumiendo que setRefreshing viene de los setters de tu hook
+				setRefreshing(false);
 			}
 		},
 		[
@@ -164,7 +166,7 @@ export const useSection = (supabase: SupabaseClient, businessId?: string) => {
 			}
 
 			// 💥 Actualizamos Zustand pidiendo los datos actualizados
-			fetchSections();
+			await fetchSections("");
 		} catch (err: any) {
 			console.error("Error saving section:", err);
 			throw err;
@@ -215,46 +217,40 @@ export const useSection = (supabase: SupabaseClient, businessId?: string) => {
 			throw err;
 		}
 	};
+
 	/**
 	 * 1. updateSectionsOrder (Actualización Masiva - Drag & Drop)
-	 * Recibe el array completo con las posiciones ya recalculadas.
 	 */
 	const updateSectionsOrder = async (updatedSections: Section[]) => {
 		try {
 			// Optimistic Update: Actualizamos la UI primero para que se sienta instantáneo
 			setSections(updatedSections);
 
-			// Creamos el arreglo de objetos listos para hacer un "upsert" masivo en Supabase
 			const updates = updatedSections.map((section) => ({
 				id: section.id,
 				position: section.position,
-				// Mantenemos el business_id para cumplir con las políticas RLS de Supabase
 				business_id: businessId,
 			}));
 
 			const { error } = await supabase
 				.from(TABLES.SECTIONS)
-				.upsert(updates, { onConflict: "id" }); // 'id' es la llave primaria
+				.upsert(updates, { onConflict: "id" });
 
 			if (error) throw error;
 		} catch (error) {
 			console.error("Error al actualizar el orden masivo:", error);
-			// Si falla, lo ideal sería revertir el estado o recargar de la base de datos
-			// fetchSections();
 			throw error;
 		}
 	};
 
 	/**
 	 * 2. updateSectionPosition (Actualización Individual - Flechas o Input)
-	 * Cambia la posición de una sola sección por su ID.
 	 */
 	const updateSectionPosition = async (
 		sectionId: string,
 		newPosition: number,
 	) => {
 		try {
-			// Actualizamos en Supabase
 			const { error } = await supabase
 				.from(TABLES.SECTIONS)
 				.update({ position: newPosition })
@@ -262,7 +258,6 @@ export const useSection = (supabase: SupabaseClient, businessId?: string) => {
 
 			if (error) throw error;
 
-			// Actualizamos el store de Zustand para que la UI se entere del cambio
 			const updatedSections = sections.map((section) =>
 				section.id === sectionId
 					? { ...section, position: newPosition }
@@ -278,6 +273,7 @@ export const useSection = (supabase: SupabaseClient, businessId?: string) => {
 			throw error;
 		}
 	};
+
 	// 🧠 Toda la lógica pesada de base de datos se muda para acá
 	const moveSection = async (
 		currentSection: Section,
@@ -286,7 +282,6 @@ export const useSection = (supabase: SupabaseClient, businessId?: string) => {
 		const currentPos = currentSection.position ?? 0;
 		const targetPos = direction === "up" ? currentPos - 1 : currentPos + 1;
 
-		// Validación rápida sin tocar la base de datos
 		if (targetPos < 1) {
 			return {
 				success: false,
@@ -295,7 +290,6 @@ export const useSection = (supabase: SupabaseClient, businessId?: string) => {
 		}
 
 		try {
-			// 🔍 1. Vamos a Supabase a buscar la sección que REALMENTE ocupa esa posición
 			const { data, error } = await supabase
 				.from(TABLES.SECTIONS)
 				.select("id, position")
@@ -303,7 +297,6 @@ export const useSection = (supabase: SupabaseClient, businessId?: string) => {
 				.eq("position", targetPos)
 				.single();
 
-			// Si no encuentra nada, significa que ya estamos al final o al inicio real
 			if (error || !data) {
 				return {
 					success: false,
@@ -316,12 +309,9 @@ export const useSection = (supabase: SupabaseClient, businessId?: string) => {
 
 			const swappingSectionId = data.id;
 
-			// 🔄 2. Ejecutamos la actualización en la base de datos para ambas secciones
-			// (Asumo que reúsas la función updateSectionPosition que ya tenías en el hook)
 			await updateSectionPosition(currentSection.id, targetPos);
 			await updateSectionPosition(swappingSectionId, currentPos);
 
-			// 🔄 3. Forzamos un refresco en segundo plano para pintar el nuevo orden
 			await fetchSections(searchTerm);
 
 			return { success: true };
@@ -342,14 +332,16 @@ export const useSection = (supabase: SupabaseClient, businessId?: string) => {
 		await fetchSections(searchTerm);
 		setRefreshing(false);
 	};
+
 	useEffect(() => {
 		if (businessId) {
-			fetchSections(""); // Dispara la carga inicial sin filtros
+			fetchSections("");
 		}
 	}, [businessId, fetchSections]);
+
 	return {
 		sections,
-		loading,
+		loadingSection: loading,
 		refreshing,
 		error,
 		onRefresh,

@@ -19,19 +19,13 @@ export interface ModifierGroup {
 export interface Product {
 	id: string;
 	businessId: string;
-	sectionId: string; // 👈 Relación con MenuSection (adiós a las categorías fijas en string)
-
 	name: string;
-	description?: string;
-	price: number; // Precio base del platillo
+	description: string;
+	price: number;
 	imageUrl?: string;
-	isAvailable: boolean; // Para pausar el producto si se agota
-
-	// 🚀 Aquí vive la magia tipo Uber Eats
-	options?: ModifierGroup[];
-
-	stock?: number;
-	sortOrder?: number; // Para ordenar los productos dentro de su sección
+	isAvailable: boolean;
+	position: number;
 	createdAt: Date;
 	updatedAt: Date;
+	sectionIds: string[];
 }

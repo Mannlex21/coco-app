@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 import { supabase } from "@/infrastructure/supabase/config";
 import {
 	BorderRadius,
@@ -7,10 +7,10 @@ import {
 	Shadow,
 	Spacing,
 } from "@coco/shared/config/theme";
-import { useSection } from "@coco/shared/hooks/supabase";
+import { useProduct } from "@coco/shared/hooks/supabase"; // 🔄 Cambiado a useProduct
 import { useTheme } from "@coco/shared/hooks/useTheme";
 import { useDialog } from "@coco/shared/providers/DialogContext";
-import { useNavigation } from "@react-navigation/native";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { ContextMenuItem } from "@coco/shared/components/CustomContextMenu";
 import {
 	FlatList,
@@ -21,53 +21,56 @@ import {
 	TouchableOpacity,
 	View,
 } from "react-native";
-import { Section } from "@coco/shared/core/entities/";
-
-// 📦 1. Importamos los paquetes de iconos
+import { Product } from "@coco/shared/core/entities/"; // 🔄 Cambiado a Product
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { EmptyState } from "../EmptyState";
 import { useContextMenu } from "@coco/shared/providers";
 
-export const SectionsTab = ({ businessId }: { businessId?: string }) => {
+export const ProductsTab = ({ businessId }: { businessId?: string }) => {
 	const navigation = useNavigation<any>();
 	const { colors } = useTheme();
 	const { showDialog } = useDialog();
 	const [isFirst, setIsFirst] = useState(false);
 	const [isLast, setIsLast] = useState(false);
 
+	// 🔄 Adaptado para usar el hook de productos
 	const {
-		sections,
+		products,
 		refreshing,
 		onRefresh,
 		searchTerm,
 		setSearchTerm,
-		deleteSection,
-		toggleSectionAvailability,
-		moveSection,
-		fetchSections,
-	} = useSection(supabase, businessId);
+		deleteProduct,
+		toggleProductAvailability,
+		moveProduct,
+		fetchProducts,
+	} = useProduct(supabase, businessId);
 	const { showContextMenu } = useContextMenu();
-
-	const handleOpenMenu = (section: Section) => {
+	useFocusEffect(
+		useCallback(() => {
+			fetchProducts(searchTerm);
+		}, [businessId, searchTerm, fetchProducts]),
+	);
+	const handleOpenMenu = (product: Product) => {
 		// 🔍 Buscamos el index real dentro de la lista que estamos viendo
-		const index = sections.findIndex((s) => s.id === section.id);
+		const index = products.findIndex((p) => p.id === product.id);
 
 		// ⚡ Cálculos síncronos e instantáneos
 		setIsFirst(index === 0);
-		setIsLast(index === sections.length - 1);
+		setIsLast(index === products.length - 1);
 
 		showContextMenu(
-			section?.name || "",
-			getMenuOptions(section),
-			section?.description || "Sin descripción",
+			product?.name || "",
+			getMenuOptions(product),
+			product?.description || "Sin descripción",
 		);
 	};
 
-	const handleMoveSection = async (
-		currentSection: Section,
+	const handleMoveProduct = async (
+		currentProduct: Product,
 		direction: "up" | "down",
 	) => {
-		const result = await moveSection(currentSection, direction);
+		const result = await moveProduct(currentProduct, direction);
 
 		if (!result.success) {
 			showDialog({
@@ -85,40 +88,43 @@ export const SectionsTab = ({ businessId }: { businessId?: string }) => {
 		});
 	};
 
-	const handleDelete = (sectionId: string, sectionName: string) => {
+	const handleDelete = (productId: string, productName: string) => {
 		showDialog({
-			title: "Eliminar Sección",
-			message: `¿Estás seguro de que quieres eliminar "${sectionName}"?`,
+			title: "Eliminar Producto",
+			message: `¿Estás seguro de que quieres eliminar "${productName}"?`,
 			intent: "warning",
 			type: "options",
 			onConfirm: async () => {
 				try {
-					await deleteSection(sectionId);
+					await deleteProduct(productId);
 					showDialog({
 						title: "Eliminado",
-						message: "Sección borrada.",
+						message: "Producto borrado con éxito.",
 						intent: "success",
 					});
 				} catch (error) {
 					console.log(error);
 					showDialog({
 						title: "Error",
-						message: "No se pudo borrar.",
+						message: "No se pudo borrar el producto.",
 						intent: "error",
 					});
 				}
 			},
 		});
 	};
+
 	const handleSearch = () => {
-		fetchSections(searchTerm);
+		fetchProducts(searchTerm);
 	};
+
 	const handleClearSearch = () => {
 		setSearchTerm("");
-		fetchSections(""); // Trae todo de nuevo
+		fetchProducts(""); // Trae todo de nuevo
 	};
-	const getMenuOptions = (section: Section): ContextMenuItem[] => {
-		if (!section) return [];
+
+	const getMenuOptions = (product: Product): ContextMenuItem[] => {
+		if (!product) return [];
 
 		const options: ContextMenuItem[] = [];
 
@@ -136,7 +142,7 @@ export const SectionsTab = ({ businessId }: { businessId?: string }) => {
 							color={colors.textPrimaryLight}
 						/>
 					),
-					onPress: () => handleMoveSection(section, "up"),
+					onPress: () => handleMoveProduct(product, "up"),
 				});
 			}
 
@@ -150,7 +156,7 @@ export const SectionsTab = ({ businessId }: { businessId?: string }) => {
 							color={colors.textPrimaryLight}
 						/>
 					),
-					onPress: () => handleMoveSection(section, "down"),
+					onPress: () => handleMoveProduct(product, "down"),
 				});
 			}
 		}
@@ -159,10 +165,10 @@ export const SectionsTab = ({ businessId }: { businessId?: string }) => {
 		return [
 			...options,
 			{
-				label: section.isAvailable
-					? "Pausar Sección"
-					: "Activar Sección",
-				icon: section.isAvailable ? (
+				label: product.isAvailable
+					? "Pausar Producto"
+					: "Activar Producto",
+				icon: product.isAvailable ? (
 					<Ionicons
 						name="pause"
 						size={20}
@@ -176,10 +182,10 @@ export const SectionsTab = ({ businessId }: { businessId?: string }) => {
 					/>
 				),
 				onPress: () =>
-					toggleSectionAvailability(section.id, section.isAvailable),
+					toggleProductAvailability(product.id, product.isAvailable),
 			},
 			{
-				label: "Editar Sección",
+				label: "Editar Producto",
 				icon: (
 					<MaterialIcons
 						name="edit"
@@ -188,13 +194,13 @@ export const SectionsTab = ({ businessId }: { businessId?: string }) => {
 					/>
 				),
 				onPress: () =>
-					navigation.navigate("SectionForm", {
-						title: "Editar Sección",
-						sectionId: section.id,
+					navigation.navigate("ProductForm", {
+						title: "Editar Producto",
+						productId: product.id,
 					}),
 			},
 			{
-				label: "Eliminar Sección",
+				label: "Eliminar Producto",
 				icon: (
 					<MaterialIcons
 						name="delete"
@@ -204,7 +210,7 @@ export const SectionsTab = ({ businessId }: { businessId?: string }) => {
 				),
 				textColor: colors.error,
 				iconBg: colors.errorLight,
-				onPress: () => handleDelete(section.id, section.name),
+				onPress: () => handleDelete(product.id, product.name),
 			},
 		];
 	};
@@ -217,7 +223,6 @@ export const SectionsTab = ({ businessId }: { businessId?: string }) => {
 					{ backgroundColor: colors.surfaceLight },
 				]}
 			>
-				{/* 🔍 2. Icono de búsqueda en vez de emoji */}
 				<Ionicons
 					name="search-outline"
 					size={20}
@@ -230,12 +235,12 @@ export const SectionsTab = ({ businessId }: { businessId?: string }) => {
 						styles.searchInput,
 						{ color: colors.textPrimaryLight },
 					]}
-					placeholder="Buscar sección por nombre o descripción..."
+					placeholder="Buscar producto por nombre..."
 					placeholderTextColor={colors.textSecondaryLight}
 					value={searchTerm}
 					onChangeText={setSearchTerm}
-					returnKeyType="search" // Cambia el botón "Enter/Intro" por una lupa o texto "Buscar"
-					onSubmitEditing={handleSearch} // Se ejecuta al presionar ese botón del teclado
+					returnKeyType="search"
+					onSubmitEditing={handleSearch}
 					clearButtonMode="while-editing"
 				/>
 				{searchTerm.length > 0 && (
@@ -251,7 +256,7 @@ export const SectionsTab = ({ businessId }: { businessId?: string }) => {
 			</View>
 
 			<FlatList
-				data={sections}
+				data={products}
 				keyExtractor={(item) => item.id}
 				contentContainerStyle={styles.listContent}
 				refreshControl={
@@ -295,6 +300,30 @@ export const SectionsTab = ({ businessId }: { businessId?: string }) => {
 								</Text>
 
 								<View style={styles.badgesContainer}>
+									{/* 🏷️ Badge de Precio (Opcional pero recomendado para productos) */}
+									{item.price !== undefined && (
+										<View
+											style={[
+												styles.positionBadge,
+												{
+													backgroundColor:
+														colors.backgroundLight,
+												},
+											]}
+										>
+											<Text
+												style={[
+													styles.positionText,
+													{
+														color: colors.textPrimaryLight,
+													},
+												]}
+											>
+												${item.price.toFixed(2)}
+											</Text>
+										</View>
+									)}
+
 									<View
 										style={[
 											styles.positionBadge,
@@ -359,7 +388,6 @@ export const SectionsTab = ({ businessId }: { businessId?: string }) => {
 							</View>
 
 							<View style={styles.descriptionRow}>
-								{/* 📝 4. Icono de descripción para las notas */}
 								<MaterialIcons
 									name="description"
 									size={16}
@@ -382,28 +410,21 @@ export const SectionsTab = ({ businessId }: { businessId?: string }) => {
 				)}
 			/>
 
-			{/* <CustomContextMenu
-				visible={menuVisible}
-				onClose={() => setMenuVisible(false)}
-				title={selectedSection?.name || ""}
-				subtitle={selectedSection?.description || "Sin descripción"}
-				items={menuOptions}
-			/> */}
-
 			<TouchableOpacity
 				style={[styles.fab, { backgroundColor: colors.businessBg }]}
 				onPress={() =>
-					navigation.navigate("SectionForm", {
-						title: "Nueva Sección",
+					navigation.navigate("ProductForm", {
+						title: "Nuevo Producto",
 					})
 				}
 			>
-				{/* ➕ 5. Icono de suma para el FAB */}
 				<Ionicons name="add" size={32} color={colors.textOnPrimary} />
 			</TouchableOpacity>
 		</>
 	);
 };
+
+// He mantenido tus estilos intactos ya que usaban nombres genéricos orientados a 'product'
 const styles = StyleSheet.create({
 	listContent: {
 		padding: Spacing.md,

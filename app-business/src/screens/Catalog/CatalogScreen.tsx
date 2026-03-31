@@ -24,12 +24,12 @@ import { useDialog } from "@coco/shared/providers/DialogContext";
 import { supabase } from "@/infrastructure/supabase/config";
 import { SectionsTab } from "./Components/Secciones/SectionsTab";
 import { Ionicons } from "@expo/vector-icons";
+import { ProductsTab } from "./Components/Products/ProductsTab";
 
 // Tipado de las pestañas
 type TabType = "productos" | "secciones" | "modificadores";
 
 export const CatalogScreen = () => {
-	const [search, setSearch] = useState("");
 	const { user } = useAppStore();
 	const { colors } = useTheme();
 
@@ -82,10 +82,10 @@ export const CatalogScreen = () => {
                 CONTENIDO DINÁMICO (Cambia según la pestaña activa)
                ======================================================= */}
 			{activeTab === "secciones" && (
-				<SectionsTab search={search} businessId={businessId} />
+				<SectionsTab businessId={businessId} />
 			)}
 			{activeTab === "productos" && (
-				<ProductsTab search={search} businessId={businessId} />
+				<ProductsTab businessId={businessId} />
 			)}
 
 			{activeTab === "modificadores" && (
@@ -98,165 +98,6 @@ export const CatalogScreen = () => {
 		</View>
 	);
 };
-
-/* ============================================================================
-   📦 COMPONENTE: PESTAÑA DE PRODUCTOS
-   ============================================================================ */
-const ProductsTab = ({
-	search,
-	businessId,
-}: {
-	search: string;
-	businessId?: string;
-}) => {
-	const navigation = useNavigation<any>();
-	const { colors } = useTheme();
-	const { showDialog } = useDialog();
-	const [menuVisible, setMenuVisible] = useState(false);
-	const [selectedProduct, setSelectedProduct] = useState<Product | null>(
-		null,
-	);
-
-	const {
-		products,
-		refreshing,
-		onRefresh,
-		deleteProduct,
-		toggleAvailability,
-	} = useCatalog(supabase, businessId);
-
-	const filteredProducts = products.filter((p) =>
-		p.name.toLowerCase().includes(search.toLowerCase()),
-	);
-
-	const handleDelete = (product: Product) => {
-		showDialog({
-			title: "Eliminar Producto",
-			message: `¿Estás seguro de que quieres eliminar "${product.name}"?`,
-			intent: "error",
-			onConfirm: async () => {
-				try {
-					await deleteProduct(product.id);
-					showDialog({
-						title: "Eliminado",
-						message: "Producto borrado.",
-						intent: "success",
-					});
-				} catch (error) {
-					showDialog({
-						title: "Error",
-						message: "No se pudo borrar.",
-						intent: "error",
-					});
-				}
-			},
-		});
-	};
-
-	return (
-		<>
-			<FlatList
-				data={filteredProducts}
-				keyExtractor={(item) => item.id}
-				contentContainerStyle={styles.listContent}
-				refreshControl={
-					<RefreshControl
-						refreshing={refreshing}
-						onRefresh={onRefresh}
-						colors={[colors.businessBg]}
-					/>
-				}
-				renderItem={({ item }) => (
-					<TouchableOpacity
-						style={[
-							styles.productCard,
-							{
-								backgroundColor: colors.surfaceLight,
-								opacity: item.isAvailable ? 1 : 0.6,
-							},
-						]}
-						onPress={() => {
-							setSelectedProduct(item);
-							setMenuVisible(true);
-						}}
-					>
-						<View
-							style={[
-								styles.imagePlaceholder,
-								{ backgroundColor: colors.backgroundLight },
-							]}
-						>
-							{item.imageUrl ? (
-								<Image
-									source={{ uri: item.imageUrl }}
-									style={styles.image}
-								/>
-							) : (
-								<Text style={styles.imageText}>🍔</Text>
-							)}
-						</View>
-						<View style={styles.productInfo}>
-							<Text
-								style={[
-									styles.productName,
-									{ color: colors.textPrimaryLight },
-								]}
-							>
-								{item.name}
-							</Text>
-							<Text
-								style={[
-									styles.productDesc,
-									{ color: colors.textSecondaryLight },
-								]}
-								numberOfLines={1}
-							>
-								{item.description || "Sin descripción"}
-							</Text>
-							<Text
-								style={[
-									styles.productPrice,
-									{ color: colors.businessBg },
-								]}
-							>
-								${item.price.toFixed(2)}
-							</Text>
-						</View>
-						<View style={styles.rightProductInfo}>
-							<Text
-								style={[
-									styles.statusText,
-									{
-										color: item.isAvailable
-											? colors.success
-											: colors.error,
-									},
-								]}
-							>
-								{item.isAvailable ? "Activo" : "Pausado"}
-							</Text>
-						</View>
-					</TouchableOpacity>
-				)}
-			/>
-
-			{/* FAB para Productos */}
-			<TouchableOpacity
-				style={[styles.fab, { backgroundColor: colors.businessBg }]}
-				onPress={() =>
-					navigation.navigate("ProductForm", {
-						title: "Nuevo Producto",
-					})
-				}
-			>
-				<Text style={[styles.fabText, { color: colors.textOnPrimary }]}>
-					+
-				</Text>
-			</TouchableOpacity>
-		</>
-	);
-};
-
 /* ============================================================================
    🔘 COMPONENTE AUXILIAR: BOTÓN DE PESTAÑA
    ============================================================================ */

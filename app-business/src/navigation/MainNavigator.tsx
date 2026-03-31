@@ -7,12 +7,12 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { DashboardScreen } from "@/screens/Dashboard/DashboardScreen";
 import { BusinessSetupScreen } from "@/components/BusinessSetupScreen";
 import { FontSize, FontWeight } from "@coco/shared/config/theme";
-import { CatalogScreen } from "@/screens/Product/CatalogScreen";
-import { ProductForm } from "@/screens/Product/Components/ProductForm";
+import { CatalogScreen } from "@/screens/Catalog/CatalogScreen";
 import { useTheme } from "@coco/shared/hooks/useTheme";
 import { ProfileScreen } from "@/screens/Profile/ProfileScreen";
 import { UserSetupScreen } from "@/screens/Profile/components/UserSetupScreen";
-import { SectionFormScreen } from "@/screens/Product/Components/Secciones/SectionFormScreen";
+import { SectionForm } from "@/screens/Catalog/Components/Secciones/SectionForm";
+import { ProductForm } from "@/screens/Catalog/Components/Products/ProductForm";
 
 const RootStack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -182,7 +182,7 @@ export const MainNavigator = () => {
 			/>
 			<RootStack.Screen
 				name="SectionForm"
-				component={SectionFormScreen}
+				component={SectionForm}
 				options={({ route }: any) => ({
 					headerShown: true,
 					title: route.params?.title || "Sección",

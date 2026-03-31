@@ -4,7 +4,6 @@ import * as SecureStore from "expo-secure-store";
 import { User } from "@coco/shared/core/entities/User";
 import { Order } from "@coco/shared/core/entities/Order";
 import { Business } from "@coco/shared/core/entities/Business";
-import { Section } from "core/entities"; // 👈 Asegúrate de importar tu entidad
 
 export interface CartItem {
 	productId: string;
@@ -33,10 +32,6 @@ export interface AppState {
 	cartCount: () => number;
 	themeMode: "light" | "dark";
 	setThemeMode: (mode: "light" | "dark") => void;
-
-	// 💥 NUEVOS ESTADOS PARA SECCIONES
-	sections: Section[];
-	setSections: (sections: Section[]) => void;
 }
 
 const secureStorage = {
@@ -66,10 +61,6 @@ export const useAppStore = create<AppState>()(
 			setActiveBusiness: (activeBusiness) => set({ activeBusiness }),
 			cart: [],
 			cartBusinessId: null,
-
-			// 💥 ESTADO INICIAL Y ACCIÓN PARA SECCIONES
-			sections: [],
-			setSections: (sections) => set({ sections }),
 
 			addToCart: (item, businessId) =>
 				set((state) => {
@@ -164,6 +155,7 @@ export const useAppStore = create<AppState>()(
 				cart: state.cart,
 				cartBusinessId: state.cartBusinessId,
 				themeMode: state.themeMode,
+				// 💡 Nota: `sections` y `products` no están aquí a propósito para no saturar el SecureStore con memoria volátil.
 			}),
 		},
 	),
