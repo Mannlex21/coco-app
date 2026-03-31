@@ -22,7 +22,7 @@ export const QuickAccessCard = () => {
 
 	const { userData } = useUser(supabase, user?.id);
 
-	const { activeBusiness, deleteBusiness } = useBusiness(
+	const { activeBusiness, deleteBusiness, loadingBusinesses } = useBusiness(
 		supabase,
 		user?.id,
 		userData?.lastActiveBusinessId,
@@ -103,6 +103,7 @@ export const QuickAccessCard = () => {
 						},
 					]}
 					onPress={handleDelete}
+					disabled={loadingBusinesses}
 				>
 					<Text
 						style={[styles.deleteBtnText, { color: colors.error }]}

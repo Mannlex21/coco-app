@@ -13,6 +13,7 @@ import { useTheme } from "@coco/shared/hooks/useTheme";
 import { useDialog } from "@coco/shared/providers/DialogContext";
 import { useNavigation } from "@react-navigation/native";
 import { supabase } from "@/infrastructure/supabase/config";
+import { Skeleton } from "@/components/Sekeleton";
 
 export const StatusCard = () => {
 	const { colors } = useTheme();
@@ -23,11 +24,12 @@ export const StatusCard = () => {
 	const { userData } = useUser(supabase, user?.id);
 
 	// 2. Obtenemos el negocio activo y la función para cambiar el estado
-	const { activeBusiness, toggleBusinessStatus, isToggling } = useBusiness(
-		supabase,
-		user?.id,
-		userData?.lastActiveBusinessId,
-	);
+	const {
+		activeBusiness,
+		toggleBusinessStatus,
+		isToggling,
+		loadingBusinesses,
+	} = useBusiness(supabase, user?.id, userData?.lastActiveBusinessId);
 	const handleToggle = async () => {
 		if (!activeBusiness || isToggling) return;
 		try {
@@ -45,6 +47,21 @@ export const StatusCard = () => {
 		}
 	};
 
+	if (loadingBusinesses) {
+		return (
+			<Skeleton
+				variant="circle"
+				height={50}
+				style={[
+					styles.mainCard,
+					{
+						minHeight: 96,
+						backgroundColor: colors.surfaceLight,
+					},
+				]}
+			/>
+		);
+	}
 	// Si no hay negocio registrado
 	if (!activeBusiness) {
 		return (
@@ -100,7 +117,7 @@ export const StatusCard = () => {
 				},
 			]}
 		>
-			<View>
+			<View style={{ minHeight: 47 }}>
 				<Text
 					style={[
 						styles.cardLabel,
@@ -124,17 +141,19 @@ export const StatusCard = () => {
 						: "PAUSADO / CERRADO"}
 				</Text>
 			</View>
-			<Switch
-				value={activeBusiness.isOpen}
-				onValueChange={handleToggle}
-				trackColor={{
-					false: colors.borderLight,
-					true: colors.businessBg,
-				}}
-				thumbColor={colors.surfaceLight}
-				ios_backgroundColor={colors.borderLight}
-				disabled={isToggling}
-			/>
+			{!loadingBusinesses && (
+				<Switch
+					value={activeBusiness.isOpen}
+					onValueChange={handleToggle}
+					trackColor={{
+						false: colors.borderLight,
+						true: colors.businessBg,
+					}}
+					thumbColor={colors.surfaceLight}
+					ios_backgroundColor={colors.borderLight}
+					disabled={isToggling}
+				/>
+			)}
 		</View>
 	);
 };

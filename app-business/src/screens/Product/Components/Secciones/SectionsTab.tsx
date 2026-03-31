@@ -11,10 +11,7 @@ import { useSection } from "@coco/shared/hooks/supabase";
 import { useTheme } from "@coco/shared/hooks/useTheme";
 import { useDialog } from "@coco/shared/providers/DialogContext";
 import { useNavigation } from "@react-navigation/native";
-import {
-	CustomContextMenu,
-	ContextMenuItem,
-} from "@coco/shared/components/CustomContextMenu";
+import { ContextMenuItem } from "@coco/shared/components/CustomContextMenu";
 import {
 	FlatList,
 	RefreshControl,
@@ -29,20 +26,9 @@ import { Section } from "@coco/shared/core/entities/";
 // 📦 1. Importamos los paquetes de iconos
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { EmptyState } from "../EmptyState";
+import { useContextMenu } from "@coco/shared/providers";
 
-const normalizeText = (text: string) =>
-	text
-		.normalize("NFD")
-		.replace(/[\u0300-\u036f]/g, "")
-		.toLowerCase();
-
-export const SectionsTab = ({
-	search,
-	businessId,
-}: {
-	search: string;
-	businessId?: string;
-}) => {
+export const SectionsTab = ({ businessId }: { businessId?: string }) => {
 	const navigation = useNavigation<any>();
 	const { colors } = useTheme();
 	const { showDialog } = useDialog();
@@ -60,15 +46,9 @@ export const SectionsTab = ({
 		moveSection,
 		fetchSections,
 	} = useSection(supabase, businessId);
-
-	const [menuVisible, setMenuVisible] = useState(false);
-	const [selectedSection, setSelectedSection] = useState<Section | null>(
-		null,
-	);
+	const { showContextMenu } = useContextMenu();
 
 	const handleOpenMenu = (section: Section) => {
-		setSelectedSection(section);
-
 		// 🔍 Buscamos el index real dentro de la lista que estamos viendo
 		const index = sections.findIndex((s) => s.id === section.id);
 
@@ -76,7 +56,11 @@ export const SectionsTab = ({
 		setIsFirst(index === 0);
 		setIsLast(index === sections.length - 1);
 
-		setMenuVisible(true);
+		showContextMenu(
+			section?.name || "",
+			getMenuOptions(section),
+			section?.description || "Sin descripción",
+		);
 	};
 
 	const handleMoveSection = async (
@@ -133,8 +117,8 @@ export const SectionsTab = ({
 		setSearchTerm("");
 		fetchSections(""); // Trae todo de nuevo
 	};
-	const getMenuOptions = (): ContextMenuItem[] => {
-		if (!selectedSection) return [];
+	const getMenuOptions = (section: Section): ContextMenuItem[] => {
+		if (!section) return [];
 
 		const options: ContextMenuItem[] = [];
 
@@ -152,7 +136,7 @@ export const SectionsTab = ({
 							color={colors.textPrimaryLight}
 						/>
 					),
-					onPress: () => handleMoveSection(selectedSection, "up"),
+					onPress: () => handleMoveSection(section, "up"),
 				});
 			}
 
@@ -166,7 +150,7 @@ export const SectionsTab = ({
 							color={colors.textPrimaryLight}
 						/>
 					),
-					onPress: () => handleMoveSection(selectedSection, "down"),
+					onPress: () => handleMoveSection(section, "down"),
 				});
 			}
 		}
@@ -175,10 +159,10 @@ export const SectionsTab = ({
 		return [
 			...options,
 			{
-				label: selectedSection.isAvailable
+				label: section.isAvailable
 					? "Pausar Sección"
 					: "Activar Sección",
-				icon: selectedSection.isAvailable ? (
+				icon: section.isAvailable ? (
 					<Ionicons
 						name="pause"
 						size={20}
@@ -192,10 +176,7 @@ export const SectionsTab = ({
 					/>
 				),
 				onPress: () =>
-					toggleSectionAvailability(
-						selectedSection.id,
-						selectedSection.isAvailable,
-					),
+					toggleSectionAvailability(section.id, section.isAvailable),
 			},
 			{
 				label: "Editar Sección",
@@ -209,7 +190,7 @@ export const SectionsTab = ({
 				onPress: () =>
 					navigation.navigate("SectionForm", {
 						title: "Editar Sección",
-						sectionId: selectedSection.id,
+						sectionId: section.id,
 					}),
 			},
 			{
@@ -223,13 +204,10 @@ export const SectionsTab = ({
 				),
 				textColor: colors.error,
 				iconBg: colors.errorLight,
-				onPress: () =>
-					handleDelete(selectedSection.id, selectedSection.name),
+				onPress: () => handleDelete(section.id, section.name),
 			},
 		];
 	};
-
-	const menuOptions = getMenuOptions();
 
 	return (
 		<>
@@ -404,13 +382,13 @@ export const SectionsTab = ({
 				)}
 			/>
 
-			<CustomContextMenu
+			{/* <CustomContextMenu
 				visible={menuVisible}
 				onClose={() => setMenuVisible(false)}
 				title={selectedSection?.name || ""}
 				subtitle={selectedSection?.description || "Sin descripción"}
 				items={menuOptions}
-			/>
+			/> */}
 
 			<TouchableOpacity
 				style={[styles.fab, { backgroundColor: colors.businessBg }]}

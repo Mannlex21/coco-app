@@ -20,28 +20,13 @@ export const DashboardScreen = () => {
 	const { colors } = useTheme();
 	const { user } = useAppStore();
 
-	const { userData, loadingUser, updateLastActiveBusiness } = useUser(
+	const { userData, updateLastActiveBusiness } = useUser(supabase, user?.id);
+
+	const { activeBusiness, onRefresh, refreshing } = useBusiness(
 		supabase,
 		user?.id,
+		userData?.lastActiveBusinessId,
 	);
-
-	const { loadingBusinesses, activeBusiness, onRefresh, refreshing } =
-		useBusiness(supabase, user?.id, userData?.lastActiveBusinessId);
-
-	if (loadingUser || loadingBusinesses) {
-		return (
-			<View>
-				<Text
-					style={[
-						styles.loadingText,
-						{ color: colors.textSecondaryLight },
-					]}
-				>
-					Cargando datos...
-				</Text>
-			</View>
-		);
-	}
 	if (userData && !userData.lastActiveBusinessId && activeBusiness) {
 		updateLastActiveBusiness(activeBusiness.id);
 	}

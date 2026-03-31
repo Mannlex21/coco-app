@@ -293,7 +293,6 @@ const TabButton = ({
 			<View
 				style={{ flexDirection: "row", alignItems: "center", gap: 6 }}
 			>
-				{/* 🎨 Clonamos el icono para inyectarle el color dinámico */}
 				{icon && React.isValidElement(icon)
 					? React.cloneElement(icon, { color: tintColor })
 					: icon}

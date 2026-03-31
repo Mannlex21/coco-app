@@ -2,18 +2,23 @@ import React from "react";
 import { View, Text, StyleSheet, Platform } from "react-native";
 import { useTheme } from "@coco/shared/hooks/useTheme";
 import { useAppStore } from "@coco/shared/hooks/useAppStore";
-import { useBusiness } from "@coco/shared/hooks/supabase";
+import { useBusiness, useUser } from "@coco/shared/hooks/supabase";
 import { FontSize, FontWeight, Spacing } from "@coco/shared/config/theme";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { supabase } from "@/infrastructure/supabase/config";
+import { Skeleton } from "@/components/Sekeleton";
 
 export const DashboardHeader = () => {
 	const { colors } = useTheme();
 	const { user } = useAppStore();
 	const insets = useSafeAreaInsets();
-	const { activeBusiness } = useBusiness(supabase, user?.id);
-	const firstName = user?.name ? user.name.split(" ")[0] : "Socio";
+	const { loadingUser } = useUser(supabase, user?.id);
 
+	const { activeBusiness, loadingBusinesses } = useBusiness(
+		supabase,
+		user?.id,
+	);
+	const firstName = user?.name ? user.name.split(" ")[0] : "Socio";
 	return (
 		<View
 			style={[
@@ -34,20 +39,35 @@ export const DashboardHeader = () => {
 					{ color: colors.textSecondaryLight },
 				]}
 			>
-				¡Bienvenido, {firstName}!
+				¡Bienvenido,{" "}
+				{loadingUser ? (
+					<Skeleton width={100} height={10} variant="text" />
+				) : (
+					firstName
+				)}
+				!
 			</Text>
 
 			<View style={styles.selector}>
-				<Text
-					style={[
-						styles.businessName,
-						{ color: colors.textPrimaryLight },
-					]}
-				>
-					{activeBusiness
-						? activeBusiness.name
-						: "Configurar mi negocio"}
-				</Text>
+				{loadingBusinesses ? (
+					<Skeleton
+						width={180}
+						height={24}
+						variant="text"
+						style={{ marginTop: 4 }}
+					/>
+				) : (
+					<Text
+						style={[
+							styles.businessName,
+							{ color: colors.textPrimaryLight },
+						]}
+					>
+						{activeBusiness
+							? activeBusiness.name
+							: "Configurar mi negocio"}
+					</Text>
+				)}
 			</View>
 		</View>
 	);

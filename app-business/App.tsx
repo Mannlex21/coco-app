@@ -7,10 +7,10 @@ import { AuthStack } from "@/navigation/AuthStack";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { useAppStore } from "@coco/shared/hooks/useAppStore";
 import { User } from "@coco/shared/core/entities/User";
-import { DialogProvider } from "@coco/shared/providers/DialogContext";
 import { useTheme } from "@coco/shared/hooks/useTheme";
 import { StatusBar } from "expo-status-bar";
 import { supabase } from "@/infrastructure/supabase/config";
+import { ContextMenuProvider, DialogProvider } from "../shared/providers";
 
 export default function App() {
 	const { user, setUser, isLoadingAuth, setLoadingAuth, themeMode } =
@@ -92,18 +92,20 @@ export default function App() {
 				edges={["top"]}
 			>
 				<StatusBar style={isDark ? "light" : "dark"} animated={true} />
-				<DialogProvider>
-					<NavigationContainer theme={CocoAppTheme}>
-						{user ? (
-							<MainNavigator />
-						) : (
-							<AuthStack
-								isRegistering={isRegistering}
-								setIsRegistering={setIsRegistering}
-							/>
-						)}
-					</NavigationContainer>
-				</DialogProvider>
+				<ContextMenuProvider>
+					<DialogProvider>
+						<NavigationContainer theme={CocoAppTheme}>
+							{user ? (
+								<MainNavigator />
+							) : (
+								<AuthStack
+									isRegistering={isRegistering}
+									setIsRegistering={setIsRegistering}
+								/>
+							)}
+						</NavigationContainer>
+					</DialogProvider>
+				</ContextMenuProvider>
 			</SafeAreaView>
 		</SafeAreaProvider>
 	);

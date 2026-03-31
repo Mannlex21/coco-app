@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import {
 	Modal,
 	View,
@@ -6,6 +6,8 @@ import {
 	TouchableOpacity,
 	TouchableWithoutFeedback,
 	StyleSheet,
+	Animated,
+	Dimensions,
 } from "react-native";
 import {
 	BorderRadius,
@@ -16,9 +18,11 @@ import {
 } from "../config/theme";
 import { useTheme } from "@coco/shared/hooks/useTheme";
 
+const { height: SCREEN_HEIGHT } = Dimensions.get("window");
+
 export interface ContextMenuItem {
 	label: string;
-	icon: string | React.ReactNode; // 💥 Ahora soporta un string (emojis) o un elemento React (Iconos)
+	icon: string | React.ReactNode; // Soporta un string (emojis) o un elemento React (Iconos)
 	textColor?: string;
 	iconBg?: string;
 	onPress: () => void;
@@ -41,20 +45,64 @@ export const CustomContextMenu = ({
 }: CustomContextMenuProps) => {
 	const { colors } = useTheme();
 
+	// 🧠 Valores de referencia para las animaciones
+	const fadeAnim = useRef(new Animated.Value(0)).current; // Opacidad del overlay
+	const slideAnim = useRef(new Animated.Value(SCREEN_HEIGHT)).current; // Posición Y de la tarjeta
+
+	useEffect(() => {
+		if (visible) {
+			// 🎬 Cuando se abre: Fade in del fondo + Slide up de la tarjeta en paralelo
+			Animated.parallel([
+				Animated.timing(fadeAnim, {
+					toValue: 1,
+					duration: 300,
+					useNativeDriver: true,
+				}),
+				Animated.timing(slideAnim, {
+					toValue: 0,
+					duration: 350,
+					useNativeDriver: true,
+				}),
+			]).start();
+		}
+	}, [visible]);
+
+	// 🏃‍♂️ Función para cerrar con animación antes de desmontar el modal
+	const handleClose = () => {
+		Animated.parallel([
+			Animated.timing(fadeAnim, {
+				toValue: 0,
+				duration: 250,
+				useNativeDriver: true,
+			}),
+			Animated.timing(slideAnim, {
+				toValue: SCREEN_HEIGHT,
+				duration: 300,
+				useNativeDriver: true,
+			}),
+		]).start(() => {
+			onClose(); // Le avisa al padre que ya puede cambiar el estado visible a false
+		});
+	};
+
 	return (
 		<Modal
 			visible={visible}
 			transparent
-			animationType="slide"
-			onRequestClose={onClose}
+			animationType="none"
+			onRequestClose={handleClose}
+			statusBarTranslucent={true}
 		>
-			<TouchableWithoutFeedback onPress={onClose}>
-				<View style={styles.overlay}>
+			<TouchableWithoutFeedback onPress={handleClose}>
+				<Animated.View style={[styles.overlay, { opacity: fadeAnim }]}>
 					<TouchableWithoutFeedback>
-						<View
+						<Animated.View
 							style={[
 								styles.container,
-								{ backgroundColor: colors.surfaceLight },
+								{
+									backgroundColor: colors.surfaceLight,
+									transform: [{ translateY: slideAnim }],
+								},
 							]}
 						>
 							<View style={styles.menuHeader}>
@@ -98,8 +146,8 @@ export const CustomContextMenu = ({
 										},
 									]}
 									onPress={() => {
-										onClose();
-										setTimeout(item.onPress, 200);
+										handleClose();
+										setTimeout(item.onPress, 350);
 									}}
 									activeOpacity={0.7}
 								>
@@ -113,7 +161,6 @@ export const CustomContextMenu = ({
 											},
 										]}
 									>
-										{/* 💥 Validación de tipo de icono */}
 										{typeof item.icon === "string" ? (
 											<Text style={styles.icon}>
 												{item.icon}
@@ -147,7 +194,7 @@ export const CustomContextMenu = ({
 										borderWidth: 1,
 									},
 								]}
-								onPress={onClose}
+								onPress={handleClose}
 								activeOpacity={0.7}
 							>
 								<Text
@@ -159,9 +206,9 @@ export const CustomContextMenu = ({
 									Cancelar
 								</Text>
 							</TouchableOpacity>
-						</View>
+						</Animated.View>
 					</TouchableWithoutFeedback>
-				</View>
+				</Animated.View>
 			</TouchableWithoutFeedback>
 		</Modal>
 	);
@@ -170,7 +217,8 @@ export const CustomContextMenu = ({
 const styles = StyleSheet.create({
 	overlay: {
 		flex: 1,
-		justifyContent: "flex-end",
+		justifyContent: "flex-end", // Mantiene la tarjeta pegada abajo
+		backgroundColor: "rgba(0, 0, 0, 0.6)", // Fondo oscuro semitransparente
 	},
 	container: {
 		width: "100%",
