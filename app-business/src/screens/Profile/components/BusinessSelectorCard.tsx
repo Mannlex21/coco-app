@@ -234,7 +234,6 @@ const styles = StyleSheet.create({
 		fontSize: FontSize.sm,
 		fontWeight: FontWeight.bold,
 		textTransform: "uppercase",
-		letterSpacing: 0.5,
 		marginBottom: Spacing.sm,
 	},
 	optionRow: {

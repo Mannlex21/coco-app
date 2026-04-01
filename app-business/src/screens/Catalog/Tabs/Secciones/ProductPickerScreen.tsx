@@ -14,6 +14,7 @@ import { useProduct } from "@coco/shared/hooks/supabase";
 import { supabase } from "@/infrastructure/supabase/config";
 import { Ionicons } from "@expo/vector-icons";
 import { Product } from "@coco/shared/core/entities/";
+import { FontWeight } from "@coco/shared/config/theme";
 
 export const ProductPickerScreen = () => {
 	const navigation = useNavigation<any>();
@@ -226,7 +227,7 @@ const styles = StyleSheet.create({
 		shadowOpacity: 0.05,
 		shadowRadius: 3,
 	},
-	productName: { fontSize: 16, fontWeight: "700", marginBottom: 2 },
+	productName: { fontSize: 16, fontWeight: FontWeight.bold, marginBottom: 2 },
 	emptyText: { textAlign: "center", marginTop: 40, fontSize: 16 },
 	fab: {
 		position: "absolute",
@@ -245,5 +246,5 @@ const styles = StyleSheet.create({
 		shadowOpacity: 0.1,
 		shadowRadius: 8,
 	},
-	fabText: { color: "white", fontWeight: "700", fontSize: 16 },
+	fabText: { color: "white", fontWeight: FontWeight.bold, fontSize: 16 },
 });

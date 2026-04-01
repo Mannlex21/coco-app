@@ -3,28 +3,21 @@ import {
 	View,
 	Text,
 	StyleSheet,
-	FlatList,
 	TouchableOpacity,
-	Image,
-	RefreshControl,
+	Platform,
 } from "react-native";
 import {
 	BorderRadius,
-	Shadow,
 	Spacing,
 	FontSize,
 	FontWeight,
 } from "@coco/shared/config/theme";
-import { useNavigation } from "@react-navigation/native";
-import { Product } from "@coco/shared/core/entities/Product";
-import { useCatalog } from "@coco/shared/hooks/supabase";
 import { useAppStore } from "@coco/shared/hooks/useAppStore";
 import { useTheme } from "@coco/shared/hooks/useTheme";
-import { useDialog } from "@coco/shared/providers/DialogContext";
-import { supabase } from "@/infrastructure/supabase/config";
-import { SectionsTab } from "./Components/Secciones/SectionsTab";
+import { SectionsTab } from "./Tabs/Secciones/SectionsTab";
 import { Ionicons } from "@expo/vector-icons";
-import { ProductsTab } from "./Components/Products/ProductsTab";
+import { ProductsTab } from "./Tabs/Products/ProductsTab";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 // Tipado de las pestañas
 type TabType = "productos" | "secciones" | "modificadores";
@@ -32,7 +25,7 @@ type TabType = "productos" | "secciones" | "modificadores";
 export const CatalogScreen = () => {
 	const { user } = useAppStore();
 	const { colors } = useTheme();
-
+	const insets = useSafeAreaInsets();
 	// 1. ESTADO DE LA PESTAÑA ACTIVA
 	const [activeTab, setActiveTab] = useState<TabType>("secciones");
 
@@ -46,15 +39,15 @@ export const CatalogScreen = () => {
 			<View
 				style={[
 					styles.header,
-					{ backgroundColor: colors.surfaceLight },
+					{
+						backgroundColor: colors.surfaceLight,
+						paddingTop:
+							Platform.OS === "android"
+								? insets.top - 10
+								: insets.top,
+					},
 				]}
 			>
-				<Text
-					style={[styles.title, { color: colors.textPrimaryLight }]}
-				>
-					Mi Catálogo
-				</Text>
-
 				{/* 🚀 TABS SIN NAVIGATE (Cambian el estado local) */}
 				<View style={styles.tabsContainer}>
 					<TabButton
@@ -161,7 +154,7 @@ const TabButton = ({
    ============================================================================ */
 const styles = StyleSheet.create({
 	container: { flex: 1 },
-	header: { padding: Spacing.md },
+	header: { paddingHorizontal: Spacing.md, paddingTop: Spacing.md },
 	title: {
 		fontSize: FontSize.xxl,
 		fontWeight: FontWeight.bold,
@@ -181,66 +174,6 @@ const styles = StyleSheet.create({
 		borderColor: "transparent",
 	},
 	tabText: { fontSize: FontSize.xs },
-	searchBar: {
-		padding: Spacing.md,
-		borderRadius: BorderRadius.md,
-		fontSize: FontSize.md,
-		borderWidth: 1,
-	},
-	listContent: { padding: Spacing.md, paddingBottom: 100 },
-	productCard: {
-		padding: Spacing.md,
-		flexDirection: "row",
-		alignItems: "center",
-		marginBottom: Spacing.md,
-		borderRadius: BorderRadius.lg,
-		...Shadow.md,
-	},
-	imagePlaceholder: {
-		width: 60,
-		height: 60,
-		borderRadius: BorderRadius.md,
-		justifyContent: "center",
-		alignItems: "center",
-	},
 	image: { width: 60, height: 60, borderRadius: BorderRadius.md },
-	imageText: { fontSize: FontSize.title },
-	productInfo: { flex: 1, marginLeft: Spacing.md },
-	productName: { fontSize: FontSize.md, fontWeight: FontWeight.bold },
-	productDesc: { fontSize: FontSize.sm, marginTop: 2 },
-	productPrice: {
-		fontSize: FontSize.md,
-		fontWeight: FontWeight.bold,
-		marginTop: 4,
-	},
-	rightProductInfo: { marginLeft: Spacing.sm },
-	statusText: {
-		textAlign: "right",
-		fontSize: FontSize.xs,
-		fontWeight: FontWeight.bold,
-		marginTop: 4,
-	},
-	actionsContainer: { flexDirection: "row", gap: Spacing.xs },
-	actionBtn: {
-		width: 40,
-		height: 40,
-		borderRadius: BorderRadius.md,
-		justifyContent: "center",
-		alignItems: "center",
-		borderWidth: 1,
-		borderColor: "rgba(0,0,0,0.05)",
-	},
-	fab: {
-		position: "absolute",
-		bottom: 30,
-		right: 30,
-		width: 60,
-		height: 60,
-		borderRadius: 30,
-		justifyContent: "center",
-		alignItems: "center",
-		...Shadow.lg,
-	},
-	fabText: { fontSize: FontSize.title, fontWeight: FontWeight.bold },
 	emptyContainer: { marginTop: 50, alignItems: "center" },
 });

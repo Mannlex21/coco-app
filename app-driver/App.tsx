@@ -85,7 +85,7 @@ const styles = StyleSheet.create({
 		marginVertical: 15,
 		borderRadius: 2,
 	},
-	status: { fontSize: 18, color: "#0A4A7A", fontWeight: "700" },
+	status: { fontSize: 18, color: "#0A4A7A", fontWeight: FontWeight.bold },
 	buttonText: { color: "#27AE60", fontWeight: "800", fontSize: 18 },
 	footer: {
 		position: "absolute",

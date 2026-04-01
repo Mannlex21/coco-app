@@ -1,0 +1,188 @@
+import React from "react";
+import { StyleSheet, Text, View, TouchableOpacity, Image } from "react-native";
+import { MaterialIcons, Ionicons } from "@expo/vector-icons";
+import {
+	BorderRadius,
+	FontSize,
+	FontWeight,
+	Shadow,
+	Spacing,
+} from "@coco/shared/config/theme";
+
+interface ProductGridItemProps {
+	item: any;
+	colors: any;
+	onPress: () => void;
+	onAdd?: () => void;
+	showAddButton?: boolean;
+}
+
+export const ProductGridItem = ({
+	item,
+	colors,
+	onPress,
+	showAddButton = false,
+	onAdd = () => {},
+}: ProductGridItemProps) => {
+	const hasImage = item.image_url && item.image_url.trim() !== "";
+
+	return (
+		<TouchableOpacity
+			style={styles.gridProductCard} // 👈 Removido el color de fondo para fundirse en la pantalla
+			activeOpacity={0.8}
+			onPress={onPress}
+		>
+			{/* 🖼️ ÁREA DE IMAGEN */}
+			<View style={styles.imageWrapper}>
+				{hasImage ? (
+					<Image
+						source={{ uri: item.image_url }}
+						style={styles.gridProductImage}
+						resizeMode="cover"
+					/>
+				) : (
+					<View
+						style={[
+							styles.gridProductImagePlaceholder,
+							{ backgroundColor: colors.borderLight }, // 👈 Color sutil de fondo
+						]}
+					>
+						<Ionicons
+							name="fast-food-outline"
+							size={44}
+							color={colors.textSecondaryLight}
+						/>
+					</View>
+				)}
+
+				{/* ✏️ BOTÓN DE ACCIÓN (Flotando en la esquina de la imagen al estilo Uber) */}
+
+				{showAddButton && (
+					<TouchableOpacity
+						style={[
+							styles.addBtn,
+							{
+								borderColor: colors.borderLight,
+								backgroundColor: colors.surfaceLight,
+							},
+						]}
+						activeOpacity={0.7}
+						onPress={onAdd}
+					>
+						<MaterialIcons
+							name="shopping-cart"
+							size={16}
+							color={colors.textPrimaryLight}
+						/>
+					</TouchableOpacity>
+				)}
+			</View>
+
+			{/* 📝 ÁREA DE INFORMACIÓN (Debajo de la imagen sin paddings forzados) */}
+			<View style={styles.gridProductInfo}>
+				<Text
+					style={[
+						styles.gridProductName,
+						{ color: colors.textPrimaryLight },
+					]}
+					numberOfLines={1}
+				>
+					{item.name}
+				</Text>
+
+				<View style={styles.priceRow}>
+					<Text
+						style={[
+							styles.gridProductPrice,
+							{ color: colors.textSecondaryLight }, // 👈 Uber usa un tono secundario aquí
+						]}
+					>
+						MXN${item.price?.toFixed(2) || "0.00"}
+					</Text>
+
+					{/* Indicador de agotado */}
+					{!item.isAvailable && (
+						<Text
+							style={{
+								color: colors.error,
+								fontSize: FontSize.xs,
+								fontWeight: FontWeight.medium,
+							}}
+							numberOfLines={1}
+						>
+							• Agotado
+						</Text>
+					)}
+				</View>
+
+				<Text
+					style={[
+						styles.gridProductDesc,
+						{ color: colors.textSecondaryLight },
+					]}
+					numberOfLines={2}
+				>
+					{item.description || "Sin descripción asignada"}
+				</Text>
+			</View>
+		</TouchableOpacity>
+	);
+};
+
+const styles = StyleSheet.create({
+	gridProductCard: {
+		width: "48.5%", // 👈 Dos columnas perfectas
+		marginBottom: Spacing.lg, // Un poco más de aire abajo
+		paddingVertical: Spacing.md,
+	},
+	imageWrapper: {
+		position: "relative",
+		width: "100%",
+		height: 160,
+		borderRadius: BorderRadius.xl, // 👈 Solo la imagen y el placeholder son redondeados
+		overflow: "hidden",
+	},
+	gridProductImage: {
+		width: "100%",
+		height: "100%",
+	},
+	gridProductImagePlaceholder: {
+		width: "100%",
+		height: "100%",
+		justifyContent: "center",
+		alignItems: "center",
+	},
+
+	addBtn: {
+		position: "absolute",
+		bottom: 10, // 👈 Abajo a la derecha como el "+" de Uber
+		right: 10,
+		width: 32,
+		height: 32,
+		borderRadius: 16,
+		justifyContent: "center",
+		alignItems: "center",
+		borderWidth: 1,
+	},
+	gridProductInfo: {
+		marginTop: Spacing.xs, // 👈 Separación sutil debajo de la imagen
+		gap: 1,
+	},
+	gridProductName: {
+		fontSize: FontSize.md,
+		fontWeight: FontWeight.semibold,
+	},
+	priceRow: {
+		flexDirection: "row",
+		alignItems: "center",
+		gap: 4,
+	},
+	gridProductPrice: {
+		fontSize: FontSize.sm,
+		fontWeight: FontWeight.medium,
+	},
+	gridProductDesc: {
+		fontSize: FontSize.sm,
+		marginTop: 1,
+	},
+});

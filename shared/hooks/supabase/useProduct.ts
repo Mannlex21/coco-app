@@ -38,6 +38,7 @@ export const useProduct = (supabase: SupabaseClient, businessId?: string) => {
 				description: item.description,
 				position: item.position,
 				isAvailable: item.is_available,
+				visualizationType: item.visualization_type,
 				createdAt: new Date(item.created_at),
 				updatedAt: new Date(item.updated_at),
 			}));
@@ -219,9 +220,8 @@ export const useProduct = (supabase: SupabaseClient, businessId?: string) => {
 					.insert(payload)
 					.select()
 					.single();
-				console.log(supabaseError);
+
 				if (supabaseError) throw supabaseError;
-				console.log(data);
 				currentProductId = data.id; // Capturamos el ID generado
 			}
 

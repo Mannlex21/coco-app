@@ -1,0 +1,372 @@
+import React, { useState, useEffect } from "react";
+import {
+	View,
+	Text,
+	StyleSheet,
+	TouchableOpacity,
+	ActivityIndicator,
+	Platform,
+} from "react-native";
+import {
+	Colors,
+	FontSize,
+	BorderRadius,
+	Spacing,
+	FontWeight,
+} from "@coco/shared/config/theme";
+import { useNavigation, useRoute } from "@react-navigation/native";
+import { useAppStore } from "@coco/shared/hooks/useAppStore";
+import { useTheme } from "@coco/shared/hooks/useTheme";
+import { useDialog } from "@coco/shared/providers/DialogContext";
+import { supabase } from "@/infrastructure/supabase/config";
+import { useSection } from "@coco/shared/hooks/supabase";
+import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
+import { Ionicons } from "@expo/vector-icons";
+import { Product } from "@coco/shared/core/entities/";
+
+// Componentes extraídos
+import { VisualizationPicker } from "../../components/VisualizationPicker";
+import { InputField } from "../../components/InputField";
+import { ToggleField } from "../../components/ToggleField";
+import { ChipList } from "../../components/ChipList";
+import { ScreenHeader } from "../../components/ScreenHeader";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+
+export const SectionForm = () => {
+	const navigation = useNavigation<any>();
+	const route = useRoute<any>();
+	const { user } = useAppStore();
+	const { colors, isDark } = useTheme();
+	const { showDialog } = useDialog();
+	const [sectionId, setSectionId] = useState(undefined);
+	const insets = useSafeAreaInsets();
+	const businessId = user?.lastActiveBusinessId;
+
+	const { getSectionById, saveSection, loadingSection } = useSection(
+		supabase,
+		businessId,
+	);
+
+	const textColor = isDark ? "rgba(255,255,255,0.9)" : "rgba(0,0,0,0.85)";
+	const subTextColor = isDark ? "rgba(255,255,255,0.6)" : "rgba(0,0,0,0.55)";
+	const borderColor = isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.05)";
+
+	// El fondo ahora es el directo de la app, sin cartas grises/blancas encima
+	const bgApp = isDark ? "#121212" : "#FFFFFF";
+
+	const [formData, setFormData] = useState({
+		name: "",
+		description: "",
+		isAvailable: true,
+		visualizationType: "list" as "list" | "grid",
+		selectedProducts: [] as Product[],
+	});
+
+	const [loading, setLoading] = useState(false);
+	const [fetchingData, setFetchingData] = useState(false);
+
+	const handleInputChange = (key: keyof typeof formData, value: any) => {
+		setFormData((prev) => ({ ...prev, [key]: value }));
+	};
+
+	useEffect(() => {
+		if (route.params?.selectedProducts) {
+			handleInputChange(
+				"selectedProducts",
+				route.params.selectedProducts,
+			);
+		}
+	}, [route.params?.selectedProducts]);
+
+	// Corregido: Dependencia correcta para route.params?.sectionId
+	useEffect(() => {
+		if (route.params?.sectionId) {
+			setSectionId(route.params.sectionId);
+		}
+	}, [route.params?.sectionId]);
+
+	useEffect(() => {
+		if (sectionId) {
+			(async () => {
+				setFetchingData(true);
+				try {
+					const data = await getSectionById(sectionId);
+					if (data) {
+						setFormData({
+							name: data.name,
+							description: data.description || "",
+							isAvailable: data.isAvailable,
+							visualizationType: data.visualizationType || "list",
+							selectedProducts: data.products || [],
+						});
+					}
+				} catch (error) {
+					showDialog({
+						title: "Error",
+						message:
+							"No se pudieron cargar los datos de la sección.",
+						intent: "error",
+					});
+					navigation.goBack();
+				} finally {
+					setFetchingData(false);
+				}
+			})();
+		}
+	}, [sectionId, getSectionById]);
+
+	const handleRemoveProduct = (productId: string) => {
+		const filteredProducts = formData.selectedProducts.filter(
+			(p) => p.id !== productId,
+		);
+		handleInputChange("selectedProducts", filteredProducts);
+	};
+
+	const handleSave = async () => {
+		if (!formData.name.trim()) {
+			showDialog({
+				title: "Campo requerido",
+				message: "Por favor, escribe un nombre para la sección.",
+				intent: "error",
+			});
+			return;
+		}
+
+		setLoading(true);
+		try {
+			const productIds = formData.selectedProducts.map((p) => p.id);
+			await saveSection(sectionId, {
+				name: formData.name.trim(),
+				description: formData.description.trim(),
+				isAvailable: formData.isAvailable,
+				visualizationType: formData.visualizationType,
+				productIds,
+			});
+
+			showDialog({
+				title: "¡Éxito!",
+				message: `La sección ha sido ${sectionId ? "actualizada" : "creada"} correctamente.`,
+				intent: "success",
+				onConfirm: () => navigation.goBack(),
+			});
+		} catch (error: any) {
+			showDialog({
+				title: "Error",
+				message: error.message || "No se pudo guardar la sección.",
+				intent: "error",
+			});
+		} finally {
+			setLoading(false);
+		}
+	};
+
+	const getSaveButtonText = (): string => {
+		if (loadingSection) return "Guardando...";
+		if (sectionId) return "Guardar Cambios";
+		return "Crear Sección";
+	};
+
+	if (fetchingData) {
+		return (
+			<View style={[styles.centered, { backgroundColor: bgApp }]}>
+				<ActivityIndicator size="large" color={colors.businessBg} />
+			</View>
+		);
+	}
+
+	return (
+		<View style={{ flex: 1, backgroundColor: bgApp }}>
+			{/* 1. Cabecera Reutilizable */}
+			<ScreenHeader
+				title={sectionId ? "Editar Sección" : "Nueva Sección"}
+				onBack={() => navigation.goBack()}
+			/>
+
+			<KeyboardAwareScrollView
+				style={{ flex: 1 }}
+				contentContainerStyle={styles.scrollContent}
+				keyboardShouldPersistTaps="handled"
+				enableOnAndroid={true}
+				extraScrollHeight={16}
+				showsVerticalScrollIndicator={false}
+			>
+				{/* Texto de ayuda nativo de la lista */}
+				<Text style={[styles.headerSub, { color: subTextColor }]}>
+					Organiza tus productos en categorías (ej. Entradas,
+					Bebidas).
+				</Text>
+
+				{/* Formulario sin Envoltorio de Carta (Sigue el flujo de la app) */}
+				<InputField
+					label="Nombre de la sección"
+					placeholder="Ejemplo: Hamburguesas, Bebidas o Postres"
+					value={formData.name}
+					onChangeText={(text) => handleInputChange("name", text)}
+					editable={!loading}
+					showLabel={true}
+				/>
+
+				<InputField
+					label="Descripción (Opcional)"
+					placeholder="Ejemplo: Todos nuestros combos incluyen papas y refresco."
+					value={formData.description}
+					onChangeText={(text) =>
+						handleInputChange("description", text)
+					}
+					multiline
+					editable={!loading}
+					showLabel={true}
+				/>
+				<View style={[styles.divider]}>
+					<VisualizationPicker
+						type={formData.visualizationType}
+						setType={(type) =>
+							handleInputChange("visualizationType", type)
+						}
+						subTextColor={subTextColor}
+						textColor={textColor}
+						borderColor={borderColor}
+						businessBg={colors.businessBg}
+						label="Visualización de productos"
+					/>
+				</View>
+
+				<View style={[styles.divider]}>
+					<Text style={[styles.label, { color: subTextColor }]}>
+						Productos en esta sección
+					</Text>
+
+					<TouchableOpacity
+						style={[
+							styles.addProductBtn,
+							{ borderColor: colors.businessBg },
+						]}
+						onPress={() =>
+							navigation.navigate("ProductPicker", {
+								businessId,
+								alreadySelectedProducts:
+									formData.selectedProducts,
+							})
+						}
+					>
+						<Ionicons
+							name="add-circle-outline"
+							size={20}
+							color={colors.businessBg}
+						/>
+						<Text
+							style={[
+								styles.addProductBtnText,
+								{ color: colors.businessBg },
+							]}
+						>
+							Vincular productos existentes
+						</Text>
+					</TouchableOpacity>
+
+					<ChipList
+						items={formData.selectedProducts}
+						onRemoveProduct={handleRemoveProduct}
+					/>
+				</View>
+
+				<View
+					style={[styles.divider, { backgroundColor: borderColor }]}
+				/>
+				<View style={[styles.divider]}>
+					<ToggleField
+						title="Disponibilidad"
+						activeDescription="Los clientes pueden ver esta sección"
+						inactiveDescription="Sección oculta temporalmente"
+						value={formData.isAvailable}
+						onValueChange={(val) =>
+							handleInputChange("isAvailable", val)
+						}
+						disabled={loading}
+					/>
+				</View>
+			</KeyboardAwareScrollView>
+
+			{/* 2. Botón de guardado fijo abajo (Estilo Uber) */}
+			<View
+				style={[
+					styles.bottomContainer,
+					{ borderTopColor: borderColor, backgroundColor: bgApp },
+				]}
+			>
+				<TouchableOpacity
+					style={[
+						styles.saveBtn,
+						{
+							backgroundColor: colors.businessBg,
+							marginBottom:
+								Platform.OS === "ios" ? insets.bottom : 12,
+						},
+						loading && { opacity: 0.7 },
+					]}
+					onPress={handleSave}
+					disabled={loading}
+				>
+					<Text style={styles.saveBtnText}>
+						{getSaveButtonText()}
+					</Text>
+				</TouchableOpacity>
+			</View>
+		</View>
+	);
+};
+
+const styles = StyleSheet.create({
+	scrollContent: {
+		paddingHorizontal: 16,
+		paddingBottom: 20,
+	},
+	centered: {
+		flex: 1,
+		justifyContent: "center",
+		alignItems: "center",
+	},
+	headerSub: {
+		fontSize: FontSize.md,
+		marginBottom: 20,
+		marginTop: 4,
+	},
+	label: {
+		fontSize: FontSize.md,
+		fontWeight: FontWeight.bold,
+		marginBottom: 8,
+		marginTop: 15,
+	},
+	divider: {
+		marginVertical: 5,
+	},
+	addProductBtn: {
+		flexDirection: "row",
+		alignItems: "center",
+		justifyContent: "center",
+		padding: 12,
+		borderRadius: BorderRadius.md,
+		borderWidth: 1,
+		borderStyle: "dashed",
+		marginTop: 5,
+		gap: 6,
+	},
+	addProductBtnText: {
+		fontWeight: "600",
+		fontSize: 14,
+	},
+	bottomContainer: {
+		padding: 16,
+		borderTopWidth: 1,
+	},
+	saveBtn: {
+		padding: 16,
+		borderRadius: BorderRadius.md, // Uber usa bordes redondeados estándar, no píldoras completas
+		alignItems: "center",
+	},
+	saveBtnText: {
+		color: "white",
+		fontWeight: FontWeight.bold,
+		fontSize: 16,
+	},
+});

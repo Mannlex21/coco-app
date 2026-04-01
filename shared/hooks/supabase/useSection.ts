@@ -19,13 +19,13 @@ export const useSection = (supabase: SupabaseClient, businessId?: string) => {
 	// 1. Obtener todas las secciones
 	const fetchSections = useCallback(
 		async (searchQuery: string = "") => {
+			console.log(businessId);
 			if (!businessId) return;
 
 			setLoading(true);
 			setError(null);
 
 			try {
-				// 🚨 MODIFICACIÓN 1: Cambiamos el select para traer relaciones
 				let query = supabase
 					.from(TABLES.SECTIONS)
 					.select(
@@ -53,7 +53,6 @@ export const useSection = (supabase: SupabaseClient, businessId?: string) => {
 					.eq("business_id", businessId)
 					.order("position", { ascending: true });
 
-				// 🔍 Si el usuario escribió algo en el buscador, aplicamos el filtro
 				if (searchQuery.trim() !== "") {
 					query = query.or(
 						`name.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%`,
@@ -344,50 +343,63 @@ export const useSection = (supabase: SupabaseClient, businessId?: string) => {
 		currentSection: Section,
 		direction: "up" | "down",
 	) => {
-		const currentPos = currentSection.position ?? 0;
-		const targetPos = direction === "up" ? currentPos - 1 : currentPos + 1;
+		// 1. Buscamos en qué número de fila (índice) está la sección actual en la pantalla
+		const currentIndex = sections.findIndex(
+			(s) => s.id === currentSection.id,
+		);
 
-		if (targetPos < 1) {
+		if (currentIndex === -1) {
+			return { success: false, message: "No se encontró la sección." };
+		}
+
+		// 2. Calculamos el índice al que queremos movernos en el arreglo
+		const targetIndex =
+			direction === "up" ? currentIndex - 1 : currentIndex + 1;
+
+		// 3. Validamos según los límites reales de la lista visual
+		if (targetIndex < 0) {
 			return {
 				success: false,
-				message: "Esta sección ya está en la primera posición.",
+				message: "Esta sección ya está en la primera posición visual.",
 			};
 		}
 
+		if (targetIndex >= sections.length) {
+			return {
+				success: false,
+				message: "Esta sección ya está en la última posición visual.",
+			};
+		}
+
+		const targetSection = sections[targetIndex];
+
 		try {
-			const { data, error } = await supabase
-				.from(TABLES.SECTIONS)
-				.select("id, position")
-				.eq("business_id", businessId)
-				.eq("position", targetPos)
-				.single();
+			// Aseguramos que tratamos las posiciones como números puros
+			const currentPos = Number(currentSection.position) || 0;
+			const targetPos = Number(targetSection.position) || 0;
 
-			if (error || !data) {
-				return {
-					success: false,
-					message:
-						direction === "up"
-							? "Esta sección ya está en la primera posición."
-							: "Esta sección ya está en la última posición.",
-				};
-			}
+			// Mandamos a actualizar (puedes usar el RPC transaccional que te sugerí antes o tus métodos actuales)
+			const { error: rpcError } = await supabase.rpc(
+				"swap_sections_position",
+				{
+					current_id: currentSection.id,
+					current_pos: currentPos,
+					target_id: targetSection.id,
+					target_pos: targetPos,
+				},
+			);
 
-			const swappingSectionId = data.id;
+			if (rpcError) throw rpcError;
 
-			await updateSectionPosition(currentSection.id, targetPos);
-			await updateSectionPosition(swappingSectionId, currentPos);
-
+			// Refrescamos la lista pasándole el término de búsqueda actual
 			await fetchSections(searchTerm);
 
 			return { success: true };
 		} catch (error) {
-			console.error(
-				"Error al reordenar las secciones en el hook:",
-				error,
-			);
+			console.error("Error al reordenar las secciones:", error);
 			return {
 				success: false,
-				message: "No se pudo actualizar la posición en el servidor.",
+				message: "No se pudo actualizar la posición.",
 			};
 		}
 	};

@@ -11,9 +11,9 @@ import { CatalogScreen } from "@/screens/Catalog/CatalogScreen";
 import { useTheme } from "@coco/shared/hooks/useTheme";
 import { ProfileScreen } from "@/screens/Profile/ProfileScreen";
 import { UserSetupScreen } from "@/screens/Profile/components/UserSetupScreen";
-import { SectionForm } from "@/screens/Catalog/Components/Secciones/SectionForm";
-import { ProductForm } from "@/screens/Catalog/Components/Products/ProductForm";
-import { ProductPickerScreen } from "@/screens/Catalog/Components/Secciones/ProductPickerScreen";
+import { SectionForm } from "@/screens/Catalog/Tabs/Secciones/SectionForm";
+import { ProductForm } from "@/screens/Catalog/Tabs/Products/ProductForm";
+import { ProductPickerScreen } from "@/screens/Catalog/Tabs/Secciones/ProductPickerScreen";
 
 const RootStack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -162,7 +162,7 @@ export const MainNavigator = () => {
 				name="ProductForm"
 				component={ProductForm}
 				options={({ route }: any) => ({
-					headerShown: true,
+					headerShown: false,
 					title: route.params?.title || "Producto",
 					headerTintColor: colors.businessBg,
 					headerTitleStyle: {
@@ -213,7 +213,7 @@ export const MainNavigator = () => {
 				name="SectionForm"
 				component={SectionForm}
 				options={({ route }: any) => ({
-					headerShown: true,
+					headerShown: false,
 					title: route.params?.title || "Sección",
 					headerTintColor: colors.businessBg,
 					headerTitleStyle: {

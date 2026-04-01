@@ -1,5 +1,39 @@
-const LightTheme = {
-	// 1. 🟢 MANTENEMOS TUS COLORES ORIGINALES (Para no cambiar toda la app)
+export interface ColorPalette {
+	// 1. Colores de Marca / Roles
+	clientBg: string;
+	businessBg: string;
+	driverBg: string;
+	cocoBase: string;
+	cocoInner: string;
+	cocoEyes: string;
+	leafMed: string;
+	leafLight: string;
+
+	// 2. Colores de Interfaz (Estructura)
+	businessLight: string;
+	backgroundLight: string;
+	surfaceLight: string;
+	borderLight: string;
+	inputBg: string;
+
+	// 3. Tipografía
+	textPrimaryLight: string;
+	textSecondaryLight: string;
+	textOnPrimary: string;
+
+	// 4. Colores Semánticos (Estados)
+	success: string;
+	successLight: string;
+	error: string;
+	errorLight: string;
+	warning: string;
+	warningLight: string;
+	info: string;
+	infoLight: string;
+}
+
+const LightTheme: ColorPalette = {
+	// 1. Colores de Marca / Roles
 	clientBg: "#3498DB",
 	businessBg: "#C45E1A",
 	driverBg: "#2ECC71",
@@ -9,18 +43,19 @@ const LightTheme = {
 	leafMed: "#4CAF50",
 	leafLight: "#8BC34A",
 
-	// 2. 🟢 SUMAMOS LOS COLORES DE INTERFAZ QUE PROPUSISTE
+	// 2. Colores de Interfaz (Estructura)
 	businessLight: "#FFF5EB",
-	backgroundLight: "#F8F9FA",
+	backgroundLight: "#FFFFFF",
 	surfaceLight: "#FFFFFF",
 	borderLight: "#EEEEEE",
+	inputBg: "#F5F5F5",
 
-	// Tipografía
+	// 3. Tipografía
 	textPrimaryLight: "#333333",
 	textSecondaryLight: "#666666",
 	textOnPrimary: "#FFFFFF",
 
-	// Colores Semánticos
+	// 4. Colores Semánticos (Estados)
 	success: "#2D6A4F",
 	successLight: "#E8F5E9",
 	error: "#E76F51",
@@ -41,17 +76,19 @@ const DarkTheme: ColorPalette = {
 	leafMed: "#388E3C",
 	leafLight: "#689F38",
 
+	// 2. Colores de Interfaz (Estructura)
 	businessLight: "#2C1D14",
-	backgroundLight: "#121212",
+	backgroundLight: "#1E1E1E",
 	surfaceLight: "#1E1E1E",
 	borderLight: "#333333",
+	inputBg: "#2A2A2A",
 
-	// Tipografía
+	// 3. Tipografía
 	textPrimaryLight: "#F5F5F5",
 	textSecondaryLight: "#AAAAAA",
 	textOnPrimary: "#FFFFFF",
 
-	// Colores Semánticos
+	// 4. Colores Semánticos (Estados)
 	success: "#52B788",
 	successLight: "#1A2E22",
 	error: "#F4A261",
@@ -61,8 +98,6 @@ const DarkTheme: ColorPalette = {
 	info: "#64B5F6",
 	infoLight: "#1A242E",
 };
-
-export type ColorPalette = typeof LightTheme;
 
 export const Colors = {
 	light: LightTheme,

@@ -106,8 +106,6 @@ const styles = StyleSheet.create({
 	sectionTitle: {
 		fontSize: FontSize.sm,
 		fontWeight: FontWeight.bold,
-		textTransform: "uppercase",
-		letterSpacing: 0.5,
 		marginBottom: Spacing.sm,
 	},
 	optionRow: {

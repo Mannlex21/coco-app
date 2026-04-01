@@ -116,7 +116,7 @@ const styles = StyleSheet.create({
 	status: {
 		fontSize: 18,
 		color: "#1A7A4A",
-		fontWeight: "700",
+		fontWeight: FontWeight.bold,,
 		textAlign: "center",
 	},
 	buttonText: {

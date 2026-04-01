@@ -9,7 +9,7 @@ import {
 import { useAppStore } from "@coco/shared/hooks/useAppStore";
 import { BUSINESS_CATEGORY_LABELS } from "@coco/shared/constants";
 import { useTheme } from "@coco/shared/hooks/useTheme";
-import { Colors } from "@coco/shared/config/theme";
+import { Colors, FontWeight } from "@coco/shared/config/theme";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { useDialog } from "@coco/shared/providers/DialogContext";
 import { supabase } from "@/infrastructure/supabase/config";
@@ -290,9 +290,7 @@ const styles = StyleSheet.create({
 	},
 	label: {
 		fontSize: 13,
-		fontWeight: "700",
-		textTransform: "uppercase",
-		letterSpacing: 0.5,
+		fontWeight: FontWeight.bold,
 		marginBottom: 8,
 		marginTop: 20,
 	},
@@ -331,5 +329,5 @@ const styles = StyleSheet.create({
 		alignItems: "center",
 		marginTop: 35,
 	},
-	saveBtnText: { color: "white", fontWeight: "700", fontSize: 16 },
+	saveBtnText: { color: "white", fontWeight: FontWeight.bold, fontSize: 16 },
 });

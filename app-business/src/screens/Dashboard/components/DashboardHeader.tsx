@@ -77,7 +77,7 @@ const styles = StyleSheet.create({
 	header: {
 		paddingHorizontal: Spacing.md,
 		paddingBottom: Spacing.lg,
-		borderBottomWidth: 1,
+		borderBottomWidth: StyleSheet.hairlineWidth,
 	},
 	welcomeText: {
 		fontSize: FontSize.sm,
