@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { SupabaseClient } from "@supabase/supabase-js";
-import { Section } from "core/entities";
+import { Product, Section } from "core/entities";
 // Importamos el nuevo store en lugar del anterior
 import { useCatalogStore } from "@coco/shared/hooks/useCatalogStore";
 import { TABLES } from "@coco/shared/constants";
@@ -19,7 +19,6 @@ export const useSection = (supabase: SupabaseClient, businessId?: string) => {
 	// 1. Obtener todas las secciones
 	const fetchSections = useCallback(
 		async (searchQuery: string = "") => {
-			console.log(businessId);
 			if (!businessId) return;
 
 			setLoading(true);
@@ -30,25 +29,30 @@ export const useSection = (supabase: SupabaseClient, businessId?: string) => {
 					.from(TABLES.SECTIONS)
 					.select(
 						`
-							id,
-							business_id,
-							name,
-							description,
-							position,
-							is_available,
-							visualization_type,
-							created_at,
-							updated_at,
-							product_sections (
-								products (
-									id,
-									name,
-									description,
-									price,
-									is_available
-								)
-							)
-						`,
+                        id,
+                        business_id,
+                        name,
+                        description,
+                        position,
+                        is_available,
+                        visualization_type,
+                        created_at,
+                        updated_at,
+                        product_sections (
+                            products (
+                                id,
+                                business_id,
+                                name,
+                                description,
+                                price,
+                                image_url,
+                                is_available,
+                                position,
+                                created_at,
+                                updated_at
+                            )
+                        )
+                    `,
 					)
 					.eq("business_id", businessId)
 					.order("position", { ascending: true });
@@ -64,15 +68,28 @@ export const useSection = (supabase: SupabaseClient, businessId?: string) => {
 				if (supabaseError) throw supabaseError;
 
 				const mappedSections = (data || []).map((item: any) => {
-					// 1. Extraemos los productos si es que existen, si no, devolvemos un arreglo vacío
+					// 1. Extraemos los productos crudos
 					const rawProducts =
 						item.product_sections?.map((ps: any) => ps.products) ||
 						[];
 
-					// 2. Quitamos nulos por si acaso
-					const validProducts = rawProducts.filter(
-						(p: any) => p !== null && p !== undefined,
-					);
+					// 2. Filtramos nulos y aplicamos el mapeo idéntico al de fetchProducts
+					const mappedProducts: Product[] = rawProducts
+						.filter((p: any) => p !== null && p !== undefined)
+						.map((p: any) => ({
+							id: p.id,
+							businessId: p.business_id,
+							// Como vienen de la consulta de secciones, asumimos que pertenecen a esta sección
+							sectionIds: [item.id],
+							name: p.name,
+							description: p.description,
+							price: p.price,
+							imageUrl: p.image_url,
+							isAvailable: p.is_available,
+							position: p.position,
+							createdAt: new Date(p.created_at),
+							updatedAt: new Date(p.updated_at),
+						}));
 
 					return {
 						id: item.id,
@@ -84,8 +101,7 @@ export const useSection = (supabase: SupabaseClient, businessId?: string) => {
 						visualizationType: item.visualization_type,
 						createdAt: new Date(item.created_at),
 						updatedAt: new Date(item.updated_at),
-						// 🚨 Aquí está la clave para el SectionList:
-						products: validProducts, // Al ser un array (aunque esté vacío), React Native ya no chilla.
+						products: mappedProducts, // <--- Aquí ya van limpios y mapeados
 					};
 				});
 

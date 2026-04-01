@@ -1,4 +1,6 @@
 export * from "@coco/shared/constants/tables";
+export * from "@coco/shared/constants/roles";
+
 export const PLATFORM = {
 	NAME: "Coco",
 	FEE_BUSINESS: 4,

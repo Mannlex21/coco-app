@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { SupabaseClient } from "@supabase/supabase-js";
-import { Product, Section } from "core/entities";
+import { Product, Section } from "@coco/shared/core/entities";
 import { useCatalogStore } from "@coco/shared/hooks/useCatalogStore";
 import { TABLES } from "@coco/shared/constants";
 import { useAppStore } from "@coco/shared/hooks/useAppStore";
@@ -18,7 +18,6 @@ export const useProduct = (supabase: SupabaseClient, businessId?: string) => {
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 
-	// 0. Cargar secciones si el store está vacío
 	const fetchSectionsIfEmpty = useCallback(async () => {
 		if (!businessId || sections.length > 0) return;
 
@@ -87,7 +86,6 @@ export const useProduct = (supabase: SupabaseClient, businessId?: string) => {
 					(item: any) => ({
 						id: item.id,
 						businessId: item.business_id,
-						// ⚡ Mapeamos las secciones como un array de IDs extraídos de la tabla pivote
 						sectionIds:
 							item.product_sections?.map(
 								(ps: any) => ps.section_id,
@@ -102,7 +100,6 @@ export const useProduct = (supabase: SupabaseClient, businessId?: string) => {
 						updatedAt: new Date(item.updated_at),
 					}),
 				);
-
 				setProducts(mappedProducts);
 			} catch (err: any) {
 				console.error("Error fetching products:", err);

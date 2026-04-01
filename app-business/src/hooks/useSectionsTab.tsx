@@ -11,7 +11,6 @@ export const useSectionsTab = (businessId?: string, colors?: any) => {
 	const navigation = useNavigation<any>();
 	const { showDialog } = useDialog();
 	const { showContextMenu } = useContextMenu();
-	const [isMoving, setIsMoving] = useState(false);
 	const [isFirst, setIsFirst] = useState(false);
 	const [isLast, setIsLast] = useState(false);
 	const [movingSectionId, setMovingSectionId] = useState<string | null>(null);

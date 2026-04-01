@@ -5,9 +5,9 @@ import {
 	BorderRadius,
 	FontSize,
 	FontWeight,
-	Shadow,
 	Spacing,
 } from "@coco/shared/config/theme";
+import { RolesApp } from "@coco/shared/constants";
 
 interface ProductGridItemProps {
 	item: any;
@@ -15,6 +15,7 @@ interface ProductGridItemProps {
 	onPress: () => void;
 	onAdd?: () => void;
 	showAddButton?: boolean;
+	role?: RolesApp;
 }
 
 export const ProductGridItem = ({
@@ -23,6 +24,7 @@ export const ProductGridItem = ({
 	onPress,
 	showAddButton = false,
 	onAdd = () => {},
+	role,
 }: ProductGridItemProps) => {
 	const hasImage = item.image_url && item.image_url.trim() !== "";
 
@@ -110,7 +112,8 @@ export const ProductGridItem = ({
 							}}
 							numberOfLines={1}
 						>
-							• Agotado
+							{role === "client" && "• Agotado"}
+							{role === "business" && "• Pausado"}
 						</Text>
 					)}
 				</View>

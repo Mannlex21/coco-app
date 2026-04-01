@@ -10,6 +10,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { FontSize, FontWeight, Spacing } from "@coco/shared/config/theme";
 import { ProductListItem } from "../../Products/components/ProductListItem";
 import { ProductGridItem } from "../../Products/components/ProductGridItem";
+import { useAppStore } from "@coco/shared/hooks/useAppStore";
 
 // Tipamos las props que necesita el componente para funcionar
 interface SectionItemProps {
@@ -27,6 +28,7 @@ export const SectionItem = ({
 	onOpenMenu,
 	isMoving,
 }: SectionItemProps) => {
+	const { user } = useAppStore();
 	const isGrid = section.visualizationType === "grid";
 
 	const onPressItem = (productId: string) => {
@@ -107,6 +109,7 @@ export const SectionItem = ({
 								item={product}
 								colors={colors}
 								onPress={() => onPressItem(product.id)}
+								role={user?.role}
 							/>
 						) : (
 							<ProductListItem
@@ -114,6 +117,7 @@ export const SectionItem = ({
 								item={product}
 								colors={colors}
 								onPress={() => onPressItem(product.id)}
+								role={user?.role}
 							/>
 						),
 					)

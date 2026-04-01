@@ -7,14 +7,17 @@ import {
 	FontWeight,
 	Spacing,
 } from "@coco/shared/config/theme";
+import { Product } from "@coco/shared/core/entities";
+import { RolesApp } from "@coco/shared/constants";
 
 interface ProductListItemProps {
-	item: any;
+	item: Product;
 	colors: any;
 	showImage?: boolean;
 	onPress: () => void;
 	onAdd?: () => void;
 	showAddButton?: boolean;
+	role?: RolesApp;
 }
 
 export const ProductListItem = React.memo(
@@ -25,8 +28,9 @@ export const ProductListItem = React.memo(
 		showImage = true,
 		showAddButton = false,
 		onAdd = () => {},
+		role,
 	}: ProductListItemProps) => {
-		const hasImage = item.image_url && item.image_url.trim() !== "";
+		const hasImage = item.imageUrl && item.imageUrl.trim() !== "";
 
 		return (
 			<TouchableOpacity
@@ -71,7 +75,8 @@ export const ProductListItem = React.memo(
 									fontWeight: FontWeight.medium,
 								}}
 							>
-								• Agotado
+								{role === "client" && "• Agotado"}
+								{role === "business" && "• Pausado"}
 							</Text>
 						)}
 					</View>
@@ -93,7 +98,7 @@ export const ProductListItem = React.memo(
 						<View style={styles.listImageContainer}>
 							{hasImage ? (
 								<Image
-									source={{ uri: item.image_url }}
+									source={{ uri: item.imageUrl }}
 									style={styles.listProductImage}
 									resizeMode="cover"
 								/>

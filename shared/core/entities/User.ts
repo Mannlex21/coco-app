@@ -1,4 +1,5 @@
-export type UserRole = "client" | "business" | "driver";
+import { RolesApp } from "@coco/shared/constants";
+
 export type UserStatus = "active" | "suspended" | "pending_verification";
 
 export interface User {
@@ -6,7 +7,7 @@ export interface User {
 	phone: string;
 	name: string;
 	email?: string;
-	role: UserRole;
+	role: RolesApp;
 	fcmToken?: string;
 	status: UserStatus;
 	avatarUrl?: string;
