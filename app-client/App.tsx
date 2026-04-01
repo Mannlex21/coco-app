@@ -14,6 +14,7 @@ import { CocoLogo } from "@coco/shared/components/CocoLogo";
 import { LoginScreen } from "@/screens/LoginScreen";
 import { RegisterScreen } from "@/screens/RegisterScreen";
 import { AuthService } from "@/infrastructure/firebase/auth.service";
+import { FontWeight } from "@coco/shared/config/theme";
 
 export default function App() {
 	const [loading, setLoading] = useState(true);
@@ -116,7 +117,7 @@ const styles = StyleSheet.create({
 	status: {
 		fontSize: 18,
 		color: "#1A7A4A",
-		fontWeight: FontWeight.bold,,
+		fontWeight: FontWeight.bold,
 		textAlign: "center",
 	},
 	buttonText: {

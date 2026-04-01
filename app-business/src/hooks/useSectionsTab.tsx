@@ -43,7 +43,7 @@ export const useSectionsTab = (businessId?: string, colors?: any) => {
 		setMovingSectionId(currentSection.id);
 		const result = await moveSection(currentSection, direction);
 		setMovingSectionId(null);
-		console.log(currentSection, direction);
+
 		if (!result.success) {
 			showDialog({
 				title: "¡Atención!",

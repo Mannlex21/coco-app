@@ -6,6 +6,7 @@ import { onAuthStateChanged, User } from "firebase/auth";
 import { CocoLogo } from "./src/components/CocoLogo";
 import { StatusBar } from "expo-status-bar";
 import { useTheme } from "../shared/hooks/useTheme";
+import { FontWeight } from "@coco/shared";
 
 export default function App() {
 	const [loading, setLoading] = useState(true);
@@ -29,7 +30,7 @@ export default function App() {
 				</Text>
 			</View>
 		);
-	console.log(isDark);
+
 	return (
 		<View style={styles.container}>
 			<StatusBar style={isDark ? "light" : "dark"} animated={true} />
