@@ -4,7 +4,7 @@ import { useTheme } from "@coco/shared/hooks/useTheme";
 import { FontSize, FontWeight } from "@coco/shared/config/theme";
 
 interface ToggleFieldProps {
-	title: string;
+	label: string;
 	activeDescription: string;
 	inactiveDescription: string;
 	value: boolean;
@@ -14,7 +14,7 @@ interface ToggleFieldProps {
 
 export const ToggleField = React.memo(
 	({
-		title,
+		label,
 		activeDescription,
 		inactiveDescription,
 		value,
@@ -42,7 +42,7 @@ export const ToggleField = React.memo(
 								{ color: subTextColor },
 							]}
 						>
-							{title}
+							{label}
 						</Text>
 						<Text
 							style={[

@@ -171,6 +171,7 @@ export const useProduct = (supabase: SupabaseClient, businessId?: string) => {
 			isAvailable: boolean;
 		},
 	) => {
+		console.log(businessId);
 		if (!user?.lastActiveBusinessId || !dataToSave)
 			throw new Error(
 				"No se pudo guardar: Falta businessId o dataToSave",

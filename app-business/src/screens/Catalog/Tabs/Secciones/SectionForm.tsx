@@ -266,7 +266,8 @@ export const SectionForm = () => {
 
 					<ChipList
 						items={formData.selectedProducts}
-						onRemoveProduct={handleRemoveProduct}
+						getLabel={(item) => item.name}
+						onRemoveProduct={(id) => handleRemoveProduct(id)}
 					/>
 				</View>
 
@@ -275,9 +276,9 @@ export const SectionForm = () => {
 				/>
 				<View style={[styles.divider]}>
 					<ToggleField
-						title="Disponibilidad"
+						label="Disponibilidad"
 						activeDescription="Los clientes pueden ver esta sección"
-						inactiveDescription="Sección oculta temporalmente"
+						inactiveDescription="Sección oculta"
 						value={formData.isAvailable}
 						onValueChange={(val) =>
 							handleInputChange("isAvailable", val)

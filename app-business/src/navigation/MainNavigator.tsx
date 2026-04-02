@@ -13,7 +13,10 @@ import { ProfileScreen } from "@/screens/Profile/ProfileScreen";
 import { UserSetupScreen } from "@/screens/Profile/components/UserSetupScreen";
 import { SectionForm } from "@/screens/Catalog/Tabs/Secciones/SectionForm";
 import { ProductForm } from "@/screens/Catalog/Tabs/Products/ProductForm";
-import { ProductPickerScreen } from "@/screens/Catalog/Tabs/Secciones/ProductPickerScreen";
+import { ProductPicker } from "@/screens/Catalog/Tabs/Products/ProductPicker";
+import { ModifierForm } from "@/screens/Catalog/Tabs/ModifiersGroup/components/ModifierForm";
+import { ModifierPicker } from "@/screens/Catalog/Tabs/ModifiersGroup/components/ModifierPicker";
+import { ModifierGroupForm } from "@/screens/Catalog/Tabs/ModifiersGroup/ModifierGroupForm";
 
 const RootStack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -184,7 +187,7 @@ export const MainNavigator = () => {
 
 			<RootStack.Screen
 				name="ProductPicker"
-				component={ProductPickerScreen} // Asegúrate de importar tu componente
+				component={ProductPicker} // Asegúrate de importar tu componente
 				options={({ route }: any) => ({
 					headerShown: true,
 					title: route.params?.title || "Seleccionar Productos",
@@ -210,8 +213,85 @@ export const MainNavigator = () => {
 				})}
 			/>
 			<RootStack.Screen
+				name="ModifierPicker"
+				component={ModifierPicker} // Asegúrate de importar tu componente
+				options={({ route }: any) => ({
+					headerShown: false,
+					title: route.params?.title || "Seleccionar Modificadores",
+					headerTintColor: colors.businessBg,
+					headerTitleStyle: {
+						fontWeight: FontWeight.bold,
+						fontSize: FontSize.lg,
+						color: colors.textPrimaryLight,
+					},
+					headerBackTitle: "",
+
+					// 🌟 CONFIGURACIÓN CLAVE PARA EL PICKER 🌟
+					presentation: "modal", // Lo muestra como modal levantándose desde abajo
+					animation: "slide_from_bottom", // Animación natural de modal
+
+					headerStyle: {
+						backgroundColor: colors.surfaceLight,
+						elevation: 0,
+						shadowOpacity: 0,
+						borderBottomWidth: 1,
+						borderBottomColor: colors.borderLight,
+					},
+				})}
+			/>
+			<RootStack.Screen
+				name="ModifierForm"
+				component={ModifierForm} // Asegúrate de importar tu componente
+				options={({ route }: any) => ({
+					headerShown: true,
+					title: route.params?.title || "Seleccionar modificador",
+					headerTintColor: colors.businessBg,
+					headerTitleStyle: {
+						fontWeight: FontWeight.bold,
+						fontSize: FontSize.lg,
+						color: colors.textPrimaryLight,
+					},
+					headerBackTitle: "",
+
+					// 🌟 CONFIGURACIÓN CLAVE PARA EL PICKER 🌟
+					presentation: "modal", // Lo muestra como modal levantándose desde abajo
+					animation: "slide_from_bottom", // Animación natural de modal
+
+					headerStyle: {
+						backgroundColor: colors.surfaceLight,
+						elevation: 0,
+						shadowOpacity: 0,
+						borderBottomWidth: 1,
+						borderBottomColor: colors.borderLight,
+					},
+				})}
+			/>
+			<RootStack.Screen
 				name="SectionForm"
 				component={SectionForm}
+				options={({ route }: any) => ({
+					headerShown: false,
+					title: route.params?.title || "Sección",
+					headerTintColor: colors.businessBg,
+					headerTitleStyle: {
+						fontWeight: FontWeight.bold,
+						fontSize: FontSize.lg,
+						color: colors.textPrimaryLight,
+					},
+					headerBackTitle: "",
+					presentation: "card",
+					headerStyle: {
+						backgroundColor: colors.surfaceLight,
+						elevation: 0,
+						shadowOpacity: 0,
+						borderBottomWidth: 1,
+						borderBottomColor: colors.borderLight,
+					},
+				})}
+			/>
+			<RootStack.Screen
+				name="ModifierGroupForm"
+				component={ModifierGroupForm}
 				options={({ route }: any) => ({
 					headerShown: false,
 					title: route.params?.title || "Sección",

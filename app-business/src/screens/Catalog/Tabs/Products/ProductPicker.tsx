@@ -16,7 +16,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { Product } from "@coco/shared/core/entities/";
 import { FontWeight } from "@coco/shared/config/theme";
 
-export const ProductPickerScreen = () => {
+export const ProductPicker = () => {
 	const navigation = useNavigation<any>();
 	const route = useRoute<any>();
 	const { colors, isDark } = useTheme();

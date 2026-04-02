@@ -7,10 +7,11 @@ import { FontSize } from "@coco/shared/config/theme";
 interface SectionHeaderProps {
 	title: string;
 	onBack: () => void;
+	fontSizeTitle?: number;
 }
 
 export const ScreenHeader = React.memo(
-	({ title, onBack }: SectionHeaderProps) => {
+	({ title, onBack, fontSizeTitle = FontSize.title }: SectionHeaderProps) => {
 		const { colors, isDark } = useTheme();
 		const textColor = isDark ? "rgba(255,255,255,0.9)" : "rgba(0,0,0,0.85)";
 
@@ -29,7 +30,15 @@ export const ScreenHeader = React.memo(
 						/>
 					</TouchableOpacity>
 
-					<Text style={[styles.headerTitle, { color: textColor }]}>
+					<Text
+						style={[
+							styles.headerTitle,
+							{
+								color: textColor,
+								fontSize: fontSizeTitle,
+							},
+						]}
+					>
 						{title}
 					</Text>
 				</View>
@@ -53,7 +62,6 @@ const styles = StyleSheet.create({
 		paddingRight: 16,
 	},
 	headerTitle: {
-		fontSize: FontSize.title, // 28px de tus constantes
 		fontWeight: "800",
 		flex: 1,
 	},

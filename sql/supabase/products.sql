@@ -4,7 +4,7 @@ DROP TABLE IF EXISTS products CASCADE;
 -- 2. Creamos la tabla de productos limpia
 CREATE TABLE products (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-    business_id UUID NOT NULL,
+    business_id UUID REFERENCES public.businesses(id) ON DELETE CASCADE NOT NULL,
     name TEXT NOT NULL,
     description TEXT,
     price DECIMAL(10, 2) DEFAULT 0.00 NOT NULL,

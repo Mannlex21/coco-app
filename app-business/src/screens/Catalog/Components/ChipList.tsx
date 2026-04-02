@@ -1,55 +1,84 @@
 import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
-import { useTheme } from "@coco/shared/hooks/useTheme"; // 👈 Tu hook de tema
+import { useTheme } from "@coco/shared/hooks/useTheme";
 import { Ionicons } from "@expo/vector-icons";
 
-// Mantenemos la estructura mínima que necesita este componente para ser versátil
-interface ChipItem {
-	id: string;
-	name: string;
+interface ChipListProps<T> {
+	items: T[];
+	onRemoveProduct: (id: string) => void;
+	onPressItem?: (item: T) => void;
+
+	// 🔥 NUEVAS PROPS PARA CUSTOMIZACIÓN
+	// Función para obtener el texto visible (ej: item => item.description)
+	getLabel?: (item: T) => string;
+	// Función por si el id se llama diferente (ej: item => item.product_id)
+	getKey?: (item: T) => string;
 }
 
-interface ChipListProps {
-	items: ChipItem[];
-	onRemoveProduct: (productId: string) => void;
-}
-
+// Convertimos el componente a genérico <T> para mantener el tipado estricto
 export const ChipList = React.memo(
-	({ items, onRemoveProduct }: ChipListProps) => {
+	<T extends Record<string, any>>({
+		items,
+		onRemoveProduct,
+		onPressItem,
+		getLabel,
+		getKey,
+	}: ChipListProps<T>) => {
 		const { colors, isDark } = useTheme();
 
-		// Si no hay productos seleccionados, no renderizamos nada
 		if (!items || items.length === 0) return null;
 
-		// 🎨 Paleta de colores dinámica
 		const textColor = isDark ? "rgba(255,255,255,0.9)" : "rgba(0,0,0,0.85)";
 		const chipBg = isDark ? "rgba(255,255,255,0.05)" : "#EAEAEA";
 
 		return (
 			<View style={styles.chipsContainer}>
-				{items.map((item) => (
-					<View
-						key={item.id}
-						style={[styles.chip, { backgroundColor: chipBg }]}
-					>
-						<Text
-							style={[styles.chipText, { color: textColor }]}
-							numberOfLines={1}
+				{items.map((item) => {
+					// 1. Extraemos la llave única (id por defecto)
+					const key = getKey ? getKey(item) : item.id;
+
+					// 2. Extraemos el texto a mostrar (name o title por defecto)
+					const displayName = getLabel
+						? getLabel(item)
+						: item.name || item.title || "Sin nombre";
+
+					return (
+						<View
+							key={key}
+							style={[styles.chip, { backgroundColor: chipBg }]}
 						>
-							{item.name}
-						</Text>
-						<TouchableOpacity
-							onPress={() => onRemoveProduct(item.id)}
-							activeOpacity={0.7}
-						>
-							<Ionicons
-								name="close-circle"
-								size={18}
-								color={colors.error}
-							/>
-						</TouchableOpacity>
-					</View>
-				))}
+							<TouchableOpacity
+								style={styles.textContainer}
+								onPress={() => onPressItem && onPressItem(item)}
+								disabled={!onPressItem}
+								activeOpacity={0.6}
+							>
+								<Text
+									style={[
+										styles.chipText,
+										{ color: textColor },
+									]}
+									numberOfLines={1}
+									ellipsizeMode="tail"
+								>
+									{displayName}
+								</Text>
+							</TouchableOpacity>
+
+							<TouchableOpacity
+								onPress={() => onRemoveProduct(key)}
+								activeOpacity={0.7}
+								style={styles.closeButton}
+							>
+								<Ionicons
+									name="close-circle"
+									size={18}
+									color={colors.error}
+								/>
+							</TouchableOpacity>
+						</View>
+					);
+				})}
 			</View>
 		);
 	},
@@ -66,14 +95,22 @@ const styles = StyleSheet.create({
 		flexDirection: "row",
 		alignItems: "center",
 		paddingVertical: 6,
-		paddingHorizontal: 12,
+		paddingHorizontal: 10,
 		borderRadius: 20,
-		gap: 6,
-		maxWidth: "48%",
+	},
+	textContainer: {
+		flexDirection: "row",
+		alignItems: "center",
+		marginRight: 6,
 	},
 	chipText: {
 		fontSize: 13,
 		fontWeight: "500",
-		flexShrink: 1,
+		maxWidth: 150,
+	},
+	closeButton: {
+		paddingVertical: 2,
+		justifyContent: "center",
+		alignItems: "center",
 	},
 });

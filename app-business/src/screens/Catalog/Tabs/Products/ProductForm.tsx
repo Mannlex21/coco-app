@@ -285,9 +285,9 @@ export const ProductForm = () => {
 				{/* 4. Usamos el ToggleField que ya maneja su propio estilo limpio */}
 				<View style={[styles.divider]}>
 					<ToggleField
-						title="Disponibilidad"
+						label="Disponibilidad"
 						activeDescription="Los clientes pueden ver este producto"
-						inactiveDescription="Producto oculto temporalmente"
+						inactiveDescription="Producto oculto"
 						value={form.isAvailable}
 						onValueChange={(val) =>
 							setForm({ ...form, isAvailable: val })

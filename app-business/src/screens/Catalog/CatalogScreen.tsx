@@ -18,9 +18,10 @@ import { SectionsTab } from "./Tabs/Secciones/SectionsTab";
 import { Ionicons } from "@expo/vector-icons";
 import { ProductsTab } from "./Tabs/Products/ProductsTab";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { ModifiersGroupTab } from "./Tabs/ModifiersGroup/ModifiersGroupTab";
 
 // Tipado de las pestañas
-type TabType = "productos" | "secciones" | "modificadores";
+type TabType = "productos" | "secciones" | "grupoModificadores";
 
 export const CatalogScreen = () => {
 	const { user } = useAppStore();
@@ -63,10 +64,10 @@ export const CatalogScreen = () => {
 						onPress={() => setActiveTab("productos")}
 					/>
 					<TabButton
-						title="Modificadores"
+						title="Grupo de modificadores"
 						icon={<Ionicons name="add-circle-outline" size={16} />}
-						active={activeTab === "modificadores"}
-						onPress={() => setActiveTab("modificadores")}
+						active={activeTab === "grupoModificadores"}
+						onPress={() => setActiveTab("grupoModificadores")}
 					/>
 				</View>
 			</View>
@@ -81,12 +82,8 @@ export const CatalogScreen = () => {
 				<ProductsTab businessId={businessId} />
 			)}
 
-			{activeTab === "modificadores" && (
-				<View style={styles.emptyContainer}>
-					<Text style={{ color: colors.textSecondaryLight }}>
-						🚧 Pestaña de Modificadores en construcción...
-					</Text>
-				</View>
+			{activeTab === "grupoModificadores" && (
+				<ModifiersGroupTab businessId={businessId} />
 			)}
 		</View>
 	);
