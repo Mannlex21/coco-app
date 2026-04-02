@@ -116,7 +116,7 @@ export const ProductsTab = ({ businessId }: { businessId?: string }) => {
 const styles = StyleSheet.create({
 	subHeaderContainer: {
 		paddingHorizontal: Spacing.md,
-		paddingTop: Spacing.xs,
+		paddingTop: Spacing.md,
 		paddingBottom: Spacing.md,
 		borderBottomWidth: StyleSheet.hairlineWidth,
 	},

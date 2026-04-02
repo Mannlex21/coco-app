@@ -89,8 +89,10 @@ export const SectionsTab = ({ businessId }: { businessId?: string }) => {
 
 const styles = StyleSheet.create({
 	subHeaderContainer: {
+		paddingTop: Spacing.md,
 		paddingHorizontal: Spacing.md,
 		paddingVertical: Spacing.xs,
+		paddingBottom: Spacing.md,
 		borderBottomWidth: StyleSheet.hairlineWidth,
 	},
 	listContent: {

@@ -1,17 +1,13 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import {
 	View,
 	Text,
 	StyleSheet,
 	TouchableOpacity,
 	Platform,
+	ScrollView,
 } from "react-native";
-import {
-	BorderRadius,
-	Spacing,
-	FontSize,
-	FontWeight,
-} from "@coco/shared/config/theme";
+import { Spacing, FontSize, FontWeight } from "@coco/shared/config/theme";
 import { useAppStore } from "@coco/shared/hooks/useAppStore";
 import { useTheme } from "@coco/shared/hooks/useTheme";
 import { SectionsTab } from "./Tabs/Secciones/SectionsTab";
@@ -20,23 +16,62 @@ import { ProductsTab } from "./Tabs/Products/ProductsTab";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ModifiersGroupTab } from "./Tabs/ModifiersGroup/ModifiersGroupTab";
 
-// Tipado de las pestañas
-type TabType = "productos" | "secciones" | "grupoModificadores";
+type TabType = "secciones" | "productos" | "grupoModificadores";
+
+interface TabItem {
+	id: TabType;
+	title: string;
+	icon: React.ComponentProps<typeof Ionicons>["name"];
+}
 
 export const CatalogScreen = () => {
 	const { user } = useAppStore();
 	const { colors } = useTheme();
 	const insets = useSafeAreaInsets();
-	// 1. ESTADO DE LA PESTAÑA ACTIVA
-	const [activeTab, setActiveTab] = useState<TabType>("secciones");
 
+	const [activeTab, setActiveTab] = useState<TabType>("secciones");
 	const businessId = user?.lastActiveBusinessId;
+
+	// 🔥 1. REFERENCIAS Y ESTADOS PARA EL SCROLL AUTOMÁTICO
+	const scrollViewRef = useRef<ScrollView>(null);
+	const [scrollViewWidth, setScrollViewWidth] = useState(0);
+	// Guardamos las coordenadas X y el ancho de cada pestaña
+	const tabsLayouts = useRef<Record<string, { x: number; width: number }>>(
+		{},
+	);
+
+	// Definimos las pestañas en un arreglo para mapearlas fácilmente
+	const TABS: TabItem[] = [
+		{ id: "secciones", title: "Secciones", icon: "folder-open-outline" },
+		{ id: "productos", title: "Productos", icon: "cube-outline" },
+		{
+			id: "grupoModificadores",
+			title: "Grupo de modificadores",
+			icon: "add-circle-outline",
+		},
+	];
+
+	// 🔥 2. FUNCIÓN PARA ENFOCAR EL TAB
+	const handleTabPress = (tabId: TabType) => {
+		setActiveTab(tabId);
+
+		const tabLayout = tabsLayouts.current[tabId];
+		if (tabLayout && scrollViewRef.current) {
+			// Calculamos el centro de la pestaña
+			const tabCenter = tabLayout.x + tabLayout.width / 2;
+			// Calculamos cuánto debemos mover el scroll para que el centro de la pestaña
+			// quede justo en el centro visible del ScrollView
+			const scrollToX = tabCenter - scrollViewWidth / 2;
+
+			scrollViewRef.current.scrollTo({
+				x: Math.max(0, scrollToX), // Evitamos valores negativos
+				animated: true,
+			});
+		}
+	};
 
 	return (
 		<View style={styles.container}>
-			{/* =======================================================
-                HEADER FIJO (Se mantiene visible en todas las pestañas)
-               ======================================================= */}
 			<View
 				style={[
 					styles.header,
@@ -46,34 +81,73 @@ export const CatalogScreen = () => {
 							Platform.OS === "android"
 								? insets.top - 10
 								: insets.top,
+						borderBottomColor: colors.borderLight,
 					},
 				]}
 			>
-				{/* 🚀 TABS SIN NAVIGATE (Cambian el estado local) */}
-				<View style={styles.tabsContainer}>
-					<TabButton
-						title="Secciones"
-						icon={<Ionicons name="folder-open-outline" size={16} />}
-						active={activeTab === "secciones"}
-						onPress={() => setActiveTab("secciones")}
-					/>
-					<TabButton
-						title="Productos"
-						icon={<Ionicons name="cube-outline" size={16} />}
-						active={activeTab === "productos"}
-						onPress={() => setActiveTab("productos")}
-					/>
-					<TabButton
-						title="Grupo de modificadores"
-						icon={<Ionicons name="add-circle-outline" size={16} />}
-						active={activeTab === "grupoModificadores"}
-						onPress={() => setActiveTab("grupoModificadores")}
-					/>
-				</View>
+				<ScrollView
+					ref={scrollViewRef} // 👈 Asignamos la referencia
+					horizontal={true}
+					showsHorizontalScrollIndicator={false}
+					contentContainerStyle={styles.tabsContainer}
+					// 🔥 Guardamos el ancho de la pantalla/contenedor visible
+					onLayout={(e) =>
+						setScrollViewWidth(e.nativeEvent.layout.width)
+					}
+				>
+					{TABS.map((tab) => {
+						const active = activeTab === tab.id;
+						const tintColor = active
+							? colors.businessBg
+							: colors.textPrimaryLight;
+
+						return (
+							<TouchableOpacity
+								key={tab.id}
+								style={[
+									styles.tabButton,
+									active && {
+										borderBottomColor: colors.businessBg,
+									},
+								]}
+								onPress={() => handleTabPress(tab.id)}
+								activeOpacity={0.8}
+								// 🔥 Guardamos la posición exacta de este tab en el eje X
+								onLayout={(e) => {
+									tabsLayouts.current[tab.id] = {
+										x: e.nativeEvent.layout.x,
+										width: e.nativeEvent.layout.width,
+									};
+								}}
+							>
+								<View style={styles.tabContent}>
+									<Ionicons
+										name={tab.icon}
+										size={16}
+										color={tintColor}
+									/>
+									<Text
+										style={[
+											styles.tabText,
+											{
+												color: tintColor,
+												fontWeight: active
+													? FontWeight.bold
+													: FontWeight.medium,
+											},
+										]}
+									>
+										{tab.title}
+									</Text>
+								</View>
+							</TouchableOpacity>
+						);
+					})}
+				</ScrollView>
 			</View>
 
 			{/* =======================================================
-                CONTENIDO DINÁMICO (Cambia según la pestaña activa)
+                CONTENIDO DINÁMICO
                ======================================================= */}
 			{activeTab === "secciones" && (
 				<SectionsTab businessId={businessId} />
@@ -81,96 +155,37 @@ export const CatalogScreen = () => {
 			{activeTab === "productos" && (
 				<ProductsTab businessId={businessId} />
 			)}
-
 			{activeTab === "grupoModificadores" && (
 				<ModifiersGroupTab businessId={businessId} />
 			)}
 		</View>
 	);
 };
-/* ============================================================================
-   🔘 COMPONENTE AUXILIAR: BOTÓN DE PESTAÑA
-   ============================================================================ */
-type ExpoIconElement = React.ReactElement<
-	React.ComponentProps<typeof Ionicons>
->;
-const TabButton = ({
-	title,
-	icon, // 👈 Añadido el prop de icono
-	active,
-	onPress,
-}: {
-	title: string;
-	icon: ExpoIconElement; // 👈 Tipado para ReactNode
-	active: boolean;
-	onPress: () => void;
-}) => {
-	const { colors } = useTheme();
 
-	// 💡 Color dinámico para el texto y el icono basado en el estado activo
-	const tintColor = active ? colors.businessBg : colors.textPrimaryLight;
-
-	return (
-		<TouchableOpacity
-			style={[
-				styles.tabButton,
-				active && {
-					backgroundColor: colors.backgroundLight,
-					borderColor: colors.borderLight,
-				},
-			]}
-			onPress={onPress}
-		>
-			<View
-				style={{ flexDirection: "row", alignItems: "center", gap: 6 }}
-			>
-				{icon && React.isValidElement(icon)
-					? React.cloneElement(icon, { color: tintColor })
-					: icon}
-
-				<Text
-					style={[
-						styles.tabText,
-						{
-							color: tintColor,
-							fontWeight: active
-								? FontWeight.bold
-								: FontWeight.regular,
-						},
-					]}
-				>
-					{title}
-				</Text>
-			</View>
-		</TouchableOpacity>
-	);
-};
-
-/* ============================================================================
-   🎨 ESTILOS UNIFICADOS
-   ============================================================================ */
 const styles = StyleSheet.create({
 	container: { flex: 1 },
-	header: { paddingHorizontal: Spacing.md, paddingTop: Spacing.md },
-	title: {
-		fontSize: FontSize.xxl,
-		fontWeight: FontWeight.bold,
-		marginBottom: Spacing.md,
+	header: {
+		paddingTop: Spacing.md,
+		borderBottomWidth: StyleSheet.hairlineWidth,
 	},
 	tabsContainer: {
 		flexDirection: "row",
-		gap: Spacing.xs,
+		paddingHorizontal: Spacing.md,
 	},
 	tabButton: {
-		flex: 1,
-		paddingVertical: Spacing.sm,
-		borderRadius: BorderRadius.md,
+		paddingVertical: Spacing.sm + 2,
+		paddingHorizontal: Spacing.md,
 		alignItems: "center",
 		justifyContent: "center",
-		borderWidth: 1,
-		borderColor: "transparent",
+		borderBottomWidth: 3,
+		borderBottomColor: "transparent",
 	},
-	tabText: { fontSize: FontSize.xs },
-	image: { width: 60, height: 60, borderRadius: BorderRadius.md },
-	emptyContainer: { marginTop: 50, alignItems: "center" },
+	tabContent: {
+		flexDirection: "row",
+		alignItems: "center",
+		gap: 6,
+	},
+	tabText: {
+		fontSize: FontSize.sm,
+	},
 });
