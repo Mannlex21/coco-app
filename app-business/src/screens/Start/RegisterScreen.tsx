@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import {
 	StyleSheet,
 	Text,
@@ -7,7 +7,7 @@ import {
 	TouchableOpacity,
 	ActivityIndicator,
 } from "react-native";
-import { CocoLogo } from "@coco/shared/components/CocoLogo";
+import { CocoLogo } from "@coco/shared/components";
 import {
 	BorderRadius,
 	Colors,
@@ -17,9 +17,8 @@ import {
 	Spacing,
 } from "@coco/shared/config/theme";
 import { useTheme } from "@coco/shared/hooks/useTheme";
-import { useDialog } from "@coco/shared/providers/DialogContext";
+import { useDialog, useSupabaseContext } from "@coco/shared/providers";
 import { StatusBar } from "expo-status-bar";
-import { useSupabaseContext } from "@coco/shared/providers/SupabaseContext";
 
 export const RegisterScreen = ({ onBack }: { onBack: () => void }) => {
 	const [email, setEmail] = useState("");

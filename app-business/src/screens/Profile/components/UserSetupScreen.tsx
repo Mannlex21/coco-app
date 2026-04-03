@@ -9,8 +9,7 @@ import {
 	Image,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useAppStore } from "@coco/shared/hooks/useAppStore";
-import { useUser } from "@coco/shared/hooks/supabase";
+import { useAppStore, useUser } from "@coco/shared/hooks";
 import { useTheme } from "@coco/shared/hooks/useTheme";
 import {
 	FontSize,
@@ -21,10 +20,9 @@ import {
 import { useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
-import { User } from "@coco/shared/core/entities/User";
-import { useDialog } from "@coco/shared/providers/DialogContext";
-import { ScreenHeader } from "@/screens/Catalog/components/ScreenHeader";
-import { InputField } from "@/components/InputField";
+import { User } from "@coco/shared/core/entities";
+import { useDialog } from "@coco/shared/providers";
+import { ScreenHeader, InputField } from "@/components";
 
 export const UserSetupScreen = () => {
 	const { user } = useAppStore();

@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import { useMemo } from "react";
 import {
 	View,
 	Text,
@@ -9,9 +9,8 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import { useAppStore } from "@coco/shared/hooks/useAppStore";
+import { useAppStore, useUser } from "@coco/shared/hooks";
 import { useTheme } from "@coco/shared/hooks/useTheme";
-import { useUser } from "@coco/shared/hooks/supabase";
 import {
 	FontSize,
 	FontWeight,

@@ -9,7 +9,7 @@ import {
 } from "@coco/shared/config/theme";
 import { useBusiness } from "@coco/shared/hooks/supabase";
 import { useTheme } from "@coco/shared/hooks/useTheme";
-import { Skeleton } from "@/components/Sekeleton";
+import { Skeleton } from "@/components/Skeleton";
 
 export const StatsCard = () => {
 	const { colors } = useTheme();

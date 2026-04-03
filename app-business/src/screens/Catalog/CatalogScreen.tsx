@@ -1,4 +1,5 @@
-import React, { useState, useRef } from "react";
+import { useState, useRef } from "react";
+import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import {
 	View,
 	Text,
@@ -8,14 +9,12 @@ import {
 } from "react-native";
 import { Spacing, FontSize, FontWeight } from "@coco/shared/config/theme";
 import { useTheme } from "@coco/shared/hooks/useTheme";
-import { SectionsTab } from "./Tabs/Secciones/SectionsTab";
-import { Ionicons, MaterialIcons } from "@expo/vector-icons";
-import { ProductsTab } from "./Tabs/Products/ProductsTab";
-import { ModifiersGroupTab } from "./Tabs/ModifiersGroup/ModifiersGroupTab";
+import { SectionsTab } from "@/screens/Catalog/Tabs/Sections/SectionsTab";
+import { ProductsTab } from "@/screens/Catalog/Tabs/Products/ProductsTab";
+import { ModifiersGroupTab } from "@/screens/Catalog/Tabs/ModifiersGroup/ModifiersGroupTab";
 
 type TabType = "secciones" | "productos" | "grupoModificadores";
 
-// 1. Modificamos la interfaz para que acepte el componente del Icono y su nombre correspondiente
 interface TabItem {
 	id: TabType;
 	title: string;
@@ -34,7 +33,6 @@ export const CatalogScreen = () => {
 		{},
 	);
 
-	// 2. Mapeamos cada pestaña con la librería de iconos que le corresponde
 	const TABS: TabItem[] = [
 		{
 			id: "secciones",
@@ -96,8 +94,6 @@ export const CatalogScreen = () => {
 						const tintColor = active
 							? colors.businessBg
 							: colors.textPrimaryLight;
-
-						// 3. Extraemos dinámicamente el componente de Icono
 						const { IconComponent } = tab;
 
 						return (
@@ -119,7 +115,6 @@ export const CatalogScreen = () => {
 								}}
 							>
 								<View style={styles.tabContent}>
-									{/* 4. Renderizamos el componente pasándole las props */}
 									<IconComponent
 										name={tab.iconName as any}
 										size={16}

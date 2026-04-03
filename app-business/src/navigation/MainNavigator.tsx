@@ -8,19 +8,19 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { DashboardScreen } from "@/screens/Dashboard/DashboardScreen";
-import { BusinessSetupScreen } from "@/components/BusinessSetupScreen";
+import { BusinessSetupScreen } from "@/screens/Profile/BusinessSetupScreen";
 import { FontSize, FontWeight } from "@coco/shared/config/theme";
 import { CatalogScreen } from "@/screens/Catalog/CatalogScreen";
 import { useTheme } from "@coco/shared/hooks/useTheme";
 import { ProfileScreen } from "@/screens/Profile/ProfileScreen";
 import { UserSetupScreen } from "@/screens/Profile/components/UserSetupScreen";
-import { SectionForm } from "@/screens/Catalog/Tabs/Secciones/SectionForm";
+import { SectionForm } from "@/screens/Catalog/Tabs/Sections/SectionForm";
 import { ProductForm } from "@/screens/Catalog/Tabs/Products/ProductForm";
 import { ProductPicker } from "@/screens/Catalog/Tabs/Products/ProductPicker";
 import { ModifierForm } from "@/screens/Catalog/Tabs/ModifiersGroup/components/ModifierForm";
 import { ModifierPicker } from "@/screens/Catalog/Tabs/ModifiersGroup/components/ModifierPicker";
 import { ModifierGroupForm } from "@/screens/Catalog/Tabs/ModifiersGroup/ModifierGroupForm";
-import { SectionPicker } from "@/screens/Catalog/Tabs/Secciones/components/SectionPicker";
+import { SectionPicker } from "@/screens/Catalog/Tabs/Sections/components/SectionPicker";
 
 const RootStack = createStackNavigator();
 const Tab = createBottomTabNavigator();

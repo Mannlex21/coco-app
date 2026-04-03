@@ -1,22 +1,17 @@
-import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { useTheme } from "@coco/shared/hooks/useTheme";
 import { Ionicons } from "@expo/vector-icons";
+import { memo } from "react";
 
 interface ChipListProps<T> {
 	items: T[];
 	onRemoveProduct: (id: string) => void;
 	onPressItem?: (item: T) => void;
-
-	// 🔥 NUEVAS PROPS PARA CUSTOMIZACIÓN
-	// Función para obtener el texto visible (ej: item => item.description)
 	getLabel?: (item: T) => string;
-	// Función por si el id se llama diferente (ej: item => item.product_id)
 	getKey?: (item: T) => string;
 }
 
-// Convertimos el componente a genérico <T> para mantener el tipado estricto
-export const ChipList = React.memo(
+export const ChipList = memo(
 	<T extends Record<string, any>>({
 		items,
 		onRemoveProduct,
@@ -34,10 +29,7 @@ export const ChipList = React.memo(
 		return (
 			<View style={styles.chipsContainer}>
 				{items.map((item) => {
-					// 1. Extraemos la llave única (id por defecto)
 					const key = getKey ? getKey(item) : item.id;
-
-					// 2. Extraemos el texto a mostrar (name o title por defecto)
 					const displayName = getLabel
 						? getLabel(item)
 						: item.name || item.title || "Sin nombre";
@@ -49,7 +41,7 @@ export const ChipList = React.memo(
 						>
 							<TouchableOpacity
 								style={styles.textContainer}
-								onPress={() => onPressItem && onPressItem(item)}
+								onPress={() => onPressItem?.(item)}
 								disabled={!onPressItem}
 								activeOpacity={0.6}
 							>

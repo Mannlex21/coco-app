@@ -1,6 +1,9 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
+import { Ionicons } from "@expo/vector-icons";
+import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTheme } from "@coco/shared/hooks/useTheme";
-import { useDialog } from "@coco/shared/providers/DialogContext";
+import { useDialog } from "@coco/shared/providers";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import {
 	ActivityIndicator,
@@ -10,21 +13,21 @@ import {
 	View,
 	Platform,
 } from "react-native";
-import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { useProduct, useSection } from "@coco/shared/hooks/supabase";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
 	FontSize,
 	BorderRadius,
 	FontWeight,
 	Spacing,
 } from "@coco/shared/config/theme";
-import { ScreenHeader } from "../../components/ScreenHeader";
-import { InputField } from "../../../../components/InputField";
-import { ToggleField } from "../../components/ToggleField";
-import { PrimaryButton } from "../../components/PrimaryButton";
-import { Ionicons } from "@expo/vector-icons";
-import { ChipList } from "../../components/ChipList";
+import {
+	ScreenHeader,
+	InputField,
+	ToggleField,
+	PrimaryButton,
+	ChipList,
+} from "@/components";
+
 interface RouteParams {
 	title?: string;
 	productId?: string;

@@ -1,4 +1,7 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
+import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useNavigation, useRoute } from "@react-navigation/native";
 import {
 	View,
 	Text,
@@ -12,16 +15,11 @@ import {
 	FontWeight,
 	Spacing,
 } from "@coco/shared/config/theme";
-import { useNavigation, useRoute } from "@react-navigation/native";
 import { useTheme } from "@coco/shared/hooks/useTheme";
-import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { Ionicons } from "@expo/vector-icons";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-
-import { ScreenHeader } from "../../../components/ScreenHeader";
+import { ScreenHeader, PrimaryButton } from "@/components";
 import { Modifier } from "@coco/shared/core/entities/Modifier";
 import { useDialog } from "@coco/shared/providers";
-import { PrimaryButton } from "@/screens/Catalog/components/PrimaryButton";
 
 interface RouteParams {
 	groupId?: string;

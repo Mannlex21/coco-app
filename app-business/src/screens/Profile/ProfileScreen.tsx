@@ -1,15 +1,14 @@
-import React from "react";
 import { View, Text, StyleSheet, ScrollView, Platform } from "react-native";
 import { useTheme } from "@coco/shared/hooks/useTheme";
 import { FontSize, Spacing, FontWeight } from "@coco/shared/config/theme";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-
-// Componentes internos de la pantalla
-import { BusinessSelectorCard } from "./components/BusinessSelectorCard";
-import { PreferencesCard } from "./components/PreferencesCard";
-import { AboutCard } from "./components/AboutCard";
-import { LogoutCard } from "./components/LogoutCard";
-import { ProfileHeader } from "./components/ProfileHeader";
+import {
+	BusinessSelectorCard,
+	PreferencesCard,
+	AboutCard,
+	LogoutCard,
+	ProfileHeader,
+} from "@/screens/Profile/components";
 
 export const ProfileScreen = () => {
 	const { colors } = useTheme();

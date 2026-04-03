@@ -1,7 +1,7 @@
-import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { FontSize, FontWeight } from "@coco/shared/config/theme"; // 👈 Para mantener consistencia con el Input
+import { FontSize, FontWeight } from "@coco/shared/config/theme";
+import { memo } from "react";
 
 interface VisualizationPickerProps {
 	type: "list" | "grid";
@@ -10,11 +10,11 @@ interface VisualizationPickerProps {
 	textColor: string;
 	borderColor: string;
 	businessBg: string;
-	label?: string; // 👈 Texto de la etiqueta
-	showLabel?: boolean; // 👈 Bandera para mostrar/ocultar
+	label?: string;
+	showLabel?: boolean;
 }
 
-export const VisualizationPicker = React.memo(
+export const VisualizationPicker = memo(
 	({
 		type,
 		setType,
@@ -22,11 +22,10 @@ export const VisualizationPicker = React.memo(
 		textColor,
 		borderColor,
 		businessBg,
-		label = "Visualización", // Valor por defecto por si no mandas nada
-		showLabel = true, // Por defecto se muestra igual que en el input
+		label = "Visualización",
+		showLabel = true,
 	}: VisualizationPickerProps) => (
 		<View style={styles.container}>
-			{/* 1. Visibilidad Condicional del Label */}
 			{showLabel && (
 				<Text style={[styles.label, { color: subTextColor }]}>
 					{label}
@@ -90,7 +89,7 @@ const styles = StyleSheet.create({
 		fontSize: FontSize.md,
 		fontWeight: FontWeight.bold,
 		marginBottom: 8,
-		marginTop: 10, // Un empujoncito hacia abajo para separar de elementos superiores
+		marginTop: 10,
 	},
 	pickerRow: {
 		flexDirection: "row",

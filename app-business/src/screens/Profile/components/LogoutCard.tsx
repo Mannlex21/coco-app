@@ -1,8 +1,7 @@
-import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "@coco/shared/hooks/useTheme";
-import { useDialog } from "@coco/shared/providers/DialogContext";
+import { useDialog, useSupabaseContext } from "@coco/shared/providers";
 import {
 	FontSize,
 	FontWeight,
@@ -10,7 +9,6 @@ import {
 	BorderRadius,
 } from "@coco/shared/config/theme";
 import { useAppStore } from "@coco/shared/hooks/useAppStore";
-import { useSupabaseContext } from "@coco/shared/providers/SupabaseContext";
 
 export const LogoutCard = () => {
 	const supabase = useSupabaseContext();

@@ -1,13 +1,14 @@
 import React from "react";
 import { View, StyleSheet, ScrollView, RefreshControl } from "react-native";
 import { FontSize, Spacing } from "@coco/shared/config/theme";
-import { useAppStore } from "@coco/shared/hooks/useAppStore";
-import { useBusiness, useUser } from "@coco/shared/hooks/supabase";
+import { useBusiness } from "@coco/shared/hooks";
 import { useTheme } from "@coco/shared/hooks/useTheme";
-import { DashboardHeader } from "./components/DashboardHeader";
-import { StatusCard } from "./components/StatusCard";
-import { StatsCard } from "./components/StatsCard";
-import { QuickAccessCard } from "./components/QuickAccessCard";
+import {
+	DashboardHeader,
+	StatusCard,
+	StatsCard,
+	QuickAccessCard,
+} from "@/screens/Dashboard/components";
 
 export const DashboardScreen = () => {
 	const { colors } = useTheme();

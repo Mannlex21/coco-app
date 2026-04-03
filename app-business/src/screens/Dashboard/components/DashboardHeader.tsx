@@ -5,7 +5,7 @@ import { useAppStore } from "@coco/shared/hooks/useAppStore";
 import { useBusiness, useUser } from "@coco/shared/hooks/supabase";
 import { FontSize, FontWeight, Spacing } from "@coco/shared/config/theme";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Skeleton } from "@/components/Sekeleton";
+import { Skeleton } from "@/components/Skeleton";
 
 export const DashboardHeader = () => {
 	const { colors } = useTheme();

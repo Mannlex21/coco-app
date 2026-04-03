@@ -8,7 +8,7 @@ import {
 } from "react-native";
 import Svg, { G, Path } from "react-native-svg";
 
-const GoogleButton = () => {
+export const GoogleButton = () => {
 	const handleGoogleLogin = () => {
 		console.log("Próximamente: Implementación de Google Sign-In con SHA-1");
 	};
@@ -84,5 +84,3 @@ const styles = StyleSheet.create({
 		backgroundColor: "white", // Fondo blanco para el icono
 	},
 });
-
-export default GoogleButton;

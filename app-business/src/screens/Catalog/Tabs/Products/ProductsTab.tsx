@@ -1,4 +1,3 @@
-import React from "react";
 import { Spacing } from "@coco/shared/config/theme";
 import { useTheme } from "@coco/shared/hooks/useTheme";
 import { useNavigation } from "@react-navigation/native";
@@ -9,14 +8,16 @@ import {
 	StyleSheet,
 	View,
 } from "react-native";
-import { EmptyState } from "../../components/EmptyState";
-import { SearchInput } from "../../components/SearchInput";
-import { FloatingButton } from "../../components/FloatingButton";
-import { ProductListItem } from "./components/ProductListItem";
-import { ProductGridItem } from "./components/ProductGridItem";
-import { VisualizationPicker } from "../../components/VisualizationPicker";
+import {
+	EmptyState,
+	SearchInput,
+	FloatingButton,
+	VisualizationPicker,
+} from "@/components";
+import { ProductListItem } from "@/screens/Catalog/Tabs/Products/components/ProductListItem";
+import { ProductGridItem } from "@/screens/Catalog/Tabs/Products/components/ProductGridItem";
 import { useProductsTab } from "@/hooks/useProductsTab";
-import { useAppStore } from "@coco/shared/hooks/useAppStore";
+import { useAppStore } from "@coco/shared/hooks";
 
 export const ProductsTab = () => {
 	const navigation = useNavigation<any>();

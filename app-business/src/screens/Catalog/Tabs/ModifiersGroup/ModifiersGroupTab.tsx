@@ -9,12 +9,10 @@ import {
 	StyleSheet,
 	View,
 } from "react-native";
-import { EmptyState } from "../../components/EmptyState";
-import { SearchInput } from "../../components/SearchInput";
-import { FloatingButton } from "../../components/FloatingButton";
-import { ModifierGroupListItem } from "./components/ModifierGroupListItem";
+import { EmptyState, SearchInput, FloatingButton } from "@/components/";
+import { ModifierGroupListItem } from "@/screens/Catalog/Tabs/ModifiersGroup/components/ModifierGroupListItem";
 import { useModifiersGroupTab } from "@/hooks/useModifiersGroupTab";
-import { useAppStore } from "@coco/shared/hooks/useAppStore";
+import { useAppStore } from "@coco/shared/hooks";
 
 export const ModifiersGroupTab = () => {
 	const navigation = useNavigation<any>();

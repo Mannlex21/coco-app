@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import { useState } from "react";
+import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import {
 	View,
 	Text,
@@ -9,13 +10,11 @@ import {
 import { BUSINESS_CATEGORY_LABELS } from "@coco/shared/constants";
 import { useTheme } from "@coco/shared/hooks/useTheme";
 import { FontSize, FontWeight } from "@coco/shared/config/theme";
-import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { useDialog } from "@coco/shared/providers/DialogContext";
 import { useBusiness } from "@coco/shared/hooks/supabase";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { InputField } from "@/components/InputField";
-import { ScreenHeader } from "@/screens/Catalog/components/ScreenHeader";
-import { PrimaryButton } from "@/screens/Catalog/components/PrimaryButton";
+import { PrimaryButton, ScreenHeader, InputField } from "@/components";
+
 export const BusinessSetupScreen = ({ navigation }: any) => {
 	const { registerBusiness } = useBusiness();
 	const [loading, setLoading] = useState(false);

@@ -1,4 +1,3 @@
-import React from "react";
 import { StyleSheet, TextInput, TouchableOpacity, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { BorderRadius, FontSize, Spacing } from "@coco/shared/config/theme";

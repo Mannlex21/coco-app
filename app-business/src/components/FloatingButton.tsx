@@ -1,4 +1,3 @@
-import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import {
@@ -8,14 +7,12 @@ import {
 	Shadow,
 } from "@coco/shared/config/theme";
 
-// 🔥 1. Importamos ComponentProps para extraer los tipos del componente
 type IoniconsProps = React.ComponentProps<typeof Ionicons>;
-// 🔥 2. Esto extrae estrictamente la lista de strings con nombres válidos de iconos
 type IoniconsName = IoniconsProps["name"];
 
 interface FloatingButtonProps {
 	label: string;
-	iconName?: IoniconsName; // 👈 Ahora TypeScript sabe exactamente qué nombres son válidos
+	iconName?: IoniconsName;
 	onPress: () => void;
 	colors: any;
 	activeOpacity?: number;
@@ -23,7 +20,7 @@ interface FloatingButtonProps {
 
 export const FloatingButton = ({
 	label,
-	iconName = "add", // Por defecto dejamos el icono de suma
+	iconName = "add",
 	onPress,
 	colors,
 	activeOpacity = 0.8,
@@ -37,7 +34,7 @@ export const FloatingButton = ({
 			>
 				{iconName && (
 					<Ionicons
-						name={iconName} // 👈 TypeScript ya no se quejará aquí
+						name={iconName}
 						size={20}
 						color={colors.textOnPrimary}
 						style={styles.fabIcon}

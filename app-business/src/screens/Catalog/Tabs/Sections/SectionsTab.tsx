@@ -1,4 +1,3 @@
-import React from "react";
 import {
 	FlatList,
 	StyleSheet,
@@ -9,11 +8,9 @@ import {
 import { useNavigation } from "@react-navigation/native";
 import { useTheme } from "@coco/shared/hooks/useTheme";
 import { Spacing } from "@coco/shared/config/theme";
-import { EmptyState } from "../../components/EmptyState";
 import { useSectionsTab } from "@/hooks/useSectionsTab";
-import { SectionItem } from "./components/SectionItem";
-import { SearchInput } from "../../components/SearchInput";
-import { FloatingButton } from "../../components/FloatingButton";
+import { SectionItem } from "@/screens/Catalog/Tabs/Sections/components/SectionItem";
+import { FloatingButton, SearchInput, EmptyState } from "@/components";
 
 export const SectionsTab = () => {
 	const navigation = useNavigation<any>();

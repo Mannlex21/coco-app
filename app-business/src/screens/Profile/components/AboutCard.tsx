@@ -1,8 +1,7 @@
-import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "@coco/shared/hooks/useTheme";
-import { useDialog } from "@coco/shared/providers/DialogContext";
+import { useDialog } from "@coco/shared/providers";
 import { FontSize, FontWeight, Spacing } from "@coco/shared/config/theme";
 
 export const AboutCard = () => {

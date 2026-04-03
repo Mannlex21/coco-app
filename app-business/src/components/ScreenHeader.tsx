@@ -1,8 +1,8 @@
-import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "@coco/shared/hooks/useTheme";
 import { FontSize } from "@coco/shared/config/theme";
+import { memo } from "react";
 
 interface SectionHeaderProps {
 	title: string;
@@ -10,7 +10,7 @@ interface SectionHeaderProps {
 	fontSizeTitle?: number;
 }
 
-export const ScreenHeader = React.memo(
+export const ScreenHeader = memo(
 	({ title, onBack, fontSizeTitle = FontSize.title }: SectionHeaderProps) => {
 		const { colors, isDark } = useTheme();
 		const textColor = isDark ? "rgba(255,255,255,0.9)" : "rgba(0,0,0,0.85)";
@@ -26,7 +26,7 @@ export const ScreenHeader = React.memo(
 						<Ionicons
 							name="arrow-back"
 							size={24}
-							color={textColor} // Uber usa el color del texto para la flecha
+							color={textColor}
 						/>
 					</TouchableOpacity>
 

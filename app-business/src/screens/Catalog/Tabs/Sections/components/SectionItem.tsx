@@ -1,4 +1,3 @@
-import React from "react";
 import {
 	ActivityIndicator,
 	StyleSheet,
@@ -8,9 +7,9 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { FontSize, FontWeight, Spacing } from "@coco/shared/config/theme";
-import { ProductListItem } from "../../Products/components/ProductListItem";
-import { ProductGridItem } from "../../Products/components/ProductGridItem";
-import { useAppStore } from "@coco/shared/hooks/useAppStore";
+import { ProductListItem } from "@/screens/Catalog/Tabs/Products/components/ProductListItem";
+import { ProductGridItem } from "@/screens/Catalog/Tabs/Products/components/ProductGridItem";
+import { useAppStore } from "@coco/shared/hooks";
 
 interface SectionItemProps {
 	section: any;

@@ -1,5 +1,5 @@
-import React, { useEffect, useRef } from "react";
-import { View, Animated, StyleSheet, StyleProp, ViewStyle } from "react-native";
+import { useEffect, useRef } from "react";
+import { Animated, StyleProp, ViewStyle } from "react-native";
 import { useTheme } from "@coco/shared/hooks/useTheme";
 
 interface SkeletonProps {
@@ -18,7 +18,6 @@ export const Skeleton = ({
 	const { colors } = useTheme();
 	const pulseAnim = useRef(new Animated.Value(0.4)).current;
 
-	// 💫 Animación infinita de parpadeo (Shimmer effect)
 	useEffect(() => {
 		Animated.loop(
 			Animated.sequence([
@@ -36,12 +35,11 @@ export const Skeleton = ({
 		).start();
 	}, [pulseAnim]);
 
-	// 📐 Determinar el redondeado según la variante
-	let borderRadius = 4; // default para 'box'
+	let borderRadius = 4;
 	if (variant === "circle") {
 		borderRadius = typeof width === "number" ? width / 2 : height / 2;
 	} else if (variant === "text") {
-		borderRadius = height / 2; // Bordes tipo píldora para imitar texto
+		borderRadius = height / 2;
 	}
 
 	return (
@@ -51,8 +49,8 @@ export const Skeleton = ({
 					width,
 					height,
 					borderRadius,
-					backgroundColor: colors.borderLight, // Color sutil de tu tema
-					opacity: pulseAnim, // Aquí aplicamos la animación
+					backgroundColor: colors.borderLight,
+					opacity: pulseAnim,
 				},
 				style,
 			]}

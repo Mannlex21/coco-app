@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import {
 	StyleSheet,
 	Text,
@@ -9,9 +9,7 @@ import {
 	Platform,
 	ActivityIndicator,
 } from "react-native";
-import { CocoLogo } from "@coco/shared/components/CocoLogo";
-import { AuthService } from "@/infrastructure/auth/AuthService";
-import GoogleButton from "@coco/shared/components/GoogleButton";
+import { CocoLogo, GoogleButton } from "@coco/shared/components";
 import {
 	BorderRadius,
 	FontSize,
@@ -20,10 +18,9 @@ import {
 	Spacing,
 	Colors,
 } from "@coco/shared/config/theme";
-import { useTheme } from "@coco/shared/hooks/useTheme";
-import { useDialog } from "@coco/shared/providers/DialogContext";
+import { useTheme } from "@coco/shared/hooks";
+import { useDialog, useSupabaseContext } from "@coco/shared/providers";
 import { StatusBar } from "expo-status-bar";
-import { useSupabaseContext } from "@coco/shared/providers/SupabaseContext";
 
 interface LoginProps {
 	onRegister: () => void;

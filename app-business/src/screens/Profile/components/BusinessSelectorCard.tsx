@@ -1,4 +1,3 @@
-import React from "react";
 import {
 	View,
 	Text,
@@ -8,12 +7,12 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "@coco/shared/hooks/useTheme";
-import { useAppStore } from "@coco/shared/hooks/useAppStore";
-import { useDialog } from "@coco/shared/providers/DialogContext";
+import { useAppStore } from "@coco/shared/hooks";
+import { useDialog } from "@coco/shared/providers";
 import { useNavigation } from "@react-navigation/native";
 import { FontSize, FontWeight, Spacing } from "@coco/shared/config/theme";
 import { useBusiness, useUser } from "@coco/shared/hooks/supabase";
-import { Business } from "@coco/shared/core/entities/Business";
+import { Business } from "@coco/shared/core/entities";
 
 export const BusinessSelectorCard = () => {
 	const { colors } = useTheme();

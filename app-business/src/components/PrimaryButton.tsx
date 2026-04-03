@@ -1,4 +1,3 @@
-import React from "react";
 import {
 	TouchableOpacity,
 	Text,
@@ -63,7 +62,7 @@ const styles = StyleSheet.create({
 		borderRadius: BorderRadius.md,
 		alignItems: "center",
 		justifyContent: "center",
-		minHeight: 54, // Evita saltos visuales de tamaño cuando entra el loader
+		minHeight: 54,
 	},
 	disabled: {
 		opacity: 0.6,

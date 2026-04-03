@@ -1,4 +1,4 @@
-import React from "react";
+import { memo } from "react";
 import { View, Text, StyleSheet, Switch, Platform } from "react-native";
 import { useTheme } from "@coco/shared/hooks/useTheme";
 import { FontSize, FontWeight } from "@coco/shared/config/theme";
@@ -12,7 +12,7 @@ interface ToggleFieldProps {
 	disabled?: boolean;
 }
 
-export const ToggleField = React.memo(
+export const ToggleField = memo(
 	({
 		label,
 		activeDescription,
@@ -23,8 +23,6 @@ export const ToggleField = React.memo(
 	}: ToggleFieldProps) => {
 		const { colors, isDark } = useTheme();
 
-		// 🎨 Paleta de colores dinámica
-		const textColor = isDark ? "rgba(255,255,255,0.9)" : "rgba(0,0,0,0.85)";
 		const subTextColor = isDark
 			? "rgba(255,255,255,0.6)"
 			: "rgba(0,0,0,0.55)";

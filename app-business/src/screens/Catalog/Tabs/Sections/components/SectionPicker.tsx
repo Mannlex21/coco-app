@@ -1,4 +1,7 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useNavigation, useRoute } from "@react-navigation/native";
+import { Ionicons } from "@expo/vector-icons";
 import {
 	View,
 	Text,
@@ -9,10 +12,9 @@ import {
 	ActivityIndicator,
 	Platform,
 } from "react-native";
-import { useNavigation, useRoute } from "@react-navigation/native";
+
 import { useTheme } from "@coco/shared/hooks/useTheme";
 import { useSection } from "@coco/shared/hooks/supabase";
-import { Ionicons } from "@expo/vector-icons";
 import { Section } from "@coco/shared/core/entities/";
 import {
 	FontSize,
@@ -20,9 +22,7 @@ import {
 	BorderRadius,
 	Spacing,
 } from "@coco/shared/config/theme";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { ScreenHeader } from "@/screens/Catalog/components/ScreenHeader";
-import { PrimaryButton } from "@/screens/Catalog/components/PrimaryButton";
+import { PrimaryButton, ScreenHeader } from "@/components";
 
 export const SectionPicker = () => {
 	const navigation = useNavigation<any>();

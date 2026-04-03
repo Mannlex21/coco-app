@@ -1,4 +1,3 @@
-import React from "react";
 import {
 	Text,
 	TextInput,
@@ -13,14 +12,14 @@ import {
 	FontSize,
 	FontWeight,
 } from "@coco/shared/config/theme";
+import { memo } from "react";
 
-// 💡 Heredamos todas las propiedades nativas de un TextInput (como keyboardType, autoCapitalize, etc.)
 interface InputFieldProps extends TextInputProps {
 	label: string;
 	showLabel?: boolean;
 }
 
-export const InputField = React.memo(
+export const InputField = memo(
 	({
 		label,
 		value,
@@ -29,8 +28,8 @@ export const InputField = React.memo(
 		multiline = false,
 		editable = true,
 		showLabel = true,
-		style, // Extraemos style por si pasas estilos personalizados por fuera
-		...props // 👈 Captura el resto de propiedades como keyboardType, returnKeyType, etc.
+		style,
+		...props
 	}: InputFieldProps) => {
 		const { isDark } = useTheme();
 
@@ -76,7 +75,7 @@ export const InputField = React.memo(
 								paddingBottom: multiline ? 14 : 16,
 								minHeight: multiline ? 100 : 54,
 							},
-							style, // 👈 Permite sobreescribir estilos base si fuera necesario
+							style,
 						]}
 						placeholder={multiline ? placeholder : ""}
 						placeholderTextColor={subTextColor}
@@ -84,7 +83,7 @@ export const InputField = React.memo(
 						onChangeText={onChangeText}
 						multiline={multiline}
 						editable={editable}
-						{...props} // 👈 Inyecta automáticamente keyboardType y cualquier otra que mandes
+						{...props}
 					/>
 				</View>
 			</View>

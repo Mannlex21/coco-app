@@ -1,7 +1,10 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useTheme } from "@coco/shared/hooks/useTheme";
-import { useDialog } from "@coco/shared/providers/DialogContext";
+import { useDialog } from "@coco/shared/providers";
 import { useNavigation, useRoute } from "@react-navigation/native";
+import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Ionicons } from "@expo/vector-icons";
 import {
 	ActivityIndicator,
 	StyleSheet,
@@ -10,19 +13,11 @@ import {
 	View,
 	Platform,
 } from "react-native";
-import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { useAppStore } from "@coco/shared/hooks/useAppStore";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { FontSize, BorderRadius, FontWeight } from "@coco/shared/config/theme";
-
-// Importamos tus componentes compartidos
-import { ScreenHeader } from "../../components/ScreenHeader";
-import { InputField } from "../../../../components/InputField";
-import { ToggleField } from "../../components/ToggleField";
+import { ScreenHeader, InputField, ToggleField, ChipList } from "@/components";
 import { useModifiersGroup } from "@coco/shared/hooks/supabase/useModifiersGroup";
-import { Modifier } from "@coco/shared/core/entities/Modifier";
-import { Ionicons } from "@expo/vector-icons";
-import { ChipList } from "../../components/ChipList";
+import { Modifier } from "@coco/shared/core/entities";
 
 interface RouteParams {
 	title?: string;

@@ -1,4 +1,7 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
+import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
+import { Ionicons } from "@expo/vector-icons";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
 	View,
 	Text,
@@ -10,18 +13,17 @@ import {
 import { FontSize, BorderRadius, FontWeight } from "@coco/shared/config/theme";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { useTheme } from "@coco/shared/hooks/useTheme";
-import { useDialog } from "@coco/shared/providers/DialogContext";
+import { useDialog } from "@coco/shared/providers";
 import { useSection } from "@coco/shared/hooks/supabase";
-import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
-import { Ionicons } from "@expo/vector-icons";
 import { Product } from "@coco/shared/core/entities/";
-import { VisualizationPicker } from "../../components/VisualizationPicker";
-import { InputField } from "../../../../components/InputField";
-import { ToggleField } from "../../components/ToggleField";
-import { ChipList } from "../../components/ChipList";
-import { ScreenHeader } from "../../components/ScreenHeader";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { PrimaryButton } from "../../components/PrimaryButton";
+import {
+	PrimaryButton,
+	ScreenHeader,
+	ChipList,
+	ToggleField,
+	InputField,
+	VisualizationPicker,
+} from "@/components";
 
 export const SectionForm = () => {
 	const navigation = useNavigation<any>();

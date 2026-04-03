@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import {
 	View,
 	Text,
@@ -21,8 +21,7 @@ import {
 	Spacing,
 } from "@coco/shared/config/theme";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { ScreenHeader } from "../../components/ScreenHeader";
-import { PrimaryButton } from "../../components/PrimaryButton";
+import { ScreenHeader, PrimaryButton } from "@/components";
 
 export const ProductPicker = () => {
 	const navigation = useNavigation<any>();
