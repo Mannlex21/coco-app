@@ -3,24 +3,20 @@ import { View, Text, StyleSheet, TouchableOpacity, Switch } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "@coco/shared/hooks/useTheme";
 import { useDialog } from "@coco/shared/providers/DialogContext";
-import {
-	FontSize,
-	FontWeight,
-	BorderRadius,
-	Spacing,
-	Shadow,
-} from "@coco/shared/config/theme";
+import { FontSize, FontWeight, Spacing } from "@coco/shared/config/theme";
 
 export const PreferencesCard = () => {
 	const { colors, isDark, toggleTheme } = useTheme();
 	const { showDialog } = useDialog();
 
-	const cardBg = isDark ? "#1C1C1E" : "#FFFFFF";
-	const subTextColor = isDark ? "rgba(255,255,255,0.6)" : "rgba(0,0,0,0.55)";
-	const textColor = isDark ? "rgba(255,255,255,0.9)" : "rgba(0,0,0,0.85)";
+	// Mapeo semántico directo
+	const separatorColor = colors.borderLight;
+	const textColor = colors.textPrimaryLight;
+	const iconColor = colors.textSecondaryLight;
+	const subTextColor = colors.textSecondaryLight;
 
 	return (
-		<View style={[styles.optionsCard, { backgroundColor: cardBg }]}>
+		<View style={styles.sectionContainer}>
 			<Text style={[styles.sectionTitle, { color: colors.businessBg }]}>
 				Preferencias
 			</Text>
@@ -29,20 +25,14 @@ export const PreferencesCard = () => {
 			<View
 				style={[
 					styles.optionRow,
-					{
-						borderBottomColor: isDark
-							? "rgba(255,255,255,0.08)"
-							: "rgba(0,0,0,0.05)",
-					},
+					{ borderBottomColor: separatorColor },
 				]}
 			>
 				<View style={styles.optionLeft}>
 					<Ionicons
 						name={isDark ? "moon" : "sunny"}
 						size={22}
-						color={
-							isDark ? "rgba(255,255,255,0.7)" : "rgba(0,0,0,0.6)"
-						}
+						color={iconColor}
 					/>
 					<Text style={[styles.optionLabel, { color: textColor }]}>
 						Modo Oscuro
@@ -53,7 +43,7 @@ export const PreferencesCard = () => {
 					value={isDark}
 					onValueChange={toggleTheme}
 					trackColor={{
-						false: "rgba(0,0,0,0.1)",
+						false: colors.borderLight, // Más sutil que un color transparente
 						true: colors.businessBg,
 					}}
 					thumbColor={isDark ? "#FFFFFF" : "#F5F5F5"}
@@ -62,7 +52,7 @@ export const PreferencesCard = () => {
 
 			{/* Opción de Notificaciones */}
 			<TouchableOpacity
-				style={styles.optionRow}
+				style={[styles.optionRow, { borderBottomWidth: 0 }]}
 				onPress={() =>
 					showDialog({
 						title: "Próximamente",
@@ -70,15 +60,13 @@ export const PreferencesCard = () => {
 						intent: "success",
 					})
 				}
-				activeOpacity={0.7}
+				activeOpacity={0.6}
 			>
 				<View style={styles.optionLeft}>
 					<Ionicons
 						name="notifications"
 						size={22}
-						color={
-							isDark ? "rgba(255,255,255,0.7)" : "rgba(0,0,0,0.6)"
-						}
+						color={iconColor}
 					/>
 					<Text style={[styles.optionLabel, { color: textColor }]}>
 						Notificaciones
@@ -88,7 +76,6 @@ export const PreferencesCard = () => {
 					name="chevron-forward"
 					size={20}
 					color={subTextColor}
-					style={{ opacity: 0.8 }}
 				/>
 			</TouchableOpacity>
 		</View>
@@ -96,24 +83,24 @@ export const PreferencesCard = () => {
 };
 
 const styles = StyleSheet.create({
-	optionsCard: {
-		borderRadius: BorderRadius.lg,
-		paddingHorizontal: Spacing.md,
-		paddingVertical: Spacing.md,
-		marginTop: Spacing.lg,
-		...Shadow.md,
+	sectionContainer: {
+		width: "100%",
+		paddingVertical: Spacing.sm,
 	},
 	sectionTitle: {
 		fontSize: FontSize.sm,
 		fontWeight: FontWeight.bold,
+		textTransform: "uppercase",
 		marginBottom: Spacing.sm,
+		paddingLeft: Spacing.xs,
 	},
 	optionRow: {
 		flexDirection: "row",
 		justifyContent: "space-between",
 		alignItems: "center",
 		paddingVertical: Spacing.md,
-		paddingLeft: Spacing.lg,
+		paddingHorizontal: Spacing.xs,
+		borderBottomWidth: StyleSheet.hairlineWidth,
 	},
 	optionLeft: {
 		flexDirection: "row",

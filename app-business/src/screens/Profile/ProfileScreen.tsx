@@ -1,7 +1,10 @@
 import React from "react";
-import { View, Text, StyleSheet, ScrollView } from "react-native";
+import { View, Text, StyleSheet, ScrollView, Platform } from "react-native";
 import { useTheme } from "@coco/shared/hooks/useTheme";
-import { FontSize, Spacing } from "@coco/shared/config/theme";
+import { FontSize, Spacing, FontWeight } from "@coco/shared/config/theme";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+
+// Componentes internos de la pantalla
 import { BusinessSelectorCard } from "./components/BusinessSelectorCard";
 import { PreferencesCard } from "./components/PreferencesCard";
 import { AboutCard } from "./components/AboutCard";
@@ -9,29 +12,39 @@ import { LogoutCard } from "./components/LogoutCard";
 import { ProfileHeader } from "./components/ProfileHeader";
 
 export const ProfileScreen = () => {
-	const { colors, isDark } = useTheme();
-	const subTextColor = isDark ? "rgba(255,255,255,0.6)" : "rgba(0,0,0,0.55)";
+	const { colors } = useTheme();
+	const insets = useSafeAreaInsets();
 
-	const headerBgColor =
-		colors.surfaceLight || (isDark ? "#1C1C1E" : "#FFFFFF");
-	const backgroundBg = isDark ? "#121212" : "#F8F9FA";
+	// Mapeo semántico directo usando tu ColorPalette
+	const headerBgColor = colors.surfaceLight;
+	const backgroundBg = colors.backgroundLight;
+	const subTextColor = colors.textSecondaryLight;
 
 	return (
+		// El contenedor principal adopta el color del header para evitar saltos visuales en el notch
 		<View style={[styles.container, { backgroundColor: headerBgColor }]}>
+			{/* Header del Perfil */}
 			<ProfileHeader />
 
+			{/* Cuerpo con Scroll */}
 			<View style={[styles.body, { backgroundColor: backgroundBg }]}>
 				<ScrollView
-					contentContainerStyle={styles.scrollContent}
+					contentContainerStyle={[
+						styles.scrollContent,
+						// Aseguramos el área segura inferior para evitar cortes en el botón de logout o versión
+						{
+							paddingBottom:
+								Platform.OS === "ios" ? insets.bottom + 20 : 30,
+						},
+					]}
 					showsVerticalScrollIndicator={false}
 				>
 					<BusinessSelectorCard />
 					<PreferencesCard />
-
 					<AboutCard />
-
 					<LogoutCard />
 
+					{/* Texto de versión estilizado semánticamente */}
 					<Text style={[styles.versionText, { color: subTextColor }]}>
 						Coco App - Socio v1.0.0 (Beta)
 					</Text>
@@ -50,12 +63,14 @@ const styles = StyleSheet.create({
 	},
 	scrollContent: {
 		padding: Spacing.md,
+		// Agregamos un gap consistente entre las tarjetas en lugar de margins individuales
+		gap: Spacing.md,
 	},
 	versionText: {
 		textAlign: "center",
 		fontSize: FontSize.xs,
-		opacity: 0.6,
-		paddingTop: Spacing.lg,
-		paddingBottom: Spacing.lg,
+		fontWeight: FontWeight.medium,
+		paddingTop: Spacing.md,
+		paddingBottom: Spacing.xs,
 	},
 });

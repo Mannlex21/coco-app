@@ -56,7 +56,7 @@ export const ModifiersGroupTab = () => {
 				contentContainerStyle={styles.listContent}
 				refreshControl={
 					<RefreshControl
-						refreshing={loadings.fetch}
+						refreshing={loadings.refresh}
 						onRefresh={onRefresh}
 						colors={[colors.businessBg]}
 					/>

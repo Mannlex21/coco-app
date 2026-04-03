@@ -2,28 +2,30 @@ import React, { useState } from "react";
 import {
 	View,
 	Text,
-	TextInput,
-	TouchableOpacity,
 	StyleSheet,
+	Platform,
+	TouchableOpacity,
 } from "react-native";
 import { BUSINESS_CATEGORY_LABELS } from "@coco/shared/constants";
 import { useTheme } from "@coco/shared/hooks/useTheme";
-import { Colors, FontWeight } from "@coco/shared/config/theme";
+import { FontSize, FontWeight } from "@coco/shared/config/theme";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { useDialog } from "@coco/shared/providers/DialogContext";
 import { useBusiness } from "@coco/shared/hooks/supabase";
-
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { InputField } from "@/components/InputField";
+import { ScreenHeader } from "@/screens/Catalog/components/ScreenHeader";
+import { PrimaryButton } from "@/screens/Catalog/components/PrimaryButton";
 export const BusinessSetupScreen = ({ navigation }: any) => {
 	const { registerBusiness } = useBusiness();
 	const [loading, setLoading] = useState(false);
 	const { showDialog } = useDialog();
-	const { colors, isDark } = useTheme();
+	const { colors } = useTheme();
+	const insets = useSafeAreaInsets();
 
-	const textColor = isDark ? "rgba(255,255,255,0.9)" : "rgba(0,0,0,0.85)";
-	const subTextColor = isDark ? "rgba(255,255,255,0.6)" : "rgba(0,0,0,0.55)";
-	const borderColor = isDark ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.1)";
-
-	const cardBg = isDark ? "#1C1C1E" : Colors.light.backgroundLight;
+	const textColor = colors.textPrimaryLight;
+	const subTextColor = colors.textSecondaryLight;
+	const borderColor = colors.borderLight;
 
 	const [form, setForm] = useState({
 		name: "",
@@ -33,6 +35,10 @@ export const BusinessSetupScreen = ({ navigation }: any) => {
 		phone: "",
 		deliveryCost: "20",
 	});
+
+	const handleInputChange = (key: keyof typeof form, value: string) => {
+		setForm((prev) => ({ ...prev, [key]: value }));
+	};
 
 	const handleSave = async () => {
 		if (!form.name.trim() || !form.address.trim() || !form.phone.trim()) {
@@ -61,10 +67,10 @@ export const BusinessSetupScreen = ({ navigation }: any) => {
 			await registerBusiness({
 				name: form.name.trim(),
 				category: form.category,
-				description: form.description.trim(), // Añadido que faltaba
+				description: form.description.trim(),
 				address: form.address.trim(),
 				phone: form.phone.trim(),
-				deliveryCost: Number(form.deliveryCost), // Cambiado a snake_case
+				deliveryCost: Number(form.deliveryCost),
 			});
 
 			showDialog({
@@ -86,92 +92,92 @@ export const BusinessSetupScreen = ({ navigation }: any) => {
 		}
 	};
 
-	return (
-		<KeyboardAwareScrollView
-			style={[
-				styles.container,
-				{ backgroundColor: isDark ? "#121212" : "#F8F9FA" },
-			]}
-			contentContainerStyle={styles.scrollContent}
-			keyboardShouldPersistTaps="handled"
-			enableOnAndroid={true}
-			extraScrollHeight={16}
-			showsVerticalScrollIndicator={false}
-		>
-			<Text style={[styles.headerTitle, { color: textColor }]}>
-				Cuéntanos sobre tu negocio
-			</Text>
-			<Text style={[styles.headerSub, { color: subTextColor }]}>
-				Esta información será visible para tus clientes.
-			</Text>
+	// Mapeo de categorías para que funcione con tu componente <ChipList /> o renderizado directo
+	const categoryItems = Object.entries(BUSINESS_CATEGORY_LABELS).map(
+		([id, name]) => ({
+			id,
+			name,
+		}),
+	);
 
-			<View style={[styles.form, { backgroundColor: cardBg }]}>
-				<Text style={[styles.label, { color: subTextColor }]}>
-					Nombre comercial
+	return (
+		<View style={{ flex: 1, backgroundColor: colors.backgroundLight }}>
+			<View
+				style={[
+					{
+						borderBottomWidth: StyleSheet.hairlineWidth,
+						borderBottomColor: colors.borderLight,
+					},
+				]}
+			>
+				<ScreenHeader
+					title="Configura tu Negocio"
+					onBack={() => navigation.goBack()}
+				/>
+			</View>
+
+			<KeyboardAwareScrollView
+				style={{ flex: 1 }}
+				contentContainerStyle={styles.scrollContent}
+				keyboardShouldPersistTaps="handled"
+				enableOnAndroid={true}
+				extraScrollHeight={16}
+				showsVerticalScrollIndicator={false}
+			>
+				<Text style={[styles.headerTitle, { color: textColor }]}>
+					Cuéntanos sobre tu negocio
 				</Text>
-				<TextInput
-					style={[
-						styles.input,
-						{ color: textColor, borderBottomColor: borderColor },
-					]}
-					value={form.name}
-					onChangeText={(val) => setForm({ ...form, name: val })}
+				<Text style={[styles.headerSub, { color: subTextColor }]}>
+					Esta información será visible para tus clientes.
+				</Text>
+
+				<InputField
+					label="Nombre comercial"
 					placeholder="Ej. Tacos El Pastor"
-					placeholderTextColor={subTextColor}
+					value={form.name}
+					onChangeText={(text) => handleInputChange("name", text)}
 					editable={!loading}
+					showLabel={true}
 				/>
 
-				<Text style={[styles.label, { color: subTextColor }]}>
-					¿Qué vendes? (Breve reseña)
-				</Text>
-				<TextInput
-					style={[
-						styles.input,
-						{ color: textColor, borderBottomColor: borderColor },
-					]}
-					value={form.description}
-					onChangeText={(val) =>
-						setForm({ ...form, description: val })
-					}
+				<InputField
+					label="¿Qué vendes? (Breve reseña)"
 					placeholder="Ej. Antojitos mexicanos y aguas frescas"
-					placeholderTextColor={subTextColor}
+					value={form.description}
+					onChangeText={(text) =>
+						handleInputChange("description", text)
+					}
 					multiline
 					editable={!loading}
+					showLabel={true}
 				/>
 
-				<Text style={[styles.label, { color: subTextColor }]}>
-					Teléfono
-				</Text>
-				<TextInput
-					style={[
-						styles.input,
-						{ color: textColor, borderBottomColor: borderColor },
-					]}
+				<InputField
+					label="Teléfono"
+					placeholder="323 123 4567"
 					value={form.phone}
 					keyboardType="phone-pad"
-					onChangeText={(val) => setForm({ ...form, phone: val })}
-					placeholder="323 123 4567"
-					placeholderTextColor={subTextColor}
+					onChangeText={(text) => handleInputChange("phone", text)}
 					editable={!loading}
+					showLabel={true}
 				/>
 
-				<Text style={[styles.label, { color: subTextColor }]}>
-					Categoría
-				</Text>
-				<View style={styles.chipContainer}>
-					{Object.entries(BUSINESS_CATEGORY_LABELS).map(
-						([key, label]) => {
-							const isActive = form.category === key;
+				<View style={styles.divider}>
+					<Text style={[styles.label, { color: subTextColor }]}>
+						Categoría
+					</Text>
+					<View style={styles.chipWrapper}>
+						{categoryItems.map((item) => {
+							const isActive = form.category === item.id;
 							return (
 								<TouchableOpacity
-									key={key}
+									key={item.id}
 									style={[
-										styles.chip,
+										styles.customChip,
 										{
-											backgroundColor: isDark
-												? "rgba(255,255,255,0.05)"
-												: "#F9F9F9",
 											borderColor: borderColor,
+											backgroundColor:
+												colors.surfaceLight,
 										},
 										isActive && {
 											backgroundColor: colors.businessBg,
@@ -179,16 +185,15 @@ export const BusinessSetupScreen = ({ navigation }: any) => {
 										},
 									]}
 									onPress={() =>
-										setForm({
-											...form,
-											category: key as any,
-										})
+										!loading &&
+										handleInputChange("category", item.id)
 									}
 									disabled={loading}
+									activeOpacity={0.7}
 								>
 									<Text
 										style={[
-											styles.chipText,
+											styles.customChipText,
 											{ color: subTextColor },
 											isActive && {
 												color: "#FFFFFF",
@@ -196,135 +201,102 @@ export const BusinessSetupScreen = ({ navigation }: any) => {
 											},
 										]}
 									>
-										{label}
+										{item.name}
 									</Text>
 								</TouchableOpacity>
 							);
-						},
-					)}
+						})}
+					</View>
 				</View>
 
-				<Text style={[styles.label, { color: subTextColor }]}>
-					Dirección física
-				</Text>
-				<TextInput
-					style={[
-						styles.input,
-						{ color: textColor, borderBottomColor: borderColor },
-					]}
-					value={form.address}
-					onChangeText={(val) => setForm({ ...form, address: val })}
+				<InputField
+					label="Dirección física"
 					placeholder="Ej. Calle Nacional #12, Col. Centro"
-					placeholderTextColor={subTextColor}
+					value={form.address}
+					onChangeText={(text) => handleInputChange("address", text)}
 					editable={!loading}
+					showLabel={true}
 				/>
 
-				<Text style={[styles.label, { color: subTextColor }]}>
-					Costo de Envío Base (MXN)
-				</Text>
-				<View
-					style={[
-						styles.priceInputContainer,
-						{ borderBottomColor: borderColor },
-					]}
-				>
-					<Text style={[styles.currencyPrefix, { color: textColor }]}>
-						$
-					</Text>
-					<TextInput
-						style={[
-							styles.input,
-							{ flex: 1, borderBottomWidth: 0, color: textColor },
-						]}
-						keyboardType="numeric"
-						value={form.deliveryCost}
-						onChangeText={(val) =>
-							setForm({ ...form, deliveryCost: val })
-						}
-						placeholderTextColor={subTextColor}
-						editable={!loading}
-					/>
-				</View>
+				{/* El costo de envío lo mantenemos dentro de InputField para mantener el orden visual */}
+				<InputField
+					label="Costo de Envío Base (MXN)"
+					placeholder="0.00"
+					value={form.deliveryCost}
+					keyboardType="numeric"
+					onChangeText={(text) =>
+						handleInputChange("deliveryCost", text)
+					}
+					editable={!loading}
+					showLabel={true}
+				/>
+			</KeyboardAwareScrollView>
 
-				<TouchableOpacity
-					style={[
-						styles.saveBtn,
-						{ backgroundColor: colors.businessBg },
-						loading && { opacity: 0.7 },
-					]}
+			{/* Botón flotante al fondo usando el insets de área segura */}
+			<View
+				style={[
+					styles.bottomContainer,
+					{
+						borderTopColor: borderColor,
+						backgroundColor: colors.backgroundLight,
+					},
+				]}
+			>
+				<PrimaryButton
+					title="Guardar Cambios"
 					onPress={handleSave}
-					disabled={loading}
-				>
-					<Text style={styles.saveBtnText}>
-						{loading ? "Registrando..." : "Guardar y Continuar"}
-					</Text>
-				</TouchableOpacity>
+					loading={loading}
+					marginBottom={Platform.OS === "ios" ? insets.bottom : 12}
+				/>
 			</View>
-		</KeyboardAwareScrollView>
+		</View>
 	);
 };
 
 const styles = StyleSheet.create({
-	container: { flex: 1 },
-	scrollContent: { padding: 20, paddingBottom: 40 },
+	scrollContent: {
+		paddingHorizontal: 16,
+		paddingBottom: 20,
+	},
 	headerTitle: {
-		fontSize: 26,
+		fontSize: FontSize.lg,
 		fontWeight: "800",
+		marginTop: 10,
 	},
 	headerSub: {
-		fontSize: 15,
-		marginBottom: 25,
-		marginTop: 5,
-	},
-	form: {
-		padding: 24,
-		borderRadius: 20,
-		shadowColor: "#000",
-		shadowOffset: { width: 0, height: 4 },
-		shadowOpacity: 0.05,
-		shadowRadius: 10,
-		elevation: 3,
+		fontSize: FontSize.md,
+		marginBottom: 20,
+		marginTop: 4,
 	},
 	label: {
-		fontSize: 13,
+		fontSize: FontSize.md,
 		fontWeight: FontWeight.bold,
 		marginBottom: 8,
-		marginTop: 20,
+		marginTop: 15,
 	},
-	input: {
-		borderBottomWidth: 1,
-		paddingVertical: 10,
-		fontSize: 16,
+	divider: {
+		marginVertical: 5,
 	},
-	chipContainer: {
+	bottomContainer: {
+		padding: 16,
+		borderTopWidth: 1,
+	},
+
+	chipWrapper: {
 		flexDirection: "row",
 		flexWrap: "wrap",
+		gap: 8,
 		marginTop: 5,
 	},
-	chip: {
+	customChip: {
 		paddingVertical: 8,
 		paddingHorizontal: 16,
+		borderRadius: 20,
 		borderWidth: 1,
-		borderRadius: 25,
-		marginRight: 8,
-		marginBottom: 10,
+		// Al usar flex-start evitamos que el chip intente estirarse para llenar espacio
+		alignSelf: "flex-start",
 	},
-	chipText: { fontSize: 14 },
-	priceInputContainer: {
-		flexDirection: "row",
-		alignItems: "center",
-		borderBottomWidth: 1,
+	customChipText: {
+		fontSize: 14,
 	},
-	currencyPrefix: {
-		fontSize: 16,
-		fontWeight: "600",
-		marginRight: 5,
-	},
-	saveBtn: {
-		padding: 16,
-		borderRadius: 14,
-		alignItems: "center",
-		marginTop: 35,
-	},
-	saveBtnText: { color: "white", fontWeight: FontWeight.bold, fontSize: 16 },
 });

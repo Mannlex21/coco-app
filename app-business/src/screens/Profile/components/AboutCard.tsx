@@ -3,25 +3,21 @@ import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "@coco/shared/hooks/useTheme";
 import { useDialog } from "@coco/shared/providers/DialogContext";
-import {
-	FontSize,
-	FontWeight,
-	BorderRadius,
-	Spacing,
-	Shadow,
-} from "@coco/shared/config/theme";
+import { FontSize, FontWeight, Spacing } from "@coco/shared/config/theme";
 
 export const AboutCard = () => {
-	// 🔌 Conectamos directamente con los hooks globales
-	const { colors, isDark } = useTheme();
+	const { colors } = useTheme();
 	const { showDialog } = useDialog();
 
-	const cardBg = isDark ? "#1C1C1E" : "#FFFFFF";
-	const subTextColor = isDark ? "rgba(255,255,255,0.6)" : "rgba(0,0,0,0.55)";
-	const textColor = isDark ? "rgba(255,255,255,0.9)" : "rgba(0,0,0,0.85)";
+	// Mapeo semántico directo
+	const separatorColor = colors.borderLight;
+	const textColor = colors.textPrimaryLight;
+	const iconColor = colors.textSecondaryLight;
+	const subTextColor = colors.textSecondaryLight;
 
 	return (
-		<View style={[styles.optionsCard, { backgroundColor: cardBg }]}>
+		<View style={styles.sectionContainer}>
+			{/* Título de la sección plano */}
 			<Text style={[styles.sectionTitle, { color: colors.businessBg }]}>
 				Acerca de Coco
 			</Text>
@@ -30,11 +26,7 @@ export const AboutCard = () => {
 			<TouchableOpacity
 				style={[
 					styles.optionRow,
-					{
-						borderBottomColor: isDark
-							? "rgba(255,255,255,0.08)"
-							: "rgba(0,0,0,0.05)",
-					},
+					{ borderBottomColor: separatorColor },
 				]}
 				onPress={() =>
 					showDialog({
@@ -43,15 +35,13 @@ export const AboutCard = () => {
 						intent: "success",
 					})
 				}
-				activeOpacity={0.7}
+				activeOpacity={0.6}
 			>
 				<View style={styles.optionLeft}>
 					<Ionicons
 						name="chatbubble-ellipses"
 						size={22}
-						color={
-							isDark ? "rgba(255,255,255,0.7)" : "rgba(0,0,0,0.6)"
-						}
+						color={iconColor}
 					/>
 					<Text style={[styles.optionLabel, { color: textColor }]}>
 						Ayuda y Soporte
@@ -61,7 +51,6 @@ export const AboutCard = () => {
 					name="chevron-forward"
 					size={20}
 					color={subTextColor}
-					style={{ opacity: 0.8 }}
 				/>
 			</TouchableOpacity>
 
@@ -69,11 +58,7 @@ export const AboutCard = () => {
 			<TouchableOpacity
 				style={[
 					styles.optionRow,
-					{
-						borderBottomColor: isDark
-							? "rgba(255,255,255,0.08)"
-							: "rgba(0,0,0,0.05)",
-					},
+					{ borderBottomColor: separatorColor },
 				]}
 				onPress={() =>
 					showDialog({
@@ -82,15 +67,13 @@ export const AboutCard = () => {
 						intent: "success",
 					})
 				}
-				activeOpacity={0.7}
+				activeOpacity={0.6}
 			>
 				<View style={styles.optionLeft}>
 					<Ionicons
 						name="document-text"
 						size={22}
-						color={
-							isDark ? "rgba(255,255,255,0.7)" : "rgba(0,0,0,0.6)"
-						}
+						color={iconColor}
 					/>
 					<Text style={[styles.optionLabel, { color: textColor }]}>
 						Términos y Condiciones
@@ -100,13 +83,12 @@ export const AboutCard = () => {
 					name="chevron-forward"
 					size={20}
 					color={subTextColor}
-					style={{ opacity: 0.8 }}
 				/>
 			</TouchableOpacity>
 
 			{/* Política de Privacidad */}
 			<TouchableOpacity
-				style={styles.optionRow}
+				style={[styles.optionRow, { borderBottomWidth: 0 }]}
 				onPress={() =>
 					showDialog({
 						title: "Legal",
@@ -114,15 +96,13 @@ export const AboutCard = () => {
 						intent: "success",
 					})
 				}
-				activeOpacity={0.7}
+				activeOpacity={0.6}
 			>
 				<View style={styles.optionLeft}>
 					<Ionicons
 						name="shield-checkmark"
 						size={22}
-						color={
-							isDark ? "rgba(255,255,255,0.7)" : "rgba(0,0,0,0.6)"
-						}
+						color={iconColor}
 					/>
 					<Text style={[styles.optionLabel, { color: textColor }]}>
 						Política de Privacidad
@@ -132,7 +112,6 @@ export const AboutCard = () => {
 					name="chevron-forward"
 					size={20}
 					color={subTextColor}
-					style={{ opacity: 0.8 }}
 				/>
 			</TouchableOpacity>
 		</View>
@@ -140,25 +119,24 @@ export const AboutCard = () => {
 };
 
 const styles = StyleSheet.create({
-	optionsCard: {
-		borderRadius: BorderRadius.lg,
-		paddingHorizontal: Spacing.md,
-		paddingVertical: Spacing.md,
-		marginTop: Spacing.lg,
-		...Shadow.md,
+	sectionContainer: {
+		width: "100%",
+		paddingVertical: Spacing.sm,
 	},
 	sectionTitle: {
 		fontSize: FontSize.sm,
 		fontWeight: FontWeight.bold,
 		textTransform: "uppercase",
 		marginBottom: Spacing.sm,
+		paddingLeft: Spacing.xs, // Alineado con el contenido de las filas
 	},
 	optionRow: {
 		flexDirection: "row",
 		justifyContent: "space-between",
 		alignItems: "center",
 		paddingVertical: Spacing.md,
-		paddingLeft: Spacing.lg,
+		paddingHorizontal: Spacing.xs, // Alineación al ras de la pantalla
+		borderBottomWidth: StyleSheet.hairlineWidth,
 	},
 	optionLeft: {
 		flexDirection: "row",

@@ -12,7 +12,7 @@ import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { FontSize, BorderRadius, FontWeight } from "@coco/shared/config/theme";
 
-import { InputField } from "../../../components/InputField";
+import { InputField } from "../../../../../components/InputField";
 import { ToggleField } from "../../../components/ToggleField";
 import { useDialog } from "@coco/shared/providers";
 import { Modifier } from "@coco/shared/core/entities/Modifier";

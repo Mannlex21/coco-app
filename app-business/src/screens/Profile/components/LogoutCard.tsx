@@ -6,22 +6,21 @@ import { useDialog } from "@coco/shared/providers/DialogContext";
 import {
 	FontSize,
 	FontWeight,
-	BorderRadius,
 	Spacing,
-	Shadow,
+	BorderRadius,
 } from "@coco/shared/config/theme";
 import { useAppStore } from "@coco/shared/hooks/useAppStore";
 import { useSupabaseContext } from "@coco/shared/providers/SupabaseContext";
 
 export const LogoutCard = () => {
 	const supabase = useSupabaseContext();
-	const { isDark } = useTheme();
+	const { colors } = useTheme();
 	const { showDialog } = useDialog();
 	const { setActiveBusiness, setUser } = useAppStore();
 
-	const cardBg = isDark ? "#1C1C1E" : "#FFFFFF";
-	const subTextColor = isDark ? "rgba(255,255,255,0.6)" : "rgba(0,0,0,0.55)";
-	const errorColor = "rgba(231, 111, 81, 1)";
+	// Mapeo semántico de error directo de tu ColorPalette
+	const errorBg = colors.errorLight;
+	const errorTextColor = colors.error;
 
 	const handleLogout = () => {
 		showDialog({
@@ -50,61 +49,56 @@ export const LogoutCard = () => {
 	};
 
 	return (
-		<>
-			{/* Botón de Cerrar Sesión */}
-			<View style={[styles.optionsCard, { backgroundColor: cardBg }]}>
-				<TouchableOpacity
-					style={styles.optionRow}
-					onPress={handleLogout}
-					activeOpacity={0.7}
-				>
-					<View style={styles.optionLeft}>
-						<Ionicons
-							name="log-out-outline"
-							size={22}
-							color={errorColor}
-						/>
-						<Text
-							style={[styles.optionLabel, { color: errorColor }]}
-						>
-							Cerrar Sesión
-						</Text>
-					</View>
-				</TouchableOpacity>
-			</View>
-		</>
+		<View style={styles.sectionContainer}>
+			<TouchableOpacity
+				style={[styles.buttonRow, { backgroundColor: errorBg }]}
+				onPress={handleLogout}
+				activeOpacity={0.7}
+			>
+				<View style={styles.buttonLeft}>
+					<Ionicons
+						name="log-out-outline"
+						size={22}
+						color={errorTextColor}
+					/>
+					<Text
+						style={[styles.buttonLabel, { color: errorTextColor }]}
+					>
+						Cerrar Sesión
+					</Text>
+				</View>
+
+				<Ionicons
+					name="chevron-forward"
+					size={20}
+					color={errorTextColor}
+				/>
+			</TouchableOpacity>
+		</View>
 	);
 };
 
 const styles = StyleSheet.create({
-	optionsCard: {
-		borderRadius: BorderRadius.lg,
-		paddingHorizontal: Spacing.md,
-		paddingVertical: Spacing.md,
-		marginTop: Spacing.lg,
-		...Shadow.md,
+	sectionContainer: {
+		width: "100%",
+		paddingVertical: Spacing.sm,
+		paddingHorizontal: Spacing.xs, // Mismo alineado al ras que las demás secciones
 	},
-	optionRow: {
+	buttonRow: {
 		flexDirection: "row",
 		justifyContent: "space-between",
 		alignItems: "center",
-		paddingVertical: Spacing.xs, // Un poco más pequeño porque es botón único
-		paddingLeft: Spacing.md,
+		paddingVertical: Spacing.md,
+		paddingHorizontal: Spacing.md, // Padding interno para que el texto no pegue al borde del fondo
+		borderRadius: BorderRadius.md, // Un radio sutil para darle forma de botón
 	},
-	optionLeft: {
+	buttonLeft: {
 		flexDirection: "row",
 		alignItems: "center",
 	},
-	optionLabel: {
+	buttonLabel: {
 		fontSize: FontSize.md,
-		fontWeight: FontWeight.medium,
+		fontWeight: FontWeight.bold, // Le damos más peso para que resalte como botón de acción
 		marginLeft: Spacing.md,
-	},
-	versionText: {
-		textAlign: "center",
-		fontSize: FontSize.xs,
-		opacity: 0.6,
-		paddingTop: Spacing.lg,
-		paddingBottom: Spacing.lg,
 	},
 });

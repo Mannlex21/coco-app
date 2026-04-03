@@ -4,7 +4,6 @@ import {
 	Text,
 	StyleSheet,
 	TouchableOpacity,
-	TextInput,
 	ActivityIndicator,
 	ScrollView,
 	Image,
@@ -18,13 +17,14 @@ import {
 	FontWeight,
 	BorderRadius,
 	Spacing,
-	Shadow,
 } from "@coco/shared/config/theme";
 import { useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import { User } from "@coco/shared/core/entities/User";
 import { useDialog } from "@coco/shared/providers/DialogContext";
+import { ScreenHeader } from "@/screens/Catalog/components/ScreenHeader";
+import { InputField } from "@/components/InputField";
 
 export const UserSetupScreen = () => {
 	const { user } = useAppStore();
@@ -32,7 +32,8 @@ export const UserSetupScreen = () => {
 	const insets = useSafeAreaInsets();
 	const navigation = useNavigation();
 	const { showDialog } = useDialog();
-	const { updateProfile } = useUser(user?.id);
+	const { updateProfile } = useUser();
+
 	const [form, setForm] = useState({
 		name: "",
 		phone: "",
@@ -58,8 +59,9 @@ export const UserSetupScreen = () => {
 		setForm((prevForm) => ({ ...prevForm, [field]: value }));
 	};
 
-	const textColor = isDark ? "rgba(255,255,255,0.9)" : "rgba(0,0,0,0.85)";
-	const subTextColor = isDark ? "rgba(255,255,255,0.6)" : "rgba(0,0,0,0.55)";
+	const textColor = colors.textPrimaryLight;
+	const subTextColor = colors.textSecondaryLight;
+	const separatorColor = colors.borderLight;
 
 	const handlePickImage = async () => {
 		const { status } =
@@ -141,144 +143,135 @@ export const UserSetupScreen = () => {
 	};
 
 	return (
-		<ScrollView
+		<View
 			style={[
 				styles.screenContainer,
-				{ backgroundColor: isDark ? "#121212" : "#F5F5F7" },
-			]}
-			contentContainerStyle={[
-				styles.scrollContent,
-				{ paddingBottom: insets.bottom + Spacing.lg },
+				{
+					backgroundColor: colors.backgroundLight,
+				},
 			]}
 		>
-			<Text style={[styles.setupSubtitle, { color: subTextColor }]}>
-				Mantén tu información de contacto actualizada para que tus
-				clientes y repartidores puedan comunicarse contigo.
-			</Text>
-
-			{/* AVATAR */}
-			<View style={styles.avatarContainer}>
-				<TouchableOpacity
-					onPress={handlePickImage}
-					style={[
-						styles.avatarFrame,
-						{ backgroundColor: colors.businessBg },
-					]}
-				>
-					{form.avatarUrl ? (
-						<Image
-							source={{ uri: form.avatarUrl }}
-							style={styles.avatarImage}
-						/>
-					) : (
-						<Text style={styles.avatarText}>{getInitials()}</Text>
-					)}
-					<View
-						style={[
-							styles.cameraIconBadge,
-							{ backgroundColor: isDark ? "#1C1C1E" : "white" },
-						]}
-					>
-						<Ionicons name="camera" size={16} color={textColor} />
-					</View>
-				</TouchableOpacity>
-				<Text style={[styles.avatarLabel, { color: subTextColor }]}>
-					{isUploadingImage
-						? "Subiendo imagen..."
-						: "Toca para cambiar foto"}
-				</Text>
-			</View>
-
-			{/* Input Nombre */}
-			<View style={styles.inputGroup}>
-				<Text
-					style={[
-						styles.inputLabel,
-						{
-							color: isDark
-								? "rgba(255,255,255,0.7)"
-								: "rgba(0,0,0,0.6)",
-						},
-					]}
-				>
-					Nombre completo
-				</Text>
-				<TextInput
-					style={[
-						styles.input,
-						{
-							backgroundColor: isDark ? "#1C1C1E" : "white",
-							color: textColor,
-							borderColor: isDark
-								? "rgba(255,255,255,0.1)"
-								: "rgba(0,0,0,0.05)",
-						},
-					]}
-					value={form.name}
-					onChangeText={(text) => handleChange("name", text)}
-					placeholder="Tu nombre"
-					placeholderTextColor={subTextColor}
+			<View
+				style={[
+					{
+						borderBottomWidth: StyleSheet.hairlineWidth,
+						borderBottomColor: colors.borderLight,
+					},
+				]}
+			>
+				<ScreenHeader
+					title="Mi Perfil"
+					onBack={() => navigation.goBack()}
 				/>
 			</View>
 
-			{/* Input Teléfono */}
-			<View style={styles.inputGroup}>
-				<Text
-					style={[
-						styles.inputLabel,
-						{
-							color: isDark
-								? "rgba(255,255,255,0.7)"
-								: "rgba(0,0,0,0.6)",
-						},
-					]}
-				>
-					Teléfono (WhatsApp)
+			<ScrollView
+				contentContainerStyle={[
+					styles.scrollContent,
+					{ paddingBottom: insets.bottom + Spacing.lg },
+				]}
+			>
+				<Text style={[styles.setupSubtitle, { color: subTextColor }]}>
+					{
+						"Mantén tu información de contacto actualizada para que tus clientes y repartidores puedan comunicarse contigo."
+					}
 				</Text>
-				<TextInput
-					style={[
-						styles.input,
-						{
-							backgroundColor: isDark ? "#1C1C1E" : "white",
-							color: textColor,
-							borderColor: isDark
-								? "rgba(255,255,255,0.1)"
-								: "rgba(0,0,0,0.05)",
-						},
-					]}
+
+				{/* AVATAR */}
+				<View style={styles.avatarContainer}>
+					<TouchableOpacity
+						onPress={handlePickImage}
+						style={[
+							styles.avatarFrame,
+							{ backgroundColor: colors.businessBg },
+						]}
+						activeOpacity={0.8}
+					>
+						{form.avatarUrl ? (
+							<Image
+								source={{ uri: form.avatarUrl }}
+								style={styles.avatarImage}
+							/>
+						) : (
+							<Text style={styles.avatarText}>
+								{getInitials()}
+							</Text>
+						)}
+
+						<View
+							style={[
+								styles.cameraIconBadge,
+								{
+									backgroundColor: isDark
+										? "#2A2A2A"
+										: "white",
+									borderColor: separatorColor,
+								},
+							]}
+						>
+							<Ionicons
+								name="camera"
+								size={14}
+								color={textColor}
+							/>
+						</View>
+					</TouchableOpacity>
+
+					<Text style={[styles.avatarLabel, { color: subTextColor }]}>
+						{isUploadingImage
+							? "Subiendo imagen..."
+							: "Toca para cambiar foto"}
+					</Text>
+				</View>
+
+				{/* Inputs usando InputField */}
+				<InputField
+					label="Nombre completo"
+					value={form.name}
+					onChangeText={(text) => handleChange("name", text)}
+					placeholder="Tu nombre"
+				/>
+
+				<InputField
+					label="Teléfono (WhatsApp)"
 					value={form.phone}
 					onChangeText={(text) => handleChange("phone", text)}
 					placeholder="Ej: 5512345678"
 					keyboardType="phone-pad"
-					placeholderTextColor={subTextColor}
 				/>
-			</View>
 
-			{/* Botón Guardar */}
-			<TouchableOpacity
-				style={[
-					styles.actionButton,
-					{ backgroundColor: colors.businessBg },
-					(isSaving || isUploadingImage) && { opacity: 0.7 },
-				]}
-				onPress={handleSave}
-				disabled={isSaving || isUploadingImage}
-				activeOpacity={0.8}
-			>
-				{isSaving || isUploadingImage ? (
-					<ActivityIndicator size="small" color="white" />
-				) : (
-					<Text style={styles.actionButtonText}>Guardar Cambios</Text>
-				)}
-			</TouchableOpacity>
-		</ScrollView>
+				{/* Botón Guardar */}
+				<TouchableOpacity
+					style={[
+						styles.actionButton,
+						{ backgroundColor: colors.businessBg },
+						(isSaving || isUploadingImage) && { opacity: 0.7 },
+					]}
+					onPress={handleSave}
+					disabled={isSaving || isUploadingImage}
+					activeOpacity={0.8}
+				>
+					{isSaving || isUploadingImage ? (
+						<ActivityIndicator size="small" color="white" />
+					) : (
+						<Text style={styles.actionButtonText}>
+							{"Guardar Cambios"}
+						</Text>
+					)}
+				</TouchableOpacity>
+			</ScrollView>
+		</View>
 	);
 };
 
 const styles = StyleSheet.create({
 	screenContainer: { flex: 1 },
-	scrollContent: { padding: Spacing.lg },
+	scrollContent: {
+		paddingHorizontal: Spacing.lg,
+		paddingTop: Spacing.lg,
+	},
 	setupSubtitle: {
+		textAlign: "justify",
 		fontSize: FontSize.md,
 		marginBottom: Spacing.xl,
 		lineHeight: 22,
@@ -288,21 +281,20 @@ const styles = StyleSheet.create({
 		marginBottom: Spacing.xl,
 	},
 	avatarFrame: {
-		width: 100,
-		height: 100,
+		width: 96,
+		height: 96,
 		borderRadius: BorderRadius.full,
 		justifyContent: "center",
 		alignItems: "center",
-		...Shadow.md,
 		position: "relative",
 	},
 	avatarImage: {
-		width: 100,
-		height: 100,
+		width: 96,
+		height: 96,
 		borderRadius: BorderRadius.full,
 	},
 	avatarText: {
-		fontSize: FontSize.title * 1.2,
+		fontSize: FontSize.title * 1.1,
 		fontWeight: FontWeight.black,
 		color: "#FFFFFF",
 	},
@@ -310,38 +302,24 @@ const styles = StyleSheet.create({
 		position: "absolute",
 		bottom: 0,
 		right: 0,
-		width: 32,
-		height: 32,
-		borderRadius: BorderRadius.sm,
+		width: 30,
+		height: 30,
+		borderRadius: BorderRadius.full,
 		justifyContent: "center",
 		alignItems: "center",
-		...Shadow.sm,
+		borderWidth: 1,
 	},
 	avatarLabel: {
 		fontSize: FontSize.xs,
 		marginTop: Spacing.sm,
 		fontWeight: FontWeight.medium,
 	},
-	inputGroup: { marginBottom: Spacing.lg },
-	inputLabel: {
-		fontSize: FontSize.sm,
-		fontWeight: FontWeight.semibold,
-		marginBottom: Spacing.xs,
-	},
-	input: {
-		borderWidth: 1,
-		borderRadius: BorderRadius.md,
-		padding: Spacing.md,
-		fontSize: FontSize.md,
-		...Shadow.sm,
-	},
 	actionButton: {
 		borderRadius: BorderRadius.md,
 		paddingVertical: Spacing.md,
 		justifyContent: "center",
 		alignItems: "center",
-		marginTop: Spacing.xl,
-		...Shadow.md,
+		marginTop: Spacing.xl, // Espacio superior para separarlo del último input
 	},
 	actionButtonText: {
 		color: "white",

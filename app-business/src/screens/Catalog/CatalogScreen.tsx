@@ -9,16 +9,20 @@ import {
 import { Spacing, FontSize, FontWeight } from "@coco/shared/config/theme";
 import { useTheme } from "@coco/shared/hooks/useTheme";
 import { SectionsTab } from "./Tabs/Secciones/SectionsTab";
-import { Ionicons } from "@expo/vector-icons";
+import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { ProductsTab } from "./Tabs/Products/ProductsTab";
 import { ModifiersGroupTab } from "./Tabs/ModifiersGroup/ModifiersGroupTab";
 
 type TabType = "secciones" | "productos" | "grupoModificadores";
 
+// 1. Modificamos la interfaz para que acepte el componente del Icono y su nombre correspondiente
 interface TabItem {
 	id: TabType;
 	title: string;
-	icon: React.ComponentProps<typeof Ionicons>["name"];
+	IconComponent: typeof Ionicons | typeof MaterialIcons;
+	iconName: React.ComponentProps<
+		typeof Ionicons | typeof MaterialIcons
+	>["name"];
 }
 
 export const CatalogScreen = () => {
@@ -30,13 +34,25 @@ export const CatalogScreen = () => {
 		{},
 	);
 
+	// 2. Mapeamos cada pestaña con la librería de iconos que le corresponde
 	const TABS: TabItem[] = [
-		{ id: "secciones", title: "Secciones", icon: "folder-open-outline" },
-		{ id: "productos", title: "Productos", icon: "cube-outline" },
+		{
+			id: "secciones",
+			title: "Secciones",
+			IconComponent: Ionicons,
+			iconName: "folder-open-outline",
+		},
+		{
+			id: "productos",
+			title: "Productos",
+			IconComponent: Ionicons,
+			iconName: "cube-outline",
+		},
 		{
 			id: "grupoModificadores",
 			title: "Grupo de modificadores",
-			icon: "add-circle-outline",
+			IconComponent: MaterialIcons,
+			iconName: "add-chart",
 		},
 	];
 
@@ -49,7 +65,7 @@ export const CatalogScreen = () => {
 			const scrollToX = tabCenter - scrollViewWidth / 2;
 
 			scrollViewRef.current.scrollTo({
-				x: Math.max(0, scrollToX), // Evitamos valores negativos
+				x: Math.max(0, scrollToX),
 				animated: true,
 			});
 		}
@@ -81,6 +97,9 @@ export const CatalogScreen = () => {
 							? colors.businessBg
 							: colors.textPrimaryLight;
 
+						// 3. Extraemos dinámicamente el componente de Icono
+						const { IconComponent } = tab;
+
 						return (
 							<TouchableOpacity
 								key={tab.id}
@@ -100,8 +119,9 @@ export const CatalogScreen = () => {
 								}}
 							>
 								<View style={styles.tabContent}>
-									<Ionicons
-										name={tab.icon}
+									{/* 4. Renderizamos el componente pasándole las props */}
+									<IconComponent
+										name={tab.iconName as any}
 										size={16}
 										color={tintColor}
 									/>

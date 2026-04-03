@@ -23,10 +23,6 @@ export const DashboardHeader = () => {
 				{
 					backgroundColor: colors.surfaceLight,
 					borderBottomColor: colors.borderLight,
-					paddingTop:
-						Platform.OS === "android"
-							? insets.top - 10
-							: insets.top,
 				},
 			]}
 		>

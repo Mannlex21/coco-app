@@ -17,7 +17,7 @@ import { FontSize, BorderRadius, FontWeight } from "@coco/shared/config/theme";
 
 // Importamos tus componentes compartidos
 import { ScreenHeader } from "../../components/ScreenHeader";
-import { InputField } from "../../components/InputField";
+import { InputField } from "../../../../components/InputField";
 import { ToggleField } from "../../components/ToggleField";
 import { useModifiersGroup } from "@coco/shared/hooks/supabase/useModifiersGroup";
 import { Modifier } from "@coco/shared/core/entities/Modifier";
@@ -173,12 +173,6 @@ export const ModifierGroupForm = () => {
 				handleInputChange("selectedModifier", updatedList);
 			},
 		});
-	};
-
-	const getSaveButtonText = (): string => {
-		if (saving) return "Guardando...";
-		if (groupId) return "Guardar Cambios";
-		return "Crear Grupo";
 	};
 
 	if (loading) {
@@ -354,9 +348,7 @@ export const ModifierGroupForm = () => {
 					onPress={handleSave}
 					disabled={saving}
 				>
-					<Text style={styles.saveBtnText}>
-						{getSaveButtonText()}
-					</Text>
+					<Text style={styles.saveBtnText}>{"Guardar Cambios"}</Text>
 				</TouchableOpacity>
 			</View>
 		</View>

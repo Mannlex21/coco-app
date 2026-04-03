@@ -16,7 +16,7 @@ import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view
 import { Ionicons } from "@expo/vector-icons";
 import { Product } from "@coco/shared/core/entities/";
 import { VisualizationPicker } from "../../components/VisualizationPicker";
-import { InputField } from "../../components/InputField";
+import { InputField } from "../../../../components/InputField";
 import { ToggleField } from "../../components/ToggleField";
 import { ChipList } from "../../components/ChipList";
 import { ScreenHeader } from "../../components/ScreenHeader";

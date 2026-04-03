@@ -11,19 +11,12 @@ import { useTheme } from "@coco/shared/hooks/useTheme";
 import { useAppStore } from "@coco/shared/hooks/useAppStore";
 import { useDialog } from "@coco/shared/providers/DialogContext";
 import { useNavigation } from "@react-navigation/native";
-import {
-	FontSize,
-	FontWeight,
-	BorderRadius,
-	Spacing,
-	Shadow,
-} from "@coco/shared/config/theme";
+import { FontSize, FontWeight, Spacing } from "@coco/shared/config/theme";
 import { useBusiness, useUser } from "@coco/shared/hooks/supabase";
 import { Business } from "@coco/shared/core/entities/Business";
 
 export const BusinessSelectorCard = () => {
-	// 🔌 Conexiones a los hooks globales de la app
-	const { colors, isDark } = useTheme();
+	const { colors } = useTheme();
 	const { showDialog } = useDialog();
 	const navigation = useNavigation<any>();
 
@@ -31,9 +24,11 @@ export const BusinessSelectorCard = () => {
 	const { updateLastActiveBusiness } = useUser();
 	const { businesses, loadings } = useBusiness();
 
-	const cardBg = isDark ? "#1C1C1E" : "#FFFFFF";
-	const subTextColor = isDark ? "rgba(255,255,255,0.6)" : "rgba(0,0,0,0.55)";
-	const textColor = isDark ? "rgba(255,255,255,0.9)" : "rgba(0,0,0,0.85)";
+	// Mapeo semántico directo usando ColorPalette
+	const separatorColor = colors.borderLight;
+	const textColor = colors.textPrimaryLight;
+	const subTextColor = colors.textSecondaryLight;
+	const iconColor = colors.textSecondaryLight;
 
 	const handleSelectBusiness = async (business: Business) => {
 		setActiveBusiness(business);
@@ -49,17 +44,8 @@ export const BusinessSelectorCard = () => {
 		navigation.navigate("BusinessSetup", { title: "Registrar Negocio" });
 	};
 
-	const getIconColor = (
-		isSelected: boolean,
-		isDark: boolean,
-		businessBgColor: string,
-	) => {
-		if (isSelected) return businessBgColor;
-		if (isDark) return "rgba(255,255,255,0.7)";
-		return "rgba(0,0,0,0.6)";
-	};
 	return (
-		<View style={[styles.optionsCard, { backgroundColor: cardBg }]}>
+		<View style={styles.sectionContainer}>
 			<Text style={[styles.sectionTitle, { color: colors.businessBg }]}>
 				Tus Negocios
 			</Text>
@@ -73,46 +59,45 @@ export const BusinessSelectorCard = () => {
 				</View>
 			) : (
 				<>
-					{/* Mapeo de la lista real de Firebase */}
-					{businesses.map((business: Business) => {
-						// Comparamos los IDs para saber cuál está seleccionado
+					{/* Lista de negocios */}
+					{businesses.map((business: Business, index: number) => {
 						const isSelected = business.id === activeBusiness?.id;
 
-						const labelColor = isSelected
-							? colors.businessBg
-							: textColor;
-
-						const iconColor = getIconColor(
-							isSelected,
-							isDark,
-							colors.businessBg,
-						);
+						// Quitar borde inferior solo al último elemento de la lista SI no hay botón de agregar abajo
+						const isLast = index === businesses.length - 1;
 
 						return (
 							<TouchableOpacity
 								key={business.id}
 								style={[
 									styles.optionRow,
-									{
-										borderBottomColor: isDark
-											? "rgba(255,255,255,0.08)"
-											: "rgba(0,0,0,0.05)",
-									},
+									{ borderBottomColor: separatorColor },
+									isLast &&
+										businesses.length > 0 && {
+											borderBottomWidth:
+												StyleSheet.hairlineWidth,
+										},
 								]}
 								onPress={() => handleSelectBusiness(business)}
-								activeOpacity={0.7}
+								activeOpacity={0.6}
 							>
 								<View style={styles.optionLeft}>
 									<Ionicons
 										name="storefront"
 										size={22}
-										color={iconColor}
+										color={
+											isSelected
+												? colors.businessBg
+												: iconColor
+										}
 									/>
 									<Text
 										style={[
 											styles.optionLabel,
 											{
-												color: labelColor,
+												color: isSelected
+													? colors.businessBg
+													: textColor,
 												fontWeight: isSelected
 													? FontWeight.bold
 													: FontWeight.medium,
@@ -134,14 +119,13 @@ export const BusinessSelectorCard = () => {
 										name="chevron-forward"
 										size={20}
 										color={subTextColor}
-										style={{ opacity: 0.8 }}
 									/>
 								)}
 							</TouchableOpacity>
 						);
 					})}
 
-					{/* Mensaje de feedback por si no tiene negocios aún */}
+					{/* Mensaje de feedback si no hay negocios */}
 					{businesses.length === 0 && (
 						<Text
 							style={[styles.emptyText, { color: subTextColor }]}
@@ -152,19 +136,15 @@ export const BusinessSelectorCard = () => {
 
 					{/* Botón final para agregar otro negocio */}
 					<TouchableOpacity
-						style={styles.optionRow}
+						style={[styles.optionRow, { borderBottomWidth: 0 }]}
 						onPress={handleRegisterBusiness}
-						activeOpacity={0.7}
+						activeOpacity={0.6}
 					>
 						<View style={styles.optionLeft}>
 							<Ionicons
 								name="add-circle"
 								size={22}
-								color={
-									isDark
-										? "rgba(255,255,255,0.7)"
-										: "rgba(0,0,0,0.6)"
-								}
+								color={iconColor}
 							/>
 							<Text
 								style={[
@@ -179,70 +159,33 @@ export const BusinessSelectorCard = () => {
 							name="chevron-forward"
 							size={20}
 							color={subTextColor}
-							style={{ opacity: 0.8 }}
 						/>
 					</TouchableOpacity>
 				</>
 			)}
-
-			{/* Botón final para agregar otro negocio */}
-			{/* <TouchableOpacity
-				style={styles.optionRow}
-				onPress={handleRegisterBusiness}
-				activeOpacity={0.7}
-			>
-				<View style={styles.optionLeft}>
-					<Ionicons
-						name="add-circle"
-						size={22}
-						color={
-							isDark ? "rgba(255,255,255,0.7)" : "rgba(0,0,0,0.6)"
-						}
-					/>
-					<Text
-						style={[
-							styles.optionLabel,
-							{
-								color: isDark
-									? "rgba(255,255,255,0.9)"
-									: "rgba(0,0,0,0.85)",
-							},
-						]}
-					>
-						Registrar otro negocio
-					</Text>
-				</View>
-				<Ionicons
-					name="chevron-forward"
-					size={20}
-					color={subTextColor}
-					style={{ opacity: 0.8 }}
-				/>
-			</TouchableOpacity> */}
 		</View>
 	);
 };
 
 const styles = StyleSheet.create({
-	optionsCard: {
-		borderRadius: BorderRadius.lg,
-		paddingHorizontal: Spacing.md,
-		paddingVertical: Spacing.md,
-		marginTop: Spacing.lg,
-		...Shadow.md,
+	sectionContainer: {
+		width: "100%",
+		paddingVertical: Spacing.sm,
 	},
 	sectionTitle: {
 		fontSize: FontSize.sm,
 		fontWeight: FontWeight.bold,
 		textTransform: "uppercase",
 		marginBottom: Spacing.sm,
+		paddingLeft: Spacing.xs,
 	},
 	optionRow: {
 		flexDirection: "row",
 		justifyContent: "space-between",
 		alignItems: "center",
 		paddingVertical: Spacing.md,
-		paddingLeft: Spacing.lg,
+		paddingHorizontal: Spacing.xs,
+		borderBottomWidth: StyleSheet.hairlineWidth,
 	},
 	optionLeft: {
 		flexDirection: "row",
@@ -266,6 +209,5 @@ const styles = StyleSheet.create({
 		textAlign: "center",
 		fontSize: FontSize.sm,
 		paddingVertical: Spacing.md,
-		opacity: 0.8,
 	},
 });

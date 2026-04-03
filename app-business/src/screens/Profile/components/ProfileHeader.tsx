@@ -17,21 +17,21 @@ import {
 	FontWeight,
 	BorderRadius,
 	Spacing,
-	Shadow,
 } from "@coco/shared/config/theme";
 import { useNavigation } from "@react-navigation/native";
 
 export const ProfileHeader = () => {
 	const { user } = useAppStore();
-	const { colors, isDark } = useTheme();
+	const { colors } = useTheme();
 	const insets = useSafeAreaInsets();
 	const navigation = useNavigation<any>();
 
-	const { userData } = useUser(user?.id);
+	const { userData } = useUser();
 	const rawAvatarUrl = userData?.avatarUrl || user?.avatarUrl;
 	const lastUpdate = userData?.updatedAt
 		? new Date(userData.updatedAt).getTime()
 		: 0;
+
 	const avatarUrl = useMemo(() => {
 		if (!rawAvatarUrl) return null;
 		const timestamp = lastUpdate || Date.now();
@@ -41,10 +41,10 @@ export const ProfileHeader = () => {
 			: rawAvatarUrl;
 	}, [rawAvatarUrl, lastUpdate]);
 
-	const textColor = isDark ? "rgba(255,255,255,0.9)" : "rgba(0,0,0,0.85)";
-	const subTextColor = isDark ? "rgba(255,255,255,0.6)" : "rgba(0,0,0,0.55)";
-	const headerBgColor =
-		colors.surfaceLight || (isDark ? "#1C1C1E" : "#FFFFFF");
+	// Mapeo utilizando las propiedades exactas de tu interface ColorPalette
+	const textColor = colors.textPrimaryLight;
+	const subTextColor = colors.textSecondaryLight;
+	const separatorColor = colors.borderLight;
 
 	const getInitials = () => {
 		const currentName = userData?.name || user?.name;
@@ -55,23 +55,21 @@ export const ProfileHeader = () => {
 			.join("")
 			.toUpperCase();
 	};
+
 	return (
 		<View
 			style={[
 				styles.header,
 				{
-					backgroundColor: headerBgColor,
+					backgroundColor: colors.backgroundLight, // ¡Ahora sí! usando backgroundLight
 					paddingTop:
-						Platform.OS === "android"
-							? insets.top - 10
-							: insets.top,
-					borderBottomColor: isDark
-						? "rgba(255,255,255,0.1)"
-						: "rgba(0,0,0,0.08)",
+						Platform.OS === "ios" ? insets.top : insets.top - 10, // Ajuste para Android
+					borderBottomColor: separatorColor,
 				},
 			]}
 		>
 			<View style={styles.profileHeaderContent}>
+				{/* Avatar */}
 				<View
 					style={[
 						styles.avatarPlaceholder,
@@ -94,16 +92,14 @@ export const ProfileHeader = () => {
 						{userData?.name || user?.name || "Socio Coco"}
 					</Text>
 					<Text style={[styles.userPhone, { color: subTextColor }]}>
-						{userData?.phone || user?.phone
-							? `${userData?.phone || user?.phone}`
-							: "Sin teléfono"}
+						{userData?.phone || user?.phone || "Sin teléfono"}
 					</Text>
 
 					{/* Badge Verificado */}
 					<View style={styles.badge}>
 						<Ionicons
 							name="shield-checkmark"
-							size={14}
+							size={12}
 							color="white"
 						/>
 						<Text style={styles.badgeText}>Socio Verificado</Text>
@@ -114,6 +110,7 @@ export const ProfileHeader = () => {
 				<TouchableOpacity
 					style={styles.editButton}
 					onPress={() => navigation.navigate("UserSetup")}
+					activeOpacity={0.6}
 				>
 					<Ionicons name="pencil" size={18} color={textColor} />
 				</TouchableOpacity>
@@ -126,50 +123,59 @@ const styles = StyleSheet.create({
 	header: {
 		paddingHorizontal: Spacing.md,
 		paddingBottom: Spacing.lg,
-		borderBottomWidth: 1,
+		borderBottomWidth: StyleSheet.hairlineWidth,
 	},
 	profileHeaderContent: {
 		flexDirection: "row",
 		alignItems: "center",
+		marginTop: Spacing.xs,
 	},
 	avatarPlaceholder: {
-		width: 70,
-		height: 70,
+		width: 64,
+		height: 64,
 		borderRadius: BorderRadius.full,
 		justifyContent: "center",
 		alignItems: "center",
-		...Shadow.md,
 		overflow: "hidden",
 	},
 	avatarText: {
-		fontSize: FontSize.title,
+		fontSize: FontSize.lg,
 		fontWeight: FontWeight.black,
 		color: "#FFFFFF",
 	},
-	headerInfo: { flex: 1, marginLeft: Spacing.md },
-	userName: { fontSize: FontSize.lg, fontWeight: FontWeight.bold },
-	userPhone: { fontSize: FontSize.sm, marginTop: 2 },
+	headerInfo: {
+		flex: 1,
+		marginLeft: Spacing.md,
+	},
+	userName: {
+		fontSize: FontSize.lg,
+		fontWeight: FontWeight.bold,
+	},
+	userPhone: {
+		fontSize: FontSize.sm,
+		marginTop: 1,
+	},
 	badge: {
 		flexDirection: "row",
 		alignItems: "center",
-		backgroundColor: "rgba(76, 175, 80, 0.9)",
-		paddingVertical: 3,
+		backgroundColor: "#4CAF50",
+		paddingVertical: 2,
 		paddingHorizontal: Spacing.sm,
 		borderRadius: BorderRadius.sm,
-		marginTop: Spacing.sm,
+		marginTop: Spacing.xs,
 		alignSelf: "flex-start",
 	},
 	badgeText: {
 		color: "white",
-		fontSize: FontSize.xs - 1,
+		fontSize: 10,
 		fontWeight: FontWeight.bold,
-		marginLeft: 4,
+		marginLeft: 3,
 		textTransform: "uppercase",
 	},
 	editButton: {
 		width: 36,
 		height: 36,
-		borderRadius: BorderRadius.sm,
+		borderRadius: BorderRadius.full,
 		justifyContent: "center",
 		alignItems: "center",
 		marginLeft: Spacing.sm,
