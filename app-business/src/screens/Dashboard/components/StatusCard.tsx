@@ -5,19 +5,21 @@ import {
 	FontWeight,
 	BorderRadius,
 	Spacing,
-	Shadow,
 } from "@coco/shared/config/theme";
 import { useBusiness } from "@coco/shared/hooks/supabase";
 import { useTheme } from "@coco/shared/hooks/useTheme";
 import { useDialog } from "@coco/shared/providers/DialogContext";
 import { useNavigation } from "@react-navigation/native";
-import { Skeleton } from "@/components/Skeleton";
 
 export const StatusCard = () => {
-	const { colors } = useTheme();
+	const { colors, isDark } = useTheme();
 	const navigation = useNavigation<any>();
 	const { showDialog } = useDialog();
 	const { activeBusiness, toggleBusinessStatus, loadings } = useBusiness();
+
+	const cardBg = colors.inputBg;
+	const borderColor = colors.borderLight;
+
 	const handleToggle = async () => {
 		if (!activeBusiness || loadings.toggle) return;
 		try {
@@ -35,54 +37,48 @@ export const StatusCard = () => {
 		}
 	};
 
-	if (loadings.fetch) {
-		return (
-			<Skeleton
-				variant="circle"
-				height={50}
-				style={[
-					styles.mainCard,
-					{
-						minHeight: 96,
-						backgroundColor: colors.surfaceLight,
-					},
-				]}
-			/>
-		);
-	}
-	// Si no hay negocio registrado
+	// Si no hay negocio registrado, mostramos el banner de invitación
 	if (!activeBusiness) {
 		return (
 			<TouchableOpacity
 				style={[
 					styles.registerBanner,
-					{ backgroundColor: colors.businessBg },
+					{
+						backgroundColor: colors.businessLight,
+						borderColor: colors.businessBg,
+					},
 				]}
 				onPress={() => navigation.navigate("BusinessSetup")}
+				activeOpacity={0.8}
 			>
-				<Text
-					style={[
-						styles.bannerTitle,
-						{ color: colors.textOnPrimary },
-					]}
-				>
-					¡Haz crecer tu negocio!
-				</Text>
-				<Text
-					style={[styles.bannerSub, { color: colors.textOnPrimary }]}
-				>
-					Registra tu establecimiento para empezar.
-				</Text>
+				<View style={{ flex: 1 }}>
+					<Text
+						style={[
+							styles.bannerTitle,
+							{ color: colors.textPrimaryLight },
+						]}
+					>
+						¡Haz crecer tu negocio!
+					</Text>
+					<Text
+						style={[
+							styles.bannerSub,
+							{ color: colors.textSecondaryLight },
+						]}
+					>
+						Registra tu establecimiento para empezar.
+					</Text>
+				</View>
 				<View
 					style={[
 						styles.bannerButton,
-						{ backgroundColor: colors.surfaceLight },
+						{ backgroundColor: colors.businessBg },
 					]}
 				>
 					<Text
 						style={[
 							styles.bannerButtonText,
-							{ color: colors.businessBg },
+							{ color: colors.textOnPrimary },
 						]}
 					>
 						Comenzar
@@ -98,14 +94,12 @@ export const StatusCard = () => {
 			style={[
 				styles.mainCard,
 				{
-					backgroundColor: colors.surfaceLight,
-					borderLeftColor: activeBusiness.isOpen
-						? colors.success
-						: colors.error,
+					backgroundColor: cardBg,
+					borderColor: borderColor,
 				},
 			]}
 		>
-			<View style={{ minHeight: 47 }}>
+			<View style={{ justifyContent: "center" }}>
 				<Text
 					style={[
 						styles.cardLabel,
@@ -114,76 +108,102 @@ export const StatusCard = () => {
 				>
 					Estado del Negocio
 				</Text>
-				<Text
-					style={[
-						styles.statusTitle,
-						{
-							color: activeBusiness.isOpen
-								? colors.success
-								: colors.error,
-						},
-					]}
-				>
-					{activeBusiness.isOpen
-						? "RECIBIENDO PEDIDOS"
-						: "PAUSADO / CERRADO"}
-				</Text>
+
+				<View style={styles.statusWrapper}>
+					<View
+						style={[
+							styles.statusDot,
+							{
+								backgroundColor: activeBusiness.isOpen
+									? colors.success
+									: colors.error,
+							},
+						]}
+					/>
+					<Text
+						style={[
+							styles.statusTitle,
+							{
+								color: colors.textPrimaryLight,
+							},
+						]}
+					>
+						{activeBusiness.isOpen ? "Abierto" : "Pausado"}
+					</Text>
+				</View>
 			</View>
-			{!loadings.fetch && (
-				<Switch
-					value={activeBusiness.isOpen}
-					onValueChange={handleToggle}
-					trackColor={{
-						false: colors.borderLight,
-						true: colors.businessBg,
-					}}
-					thumbColor={colors.surfaceLight}
-					ios_backgroundColor={colors.borderLight}
-					disabled={loadings.toggle}
-				/>
-			)}
+
+			<Switch
+				value={activeBusiness.isOpen}
+				onValueChange={handleToggle}
+				trackColor={{
+					false: isDark ? "#444444" : colors.borderLight,
+					true: colors.businessBg,
+				}}
+				thumbColor={colors.surfaceLight}
+				ios_backgroundColor={isDark ? "#444444" : colors.borderLight}
+				disabled={loadings.toggle} // Mantengo este disable por seguridad al hacer el switch
+			/>
 		</View>
 	);
 };
 
 const styles = StyleSheet.create({
 	registerBanner: {
-		padding: Spacing.lg,
-		borderRadius: BorderRadius.lg,
-		marginBottom: Spacing.lg,
+		padding: Spacing.md,
+		borderRadius: BorderRadius.md,
+		marginBottom: Spacing.md,
+		flexDirection: "row",
+		alignItems: "center",
+		justifyContent: "space-between",
+		borderWidth: 1,
 	},
-	bannerTitle: { fontSize: FontSize.md, fontWeight: FontWeight.bold },
+	bannerTitle: {
+		fontSize: FontSize.md,
+		fontWeight: FontWeight.bold,
+	},
 	bannerSub: {
-		marginTop: 5,
-		lineHeight: 20,
-		fontSize: FontSize.sm,
+		marginTop: 2,
+		fontSize: FontSize.xs,
 	},
 	bannerButton: {
-		paddingVertical: 10,
+		paddingVertical: Spacing.sm,
 		paddingHorizontal: Spacing.md,
 		borderRadius: BorderRadius.sm,
-		marginTop: Spacing.md,
-		alignSelf: "flex-start",
+		marginLeft: Spacing.sm,
 	},
-	bannerButtonText: { fontWeight: FontWeight.bold, fontSize: FontSize.sm },
+	bannerButtonText: {
+		fontWeight: FontWeight.bold,
+		fontSize: FontSize.sm,
+	},
 	mainCard: {
-		padding: Spacing.lg,
-		borderRadius: BorderRadius.lg,
+		padding: Spacing.md,
+		borderRadius: BorderRadius.md,
 		flexDirection: "row",
 		justifyContent: "space-between",
 		alignItems: "center",
-		marginBottom: Spacing.lg,
-		...Shadow.md,
-		borderLeftWidth: 5,
+		marginBottom: Spacing.md,
+		borderWidth: 1,
 	},
 	cardLabel: {
 		fontSize: FontSize.xs,
 		fontWeight: FontWeight.bold,
 		textTransform: "uppercase",
+		letterSpacing: 0.5,
+	},
+	statusWrapper: {
+		flexDirection: "row",
+		alignItems: "center",
+		marginTop: 4,
+	},
+	statusDot: {
+		width: 8,
+		height: 8,
+		borderRadius: BorderRadius.full,
+		marginRight: Spacing.sm,
 	},
 	statusTitle: {
-		fontSize: FontSize.md,
-		fontWeight: FontWeight.black,
-		marginTop: 4,
+		fontSize: FontSize.lg,
+		fontWeight: FontWeight.bold,
 	},
 });

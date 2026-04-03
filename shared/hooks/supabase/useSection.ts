@@ -1,17 +1,16 @@
 import { useState, useEffect, useCallback } from "react";
 import { Product, Section } from "core/entities";
-import { useCatalogStore } from "@coco/shared/hooks/useCatalogStore";
 import { TABLES } from "@coco/shared/constants";
-import { useAppStore } from "@coco/shared/hooks/useAppStore";
-import { useSupabaseContext } from "@coco/shared/providers/SupabaseContext";
+import { useAppStore, useSectionStore } from "@coco/shared/hooks";
+import { useSupabaseContext } from "@coco/shared/providers";
 
 export const useSection = () => {
 	const supabase = useSupabaseContext();
 	const { activeBusiness } = useAppStore();
 	const [searchTerm, setSearchTerm] = useState("");
 
-	const sections = useCatalogStore((state) => state.sections);
-	const setSections = useCatalogStore((state) => state.setSections);
+	const sections = useSectionStore((state) => state.sections);
+	const setSections = useSectionStore((state) => state.setSections);
 
 	// ⚡ 1. Agrupamos todos los loadings bajo el mismo estándar
 	const [loadings, setLoadings] = useState({
@@ -115,7 +114,6 @@ export const useSection = () => {
 						products: mappedProducts,
 					};
 				});
-
 				setSections(mappedSections);
 			} catch (err: any) {
 				console.error("Error fetching sections:", err);

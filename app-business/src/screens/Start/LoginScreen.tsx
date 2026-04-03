@@ -18,7 +18,7 @@ import {
 	Spacing,
 	Colors,
 } from "@coco/shared/config/theme";
-import { useTheme } from "@coco/shared/hooks";
+import { useBusiness, useTheme } from "@coco/shared/hooks";
 import { useDialog, useSupabaseContext } from "@coco/shared/providers";
 import { StatusBar } from "expo-status-bar";
 
@@ -37,33 +37,32 @@ export const LoginScreen: React.FC<LoginProps> = ({ onRegister }) => {
 	const handleLogin = async () => {
 		const cleanEmail = email.trim();
 		setLoading(true);
+
 		if (cleanEmail === "" || password === "") {
 			showDialog({
 				title: "Error",
 				message: "Por favor llena todos los campos.",
 				intent: "error",
 			});
+			setLoading(false);
 			return;
 		}
 
 		try {
-			// await AuthService.login(email, password);
-			const { data, error } = await supabase.auth.signInWithPassword({
+			// 1. Autenticamos en Supabase
+			const { error } = await supabase.auth.signInWithPassword({
 				email: cleanEmail,
 				password: password,
 			});
+
 			if (error) throw error;
-			showDialog({
-				title: "¡Bienvenido!",
-				message: "Ya puedes pedir tu coco",
-				intent: "success",
-			});
+
+			// ¡Listo! No hacemos nada más aquí.
+			// El listener de App.tsx captará la sesión y hará el resto.
 		} catch (error: any) {
 			console.error(error);
-
 			let errorMessage = "Revisa tus datos o regístrate.";
 
-			// 👈 5. Errores específicos de Supabase
 			if (error.message === "Invalid login credentials") {
 				errorMessage = "El correo o la contraseña son incorrectos.";
 			} else if (error.message === "Email not confirmed") {
@@ -77,7 +76,7 @@ export const LoginScreen: React.FC<LoginProps> = ({ onRegister }) => {
 				intent: "error",
 			});
 		} finally {
-			setLoading(false); // Desbloqueamos UI
+			setLoading(false);
 		}
 	};
 
@@ -146,6 +145,8 @@ export const LoginScreen: React.FC<LoginProps> = ({ onRegister }) => {
 		</KeyboardAvoidingView>
 	);
 };
+
+// ... los estilos del login se quedan exactamente igual
 
 const styles = StyleSheet.create({
 	container: {

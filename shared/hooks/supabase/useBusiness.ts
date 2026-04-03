@@ -40,22 +40,6 @@ export const useBusiness = () => {
 
 			const list = data as Business[];
 			setBusinesses(list);
-
-			if (list.length > 0) {
-				const activeId = activeBusiness?.id;
-				const matchedBusiness = list.find((b) => b.id === activeId);
-
-				if (matchedBusiness) {
-					if (
-						JSON.stringify(matchedBusiness) !==
-						JSON.stringify(activeBusiness)
-					) {
-						setActiveBusiness(matchedBusiness);
-					}
-				} else if (!activeId) {
-					setActiveBusiness(list[0]);
-				}
-			} else if (activeBusiness !== null) setActiveBusiness(null);
 		} catch (err: any) {
 			console.error("Error fetching businesses:", err);
 			setError(err.message || "No se pudieron cargar los negocios");
@@ -156,6 +140,50 @@ export const useBusiness = () => {
 		}
 	};
 
+	const loadActiveBusiness = useCallback(
+		async (businessId?: string | null, userId?: string | null) => {
+			if (!supabase || !userId) return;
+
+			try {
+				if (businessId) {
+					const { data, error: supabaseError } = await supabase
+						.from("businesses")
+						.select("*")
+						.eq("id", businessId)
+						.maybeSingle();
+
+					if (supabaseError) throw supabaseError;
+
+					if (data) {
+						setActiveBusiness(data as Business);
+						return; // Terminamos con éxito
+					}
+				}
+
+				const { data: userBusinesses, error: listError } =
+					await supabase
+						.from("businesses")
+						.select("*")
+						.eq("ownerId", userId)
+						.order("createdAt", { ascending: true })
+						.limit(1);
+
+				if (listError) throw listError;
+
+				if (userBusinesses && userBusinesses.length > 0) {
+					const firstBusiness = userBusinesses[0] as Business;
+					setActiveBusiness(firstBusiness);
+					await supabase
+						.from("users")
+						.update({ last_active_business_id: firstBusiness.id })
+						.eq("id", userId);
+				}
+			} catch (err) {
+				console.error("Error al orquestar el negocio activo:", err);
+			}
+		},
+		[supabase, user?.id, setActiveBusiness],
+	);
 	const deleteBusiness = async (businessId: string) => {
 		setFunctionLoading("delete", true);
 		try {
@@ -203,5 +231,6 @@ export const useBusiness = () => {
 		error,
 		refetch: fetchBusinesses,
 		loadings,
+		loadActiveBusiness,
 	};
 };

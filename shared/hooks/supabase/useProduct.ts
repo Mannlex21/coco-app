@@ -1,19 +1,22 @@
 import { useState, useEffect, useCallback } from "react";
 import { Product, Section } from "@coco/shared/core/entities";
-import { useCatalogStore } from "@coco/shared/hooks/useCatalogStore";
 import { TABLES } from "@coco/shared/constants";
-import { useAppStore } from "@coco/shared/hooks/useAppStore";
-import { useSupabaseContext } from "@coco/shared/providers/SupabaseContext";
+import { useSupabaseContext } from "@coco/shared/providers";
+import {
+	useAppStore,
+	useProductStore,
+	useSectionStore,
+} from "@coco/shared/hooks";
 
 export const useProduct = () => {
 	const supabase = useSupabaseContext();
 	const [searchTerm, setSearchTerm] = useState("");
 
 	const { user, activeBusiness } = useAppStore();
-	const products = useCatalogStore((state) => state.products);
-	const setProducts = useCatalogStore((state) => state.setProducts);
-	const sections = useCatalogStore((state) => state.sections);
-	const setSections = useCatalogStore((state) => state.setSections);
+	const products = useProductStore((state) => state.products);
+	const setProducts = useProductStore((state) => state.setProducts);
+	const sections = useSectionStore((state) => state.sections);
+	const setSections = useSectionStore((state) => state.setSections);
 
 	// ⚡ 1. Agrupamos todos los loadings. Agregué "move" y "sections".
 	const [loadings, setLoadings] = useState({

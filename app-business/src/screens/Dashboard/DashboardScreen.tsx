@@ -1,13 +1,17 @@
 import React from "react";
 import { View, StyleSheet, ScrollView, RefreshControl } from "react-native";
-import { FontSize, Spacing } from "@coco/shared/config/theme";
+import { Spacing } from "@coco/shared/config/theme";
 import { useBusiness } from "@coco/shared/hooks";
 import { useTheme } from "@coco/shared/hooks/useTheme";
 import {
 	DashboardHeader,
 	StatusCard,
-	StatsCard,
-	QuickAccessCard,
+	QuickActionsCard,
+	TopProductsCard,
+	OrderVolumeCard,
+	SummaryCards,
+	SalesTotalCard,
+	RatingsCard,
 } from "@/screens/Dashboard/components";
 
 export const DashboardScreen = () => {
@@ -15,7 +19,7 @@ export const DashboardScreen = () => {
 	const { onRefresh, loadings } = useBusiness();
 
 	return (
-		<View style={{ flex: 1 }}>
+		<View style={{ flex: 1, backgroundColor: colors.backgroundLight }}>
 			<DashboardHeader />
 
 			<ScrollView
@@ -30,18 +34,20 @@ export const DashboardScreen = () => {
 				}
 			>
 				<StatusCard />
-				<StatsCard />
-				<QuickAccessCard />
+				<SummaryCards />
+				<SalesTotalCard />
+				<OrderVolumeCard />
+				<TopProductsCard />
+				<RatingsCard />
+				<QuickActionsCard />
 			</ScrollView>
 		</View>
 	);
 };
 
 const styles = StyleSheet.create({
-	loadingText: {
-		textAlign: "center",
-		marginTop: Spacing.lg,
-		fontSize: FontSize.sm,
+	content: {
+		padding: Spacing.lg,
+		paddingTop: Spacing.sm,
 	},
-	content: { padding: Spacing.lg },
 });

@@ -1,16 +1,15 @@
 import { useState, useEffect, useCallback } from "react";
 import { TABLES } from "@coco/shared/constants";
 import { Modifier } from "core/entities/Modifier";
-import { useAppStore } from "@coco/shared/hooks/useAppStore";
+import { useAppStore, useModifierStore } from "@coco/shared/hooks";
 import { useSupabaseContext } from "@coco/shared/providers/SupabaseContext";
-import { useCatalogStore } from "@coco/shared/hooks/useCatalogStore";
 
 export const useModifiersGroup = () => {
 	const supabase = useSupabaseContext();
 	const [searchTerm, setSearchTerm] = useState("");
 	const { user, activeBusiness } = useAppStore();
-	const modifierGroups = useCatalogStore((state) => state.modifiersGroup);
-	const setModifierGroups = useCatalogStore(
+	const modifierGroups = useModifierStore((state) => state.modifiersGroup);
+	const setModifierGroups = useModifierStore(
 		(state) => state.setModifiersGroup,
 	);
 	const [loadings, setLoadings] = useState({

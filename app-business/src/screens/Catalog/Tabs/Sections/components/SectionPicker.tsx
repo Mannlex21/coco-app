@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
@@ -7,7 +7,6 @@ import {
 	Text,
 	StyleSheet,
 	FlatList,
-	TextInput,
 	TouchableOpacity,
 	ActivityIndicator,
 	Platform,
@@ -15,22 +14,16 @@ import {
 
 import { useTheme } from "@coco/shared/hooks/useTheme";
 import { useSection } from "@coco/shared/hooks/supabase";
-import { Section } from "@coco/shared/core/entities/";
-import {
-	FontSize,
-	FontWeight,
-	BorderRadius,
-	Spacing,
-} from "@coco/shared/config/theme";
-import { PrimaryButton, ScreenHeader } from "@/components";
+import { Section } from "@coco/shared/core/entities";
+import { FontSize, FontWeight, Spacing } from "@coco/shared/config/theme";
+import { PrimaryButton, ScreenHeader, SearchInput } from "@/components";
 
 export const SectionPicker = () => {
 	const navigation = useNavigation<any>();
 	const route = useRoute<any>();
-	const { colors, isDark } = useTheme();
+	const { colors } = useTheme();
 	const insets = useSafeAreaInsets();
 
-	// 🌟 Recibe las secciones ya seleccionadas para persistir la selección
 	const { alreadySelectedSections = [], returnScreen = "ProductForm" } =
 		route.params || {};
 
@@ -40,16 +33,10 @@ export const SectionPicker = () => {
 	const [selectedSectionIds, setSelectedSectionIds] = useState<string[]>(
 		alreadySelectedSections,
 	);
-	const textColor = colors.textPrimaryLight;
-	const subTextColor = colors.textSecondaryLight;
-	const borderColor = colors.borderLight;
-	const bgApp = colors.backgroundLight;
-	const bgSearchInput = colors.inputBg;
 
-	useEffect(() => {
+	const handleSearch = () => {
 		fetch(searchTerm);
-		// 🚀 Quitamos fetchSections de aquí abajo para evitar el bucle infinito
-	}, [searchTerm]);
+	};
 
 	const toggleSectionSelection = (sectionId: string) => {
 		const isSelected = selectedSectionIds?.includes(sectionId);
@@ -63,12 +50,7 @@ export const SectionPicker = () => {
 	};
 
 	const handleFinish = () => {
-		// 🔥 Limpieza en un Set para garantizar unicidad de IDs de vuelta
 		const uniqueIds = Array.from(new Set(selectedSectionIds));
-
-		console.log("Regresando IDs únicos:", uniqueIds);
-
-		// 🌟 Redirige mandando el arreglo finalizado de puros IDs
 		navigation.popTo(returnScreen, {
 			selectedSections: uniqueIds,
 		});
@@ -79,16 +61,24 @@ export const SectionPicker = () => {
 
 		return (
 			<TouchableOpacity
-				style={[styles.card, { borderBottomColor: borderColor }]}
+				style={[styles.card, { borderBottomColor: colors.borderLight }]}
 				activeOpacity={0.7}
-				onPress={() => toggleSectionSelection(item.id)} // 🚀 Mandamos el ID
+				onPress={() => toggleSectionSelection(item.id)}
 			>
 				<View style={{ flex: 1 }}>
-					<Text style={[styles.name, { color: textColor }]}>
+					<Text
+						style={[
+							styles.name,
+							{ color: colors.textPrimaryLight },
+						]}
+					>
 						{item.name}
 					</Text>
 					<Text
-						style={{ color: subTextColor, fontSize: FontSize.sm }}
+						style={{
+							color: colors.textSecondaryLight,
+							fontSize: FontSize.sm,
+						}}
 						numberOfLines={1}
 					>
 						{item.description || "Sin descripción"}
@@ -98,55 +88,38 @@ export const SectionPicker = () => {
 				<Ionicons
 					name={isSelected ? "checkbox" : "square-outline"}
 					size={24}
-					color={isSelected ? colors.businessBg : subTextColor}
+					color={
+						isSelected
+							? colors.businessBg
+							: colors.textSecondaryLight
+					}
 				/>
 			</TouchableOpacity>
 		);
 	};
 
 	return (
-		<View style={{ flex: 1, backgroundColor: bgApp }}>
+		<View style={{ flex: 1, backgroundColor: colors.backgroundLight }}>
 			<ScreenHeader
 				title="Vincular Secciones"
 				onBack={() => navigation.goBack()}
 				fontSizeTitle={FontSize.xl}
 			/>
 
-			<View
-				style={[
-					styles.searchContainer,
-					{
-						backgroundColor: bgSearchInput,
-						borderColor: borderColor,
-					},
-				]}
-			>
-				<Ionicons
-					name="search-outline"
-					size={18}
-					color={subTextColor}
-				/>
-				<TextInput
-					style={[styles.searchInput, { color: textColor }]}
-					placeholder="Buscar sección por nombre..."
-					placeholderTextColor={
-						isDark ? "rgba(255,255,255,0.3)" : "rgba(0,0,0,0.3)"
-					}
+			<View style={styles.searchWrapper}>
+				<SearchInput
 					value={searchTerm}
 					onChangeText={setSearchTerm}
+					onSearch={handleSearch}
+					colors={colors}
+					placeholder="Buscar sección por nombre..."
+					onClear={() => setSearchTerm("")}
 				/>
-				{searchTerm.length > 0 && (
-					<TouchableOpacity onPress={() => setSearchTerm("")}>
-						<Ionicons
-							name="close-circle"
-							size={18}
-							color={subTextColor}
-						/>
-					</TouchableOpacity>
-				)}
 			</View>
 
-			<Text style={[styles.headerSub, { color: subTextColor }]}>
+			<Text
+				style={[styles.headerSub, { color: colors.textSecondaryLight }]}
+			>
 				Busca y selecciona las secciones en las que se mostrará este
 				producto.
 			</Text>
@@ -164,7 +137,10 @@ export const SectionPicker = () => {
 					showsVerticalScrollIndicator={false}
 					ListEmptyComponent={
 						<Text
-							style={[styles.emptyText, { color: subTextColor }]}
+							style={[
+								styles.emptyText,
+								{ color: colors.textSecondaryLight },
+							]}
 						>
 							No se encontraron secciones.
 						</Text>
@@ -175,7 +151,10 @@ export const SectionPicker = () => {
 			<View
 				style={[
 					styles.bottomContainer,
-					{ borderTopColor: borderColor, backgroundColor: bgApp },
+					{
+						borderTopColor: colors.borderLight,
+						backgroundColor: colors.backgroundLight,
+					},
 				]}
 			>
 				<PrimaryButton
@@ -205,20 +184,9 @@ const styles = StyleSheet.create({
 		marginBottom: Spacing.md,
 		paddingHorizontal: Spacing.md,
 	},
-	searchContainer: {
-		flexDirection: "row",
-		alignItems: "center",
+	searchWrapper: {
 		marginHorizontal: Spacing.md,
 		marginBottom: Spacing.sm,
-		paddingHorizontal: Spacing.md,
-		height: 46,
-		borderRadius: BorderRadius.md,
-		borderWidth: StyleSheet.hairlineWidth,
-	},
-	searchInput: {
-		flex: 1,
-		marginLeft: Spacing.sm,
-		fontSize: FontSize.md,
 	},
 	card: {
 		flexDirection: "row",

@@ -7,43 +7,93 @@ import {
 	TouchableOpacity,
 } from "react-native";
 
-// IMPORT LOCAL: Usando tu infraestructura de Firebase
-import { auth } from "@/infrastructure/firebase/config";
-import { onAuthStateChanged, User } from "firebase/auth";
 import { CocoLogo } from "@coco/shared/components/CocoLogo";
 import { LoginScreen } from "@/screens/LoginScreen";
 import { RegisterScreen } from "@/screens/RegisterScreen";
-import { AuthService } from "@/infrastructure/firebase/auth.service";
 import { FontWeight } from "@coco/shared/config/theme";
+import { useAppStore } from "@coco/shared/hooks/useAppStore";
+import { useSupabaseContext } from "@coco/shared/providers";
+import { AuthChangeEvent, Session } from "@supabase/supabase-js";
+import { User } from "@coco/shared/core/entities/User";
+import { RolesApp } from "@coco/shared/constants";
 
 export default function App() {
 	const [loading, setLoading] = useState(true);
-	const [user, setUser] = useState<User | null>(null);
+	const { user, setUser } = useAppStore();
 	const [isRegistering, setIsRegistering] = useState(false);
+	const supabase = useSupabaseContext();
 
 	useEffect(() => {
-		console.log("Checking Firebase connection (Client)...");
+		if (!supabase) return;
 
-		const unsubscribe = onAuthStateChanged(
-			auth,
-			(currentUser) => {
-				console.log(
-					"Firebase Auth State Changed:",
-					currentUser ? "User Logged In" : "Guest Mode",
-				);
-				setUser(currentUser);
-				setLoading(false);
-			},
-			(error) => {
-				console.error("Firebase Auth Error:", error);
+		const checkInitialSession = async () => {
+			// 1. Forzamos a Supabase a leer el SecureStore manualmente al arrancar
+			const {
+				data: { session },
+			} = await supabase.auth.getSession();
+
+			if (session?.user) {
+				console.log("Sesión inicial encontrada en SecureStore!");
+				mapearYSetearUsuario(session.user);
+			}
+
+			// Ya sea que encontramos sesión o no, apagamos el loader inicial
+			setLoading(false);
+		};
+
+		// Función reutilizable para no repetir código
+		const mapearYSetearUsuario = (supabaseUser: any) => {
+			const domainUser: User = {
+				id: supabaseUser.id,
+				email: supabaseUser.email || "",
+				name:
+					supabaseUser.user_metadata?.full_name ||
+					supabaseUser.email?.split("@")[0] ||
+					"Usuario",
+				status: "active",
+				createdAt: new Date(supabaseUser.created_at),
+				updatedAt: supabaseUser.updated_at
+					? new Date(supabaseUser.updated_at)
+					: new Date(supabaseUser.created_at),
+				phone: supabaseUser.phone || "",
+				role: (supabaseUser.role as RolesApp) || "none",
+			};
+			setUser(domainUser);
+		};
+
+		// Ejecutamos la verificación inicial
+		checkInitialSession();
+
+		// 2. Dejamos el listener para futuros cambios (como logouts o logins)
+		const { data: authListener } = supabase.auth.onAuthStateChange(
+			async (event: AuthChangeEvent, session: Session | null) => {
+				console.log("Evento AuthStateChange:", event);
+
+				if (session?.user) {
+					mapearYSetearUsuario(session.user);
+				} else {
+					setUser(null);
+				}
+
+				// Por si acaso, nos aseguramos de apagar el loading aquí también
 				setLoading(false);
 			},
 		);
 
-		return () => unsubscribe();
-	}, []);
+		// Limpieza del listener al desmontar el componente
+		return () => {
+			authListener.subscription.unsubscribe();
+		};
+	}, [supabase, setUser]);
 
-	if (loading) return <ActivityIndicator />;
+	// Mientras Supabase nos dice si hay sesión o no, mostramos el spinner
+	if (loading) {
+		return (
+			<View style={[styles.container, { justifyContent: "center" }]}>
+				<ActivityIndicator size="large" color="white" />
+			</View>
+		);
+	}
 
 	// Si no hay usuario, mostramos el Login
 	if (!user) {
@@ -54,7 +104,7 @@ export default function App() {
 		);
 	}
 
-	// Si ya hay usuario, mostramos la pantalla principal que ya tenías
+	// Si ya hay usuario, mostramos la pantalla principal
 	return (
 		<View style={styles.container}>
 			<CocoLogo size={150} />
@@ -69,7 +119,7 @@ export default function App() {
 				{/* BOTÓN DE CERRAR SESIÓN */}
 				<TouchableOpacity
 					style={styles.logoutButton}
-					onPress={() => AuthService.logout()}
+					onPress={async () => await supabase.auth.signOut()}
 				>
 					<Text style={styles.logoutText}>Cerrar Sesión</Text>
 				</TouchableOpacity>

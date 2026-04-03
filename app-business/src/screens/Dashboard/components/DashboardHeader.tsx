@@ -1,16 +1,14 @@
 import React from "react";
-import { View, Text, StyleSheet, Platform } from "react-native";
+import { View, Text, StyleSheet } from "react-native";
 import { useTheme } from "@coco/shared/hooks/useTheme";
 import { useAppStore } from "@coco/shared/hooks/useAppStore";
 import { useBusiness, useUser } from "@coco/shared/hooks/supabase";
 import { FontSize, FontWeight, Spacing } from "@coco/shared/config/theme";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Skeleton } from "@/components/Skeleton";
 
 export const DashboardHeader = () => {
 	const { colors } = useTheme();
 	const { user } = useAppStore();
-	const insets = useSafeAreaInsets();
 	const { loadingUser } = useUser();
 
 	const { activeBusiness, loadings } = useBusiness();
@@ -69,7 +67,7 @@ export const DashboardHeader = () => {
 const styles = StyleSheet.create({
 	header: {
 		paddingHorizontal: Spacing.md,
-		paddingBottom: Spacing.lg,
+		paddingBottom: Spacing.xs,
 		borderBottomWidth: StyleSheet.hairlineWidth,
 	},
 	welcomeText: {
