@@ -6,18 +6,15 @@ import {
 	TouchableOpacity,
 	StyleSheet,
 } from "react-native";
-import { useAppStore } from "@coco/shared/hooks/useAppStore";
 import { BUSINESS_CATEGORY_LABELS } from "@coco/shared/constants";
 import { useTheme } from "@coco/shared/hooks/useTheme";
 import { Colors, FontWeight } from "@coco/shared/config/theme";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { useDialog } from "@coco/shared/providers/DialogContext";
-import { supabase } from "@/infrastructure/supabase/config";
 import { useBusiness } from "@coco/shared/hooks/supabase";
 
 export const BusinessSetupScreen = ({ navigation }: any) => {
-	const { user } = useAppStore();
-	const { registerBusiness } = useBusiness(supabase, user?.id);
+	const { registerBusiness } = useBusiness();
 	const [loading, setLoading] = useState(false);
 	const { showDialog } = useDialog();
 	const { colors, isDark } = useTheme();

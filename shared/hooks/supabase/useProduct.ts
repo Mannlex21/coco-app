@@ -1,14 +1,15 @@
 import { useState, useEffect, useCallback } from "react";
-import { SupabaseClient } from "@supabase/supabase-js";
 import { Product, Section } from "@coco/shared/core/entities";
 import { useCatalogStore } from "@coco/shared/hooks/useCatalogStore";
 import { TABLES } from "@coco/shared/constants";
 import { useAppStore } from "@coco/shared/hooks/useAppStore";
+import { useSupabaseContext } from "@coco/shared/providers/SupabaseContext";
 
-export const useProduct = (supabase: SupabaseClient, businessId?: string) => {
+export const useProduct = () => {
+	const supabase = useSupabaseContext();
 	const [searchTerm, setSearchTerm] = useState("");
 
-	const { user } = useAppStore();
+	const { user, activeBusiness } = useAppStore();
 	const products = useCatalogStore((state) => state.products);
 	const setProducts = useCatalogStore((state) => state.setProducts);
 	const sections = useCatalogStore((state) => state.sections);
@@ -19,13 +20,13 @@ export const useProduct = (supabase: SupabaseClient, businessId?: string) => {
 	const [error, setError] = useState<string | null>(null);
 
 	const fetchSectionsIfEmpty = useCallback(async () => {
-		if (!businessId || sections.length > 0) return;
+		if (!activeBusiness?.id || sections.length > 0) return;
 
 		try {
 			const { data, error: supabaseError } = await supabase
 				.from(TABLES.SECTIONS)
 				.select("*")
-				.eq("business_id", businessId)
+				.eq("business_id", activeBusiness.id)
 				.order("position", { ascending: true });
 
 			if (supabaseError) throw supabaseError;
@@ -49,12 +50,12 @@ export const useProduct = (supabase: SupabaseClient, businessId?: string) => {
 				err,
 			);
 		}
-	}, [supabase, businessId, sections.length, setSections]);
+	}, [supabase, activeBusiness, sections.length, setSections]);
 
 	// 1. Obtener todos los productos con sus secciones (Muchos a Muchos)
 	const fetchProducts = useCallback(
 		async (searchQuery: string = "") => {
-			if (!businessId) return;
+			if (!activeBusiness?.id) return;
 
 			setLoading(true);
 			setError(null);
@@ -69,7 +70,7 @@ export const useProduct = (supabase: SupabaseClient, businessId?: string) => {
                         product_sections(section_id)
                     `,
 					)
-					.eq("business_id", businessId)
+					.eq("business_id", activeBusiness?.id)
 					.order("position", { ascending: true });
 
 				if (searchQuery.trim() !== "") {
@@ -109,7 +110,7 @@ export const useProduct = (supabase: SupabaseClient, businessId?: string) => {
 				setRefreshing(false);
 			}
 		},
-		[supabase, businessId, setProducts],
+		[supabase, activeBusiness, setProducts],
 	);
 
 	// 2. Obtener UN producto por ID (Adaptado para traer sus secciónes)
@@ -171,7 +172,8 @@ export const useProduct = (supabase: SupabaseClient, businessId?: string) => {
 			isAvailable: boolean;
 		},
 	) => {
-		console.log(businessId);
+		console.log(productId, dataToSave);
+		setLoading(true);
 		if (!user?.lastActiveBusinessId || !dataToSave)
 			throw new Error(
 				"No se pudo guardar: Falta businessId o dataToSave",
@@ -180,7 +182,7 @@ export const useProduct = (supabase: SupabaseClient, businessId?: string) => {
 		try {
 			// ⚡ Eliminamos section_id del payload directo a la tabla de productos
 			const payload: any = {
-				business_id: businessId,
+				business_id: activeBusiness?.id,
 				name: dataToSave.name.trim(),
 				description: dataToSave.description.trim(),
 				price: dataToSave.price,
@@ -206,7 +208,7 @@ export const useProduct = (supabase: SupabaseClient, businessId?: string) => {
 				const { data: lastProduct } = await supabase
 					.from(TABLES.PRODUCTS)
 					.select("position")
-					.eq("business_id", businessId)
+					.eq("business_id", activeBusiness?.id)
 					.order("position", { ascending: false })
 					.limit(1)
 					.maybeSingle();
@@ -231,13 +233,17 @@ export const useProduct = (supabase: SupabaseClient, businessId?: string) => {
 				.eq("product_id", currentProductId);
 
 			// 2. Insertamos las nuevas (si el usuario seleccionó alguna)
+			// 2. Insertamos las nuevas (eliminando duplicados de forma segura)
 			if (dataToSave.sectionIds && dataToSave.sectionIds.length > 0) {
-				const relationsToInsert = dataToSave.sectionIds.map(
-					(secId) => ({
-						product_id: currentProductId,
-						section_id: secId,
-					}),
+				// 🔥 Array.from funciona perfecto en ES5 con Sets
+				const uniqueSectionIds = Array.from(
+					new Set(dataToSave.sectionIds),
 				);
+
+				const relationsToInsert = uniqueSectionIds.map((secId) => ({
+					product_id: currentProductId,
+					section_id: secId,
+				}));
 
 				const { error: relError } = await supabase
 					.from("product_sections")
@@ -251,6 +257,8 @@ export const useProduct = (supabase: SupabaseClient, businessId?: string) => {
 		} catch (err: any) {
 			console.error("Error saving product:", err);
 			throw err;
+		} finally {
+			setLoading(false);
 		}
 	};
 
@@ -338,7 +346,7 @@ export const useProduct = (supabase: SupabaseClient, businessId?: string) => {
 			const { data, error } = await supabase
 				.from(TABLES.PRODUCTS)
 				.select("id, position")
-				.eq("business_id", businessId)
+				.eq("business_id", activeBusiness?.id)
 				.eq("position", targetPos)
 				.single();
 
@@ -375,11 +383,11 @@ export const useProduct = (supabase: SupabaseClient, businessId?: string) => {
 	};
 
 	useEffect(() => {
-		if (businessId) {
+		if (activeBusiness?.id) {
 			fetchSectionsIfEmpty();
 			fetchProducts("");
 		}
-	}, [businessId, fetchProducts, fetchSectionsIfEmpty]);
+	}, [activeBusiness, fetchProducts, fetchSectionsIfEmpty]);
 
 	return {
 		products,

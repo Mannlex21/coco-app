@@ -10,7 +10,7 @@ import { ModifierGroupListItem } from "./components/ModifierGroupListItem";
 import { useModifiersGroupTab } from "@/hooks/useModifiersGroupTab";
 import { useAppStore } from "@coco/shared/hooks/useAppStore";
 
-export const ModifiersGroupTab = ({ businessId }: { businessId?: string }) => {
+export const ModifiersGroupTab = () => {
 	const navigation = useNavigation<any>();
 	const { colors } = useTheme();
 	const { user } = useAppStore();
@@ -25,7 +25,7 @@ export const ModifiersGroupTab = ({ businessId }: { businessId?: string }) => {
 		handleSearch,
 		handleClearSearch,
 		handleOpenMenu,
-	} = useModifiersGroupTab(businessId, colors);
+	} = useModifiersGroupTab(colors);
 
 	return (
 		<>

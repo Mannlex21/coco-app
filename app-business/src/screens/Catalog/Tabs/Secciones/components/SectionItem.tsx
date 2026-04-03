@@ -12,7 +12,6 @@ import { ProductListItem } from "../../Products/components/ProductListItem";
 import { ProductGridItem } from "../../Products/components/ProductGridItem";
 import { useAppStore } from "@coco/shared/hooks/useAppStore";
 
-// Tipamos las props que necesita el componente para funcionar
 interface SectionItemProps {
 	section: any;
 	colors: any;
@@ -37,7 +36,6 @@ export const SectionItem = ({
 
 	return (
 		<View style={styles.sectionContainer}>
-			{/* 1. Cabecera de la Sección */}
 			<View
 				style={[
 					styles.sectionHeader,
@@ -75,7 +73,6 @@ export const SectionItem = ({
 					onPress={() => onOpenMenu(section)}
 				>
 					<View style={styles.content}>
-						{/* Opcional: Si se está moviendo, muestra un pequeño spinner al lado */}
 						{isMoving ? (
 							<ActivityIndicator
 								size="small"
@@ -93,7 +90,6 @@ export const SectionItem = ({
 				</TouchableOpacity>
 			</View>
 
-			{/* 2. Contenedor de Productos */}
 			<View
 				style={
 					isGrid
@@ -122,7 +118,6 @@ export const SectionItem = ({
 						),
 					)
 				) : (
-					/* Estado vacío de productos */
 					<View
 						style={[
 							styles.emptyProductsContainer,
@@ -193,23 +188,11 @@ const styles = StyleSheet.create({
 		fontSize: FontSize.sm,
 		textAlign: "center",
 	},
-	container: {
-		padding: 16,
-		marginVertical: 4,
-		marginHorizontal: 16,
-		borderRadius: 12,
-		flexDirection: "row",
-		alignItems: "center",
-	},
 	content: {
 		flex: 1,
 		flexDirection: "row",
 		justifyContent: "space-between",
 		alignItems: "center",
-	},
-	title: {
-		fontSize: 16,
-		fontWeight: "600",
 	},
 	spinner: {
 		marginLeft: 10,

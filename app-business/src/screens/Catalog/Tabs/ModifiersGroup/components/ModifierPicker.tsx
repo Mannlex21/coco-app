@@ -23,7 +23,6 @@ import { Modifier } from "@coco/shared/core/entities/Modifier";
 import { useDialog } from "@coco/shared/providers";
 
 interface RouteParams {
-	businessId: string;
 	groupId?: string;
 	currentMemoryModifiers?: Modifier[];
 	onSelect?: (selected: Modifier[]) => void;
@@ -32,30 +31,25 @@ interface RouteParams {
 export const ModifierPicker = () => {
 	const navigation = useNavigation<any>();
 	const route = useRoute();
-	const { colors, isDark } = useTheme();
+	const { colors } = useTheme();
 	const insets = useSafeAreaInsets();
 	const { showDialog } = useDialog();
 
 	const { currentMemoryModifiers = [], onSelect } =
 		(route.params as RouteParams) || {};
 
-	const textColor = isDark ? "rgba(255,255,255,0.9)" : "rgba(0,0,0,0.85)";
-	const subTextColor = isDark ? "rgba(255,255,255,0.6)" : "rgba(0,0,0,0.55)";
+	const textColor = colors.textPrimaryLight;
+	const subTextColor = colors.textSecondaryLight;
 	const borderColor = colors.borderLight;
-	const bgApp = isDark ? "#121212" : "#FFFFFF";
+	const bgApp = colors.backgroundLight;
 
-	// 'activeModifiers' se inicializa PURAMENTE con lo que viene del GroupForm en memoria
 	const [activeModifiers, setActiveModifiers] = useState<Modifier[]>(
 		currentMemoryModifiers,
 	);
 
-	// Bandera para saber si el usuario agregó algo nuevo en esta sesión
 	const [hasNewUnsavedItems, setHasNewUnsavedItems] = useState(false);
-
-	// Bandera para saber si el usuario ya presionó "Hecho"
 	const [isConfirming, setIsConfirming] = useState(false);
 
-	// Bloqueador de salida nativa (se mantiene igual para proteger las creaciones en caliente)
 	useEffect(() => {
 		const unsubscribe = navigation.addListener("beforeRemove", (e: any) => {
 			if (!hasNewUnsavedItems || isConfirming) {
@@ -211,7 +205,7 @@ export const ModifierPicker = () => {
 					activeOpacity={0.9}
 				>
 					<Text style={styles.saveBtnText}>
-						Hecho ({activeModifiers.length})
+						Guardar cambios ({activeModifiers.length})
 					</Text>
 				</TouchableOpacity>
 			</View>
@@ -219,7 +213,6 @@ export const ModifierPicker = () => {
 	);
 };
 
-// ... los estilos se quedan idénticos
 const styles = StyleSheet.create({
 	scrollContent: { paddingHorizontal: 16, paddingBottom: 20 },
 	centered: { marginTop: 40, justifyContent: "center", alignItems: "center" },

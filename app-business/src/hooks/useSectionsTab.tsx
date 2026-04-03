@@ -1,13 +1,12 @@
 import { useState } from "react";
 import { useNavigation } from "@react-navigation/native";
-import { supabase } from "@/infrastructure/supabase/config";
 import { useSection } from "@coco/shared/hooks/supabase";
 import { useContextMenu, useDialog } from "@coco/shared/providers";
 import { Section } from "@coco/shared/core/entities";
 import { MaterialIcons, Ionicons } from "@expo/vector-icons";
 import { ContextMenuItem } from "@coco/shared/components";
 
-export const useSectionsTab = (businessId?: string, colors?: any) => {
+export const useSectionsTab = (colors?: any) => {
 	const navigation = useNavigation<any>();
 	const { showDialog } = useDialog();
 	const { showContextMenu } = useContextMenu();
@@ -25,7 +24,8 @@ export const useSectionsTab = (businessId?: string, colors?: any) => {
 		toggleSectionAvailability,
 		moveSection,
 		fetchSections,
-	} = useSection(supabase, businessId);
+		loadingSection,
+	} = useSection();
 
 	const handleSearch = () => {
 		fetchSections(searchTerm);
@@ -212,5 +212,6 @@ export const useSectionsTab = (businessId?: string, colors?: any) => {
 		handleClearSearch,
 		handleOpenMenu,
 		movingSectionId,
+		loadingSection,
 	};
 };

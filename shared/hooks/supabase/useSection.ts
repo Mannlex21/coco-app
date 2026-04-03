@@ -1,17 +1,16 @@
 import { useState, useEffect, useCallback } from "react";
-import { SupabaseClient } from "@supabase/supabase-js";
 import { Product, Section } from "core/entities";
-// Importamos el nuevo store en lugar del anterior
 import { useCatalogStore } from "@coco/shared/hooks/useCatalogStore";
 import { TABLES } from "@coco/shared/constants";
+import { useAppStore } from "@coco/shared/hooks/useAppStore";
+import { useSupabaseContext } from "@coco/shared/providers/SupabaseContext";
 
-export const useSection = (supabase: SupabaseClient, businessId?: string) => {
+export const useSection = () => {
+	const supabase = useSupabaseContext();
+	const { activeBusiness } = useAppStore();
 	const [searchTerm, setSearchTerm] = useState("");
-
-	// Leemos las secciones y la función setSections de useCatalogStore
 	const sections = useCatalogStore((state) => state.sections);
 	const setSections = useCatalogStore((state) => state.setSections);
-
 	const [refreshing, setRefreshing] = useState(false);
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState<string | null>(null);
@@ -19,7 +18,7 @@ export const useSection = (supabase: SupabaseClient, businessId?: string) => {
 	// 1. Obtener todas las secciones
 	const fetchSections = useCallback(
 		async (searchQuery: string = "") => {
-			if (!businessId) return;
+			if (!activeBusiness?.id) return;
 
 			setLoading(true);
 			setError(null);
@@ -54,7 +53,7 @@ export const useSection = (supabase: SupabaseClient, businessId?: string) => {
                         )
                     `,
 					)
-					.eq("business_id", businessId)
+					.eq("business_id", activeBusiness?.id)
 					.order("position", { ascending: true });
 
 				if (searchQuery.trim() !== "") {
@@ -117,7 +116,7 @@ export const useSection = (supabase: SupabaseClient, businessId?: string) => {
 		},
 		[
 			supabase,
-			businessId,
+			activeBusiness,
 			setSections,
 			setLoading,
 			setError,
@@ -171,7 +170,7 @@ export const useSection = (supabase: SupabaseClient, businessId?: string) => {
 			productIds?: string[]; // 👈 Aquí recibimos los IDs
 		},
 	) => {
-		if (!businessId || !dataToSave) return;
+		if (!activeBusiness?.id || !dataToSave) return;
 
 		try {
 			setLoading(true);
@@ -212,7 +211,7 @@ export const useSection = (supabase: SupabaseClient, businessId?: string) => {
 				const { data: lastSection } = await supabase
 					.from(TABLES.SECTIONS)
 					.select("position")
-					.eq("business_id", businessId)
+					.eq("business_id", activeBusiness?.id)
 					.order("position", { ascending: false })
 					.limit(1)
 					.maybeSingle();
@@ -224,7 +223,7 @@ export const useSection = (supabase: SupabaseClient, businessId?: string) => {
 					await supabase
 						.from(TABLES.SECTIONS)
 						.insert({
-							business_id: businessId,
+							business_id: activeBusiness?.id,
 							name: name.trim(),
 							description: description.trim(),
 							position: nextPosition,
@@ -313,7 +312,7 @@ export const useSection = (supabase: SupabaseClient, businessId?: string) => {
 			const updates = updatedSections.map((section) => ({
 				id: section.id,
 				position: section.position,
-				business_id: businessId,
+				business_id: activeBusiness?.id,
 			}));
 
 			const { error } = await supabase
@@ -427,10 +426,10 @@ export const useSection = (supabase: SupabaseClient, businessId?: string) => {
 	};
 
 	useEffect(() => {
-		if (businessId) {
+		if (activeBusiness?.id) {
 			fetchSections("");
 		}
-	}, [businessId, fetchSections]);
+	}, [activeBusiness, fetchSections]);
 
 	return {
 		sections,

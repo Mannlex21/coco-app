@@ -4,16 +4,13 @@ import {
 	Text,
 	StyleSheet,
 	TouchableOpacity,
-	Platform,
 	ScrollView,
 } from "react-native";
 import { Spacing, FontSize, FontWeight } from "@coco/shared/config/theme";
-import { useAppStore } from "@coco/shared/hooks/useAppStore";
 import { useTheme } from "@coco/shared/hooks/useTheme";
 import { SectionsTab } from "./Tabs/Secciones/SectionsTab";
 import { Ionicons } from "@expo/vector-icons";
 import { ProductsTab } from "./Tabs/Products/ProductsTab";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ModifiersGroupTab } from "./Tabs/ModifiersGroup/ModifiersGroupTab";
 
 type TabType = "secciones" | "productos" | "grupoModificadores";
@@ -25,22 +22,14 @@ interface TabItem {
 }
 
 export const CatalogScreen = () => {
-	const { user } = useAppStore();
 	const { colors } = useTheme();
-	const insets = useSafeAreaInsets();
-
 	const [activeTab, setActiveTab] = useState<TabType>("secciones");
-	const businessId = user?.lastActiveBusinessId;
-
-	// 🔥 1. REFERENCIAS Y ESTADOS PARA EL SCROLL AUTOMÁTICO
 	const scrollViewRef = useRef<ScrollView>(null);
 	const [scrollViewWidth, setScrollViewWidth] = useState(0);
-	// Guardamos las coordenadas X y el ancho de cada pestaña
 	const tabsLayouts = useRef<Record<string, { x: number; width: number }>>(
 		{},
 	);
 
-	// Definimos las pestañas en un arreglo para mapearlas fácilmente
 	const TABS: TabItem[] = [
 		{ id: "secciones", title: "Secciones", icon: "folder-open-outline" },
 		{ id: "productos", title: "Productos", icon: "cube-outline" },
@@ -51,16 +40,12 @@ export const CatalogScreen = () => {
 		},
 	];
 
-	// 🔥 2. FUNCIÓN PARA ENFOCAR EL TAB
 	const handleTabPress = (tabId: TabType) => {
 		setActiveTab(tabId);
 
 		const tabLayout = tabsLayouts.current[tabId];
 		if (tabLayout && scrollViewRef.current) {
-			// Calculamos el centro de la pestaña
 			const tabCenter = tabLayout.x + tabLayout.width / 2;
-			// Calculamos cuánto debemos mover el scroll para que el centro de la pestaña
-			// quede justo en el centro visible del ScrollView
 			const scrollToX = tabCenter - scrollViewWidth / 2;
 
 			scrollViewRef.current.scrollTo({
@@ -77,20 +62,15 @@ export const CatalogScreen = () => {
 					styles.header,
 					{
 						backgroundColor: colors.surfaceLight,
-						paddingTop:
-							Platform.OS === "android"
-								? insets.top - 10
-								: insets.top,
 						borderBottomColor: colors.borderLight,
 					},
 				]}
 			>
 				<ScrollView
-					ref={scrollViewRef} // 👈 Asignamos la referencia
+					ref={scrollViewRef}
 					horizontal={true}
 					showsHorizontalScrollIndicator={false}
 					contentContainerStyle={styles.tabsContainer}
-					// 🔥 Guardamos el ancho de la pantalla/contenedor visible
 					onLayout={(e) =>
 						setScrollViewWidth(e.nativeEvent.layout.width)
 					}
@@ -112,7 +92,6 @@ export const CatalogScreen = () => {
 								]}
 								onPress={() => handleTabPress(tab.id)}
 								activeOpacity={0.8}
-								// 🔥 Guardamos la posición exacta de este tab en el eje X
 								onLayout={(e) => {
 									tabsLayouts.current[tab.id] = {
 										x: e.nativeEvent.layout.x,
@@ -146,18 +125,9 @@ export const CatalogScreen = () => {
 				</ScrollView>
 			</View>
 
-			{/* =======================================================
-                CONTENIDO DINÁMICO
-               ======================================================= */}
-			{activeTab === "secciones" && (
-				<SectionsTab businessId={businessId} />
-			)}
-			{activeTab === "productos" && (
-				<ProductsTab businessId={businessId} />
-			)}
-			{activeTab === "grupoModificadores" && (
-				<ModifiersGroupTab businessId={businessId} />
-			)}
+			{activeTab === "secciones" && <SectionsTab />}
+			{activeTab === "productos" && <ProductsTab />}
+			{activeTab === "grupoModificadores" && <ModifiersGroupTab />}
 		</View>
 	);
 };
@@ -165,7 +135,6 @@ export const CatalogScreen = () => {
 const styles = StyleSheet.create({
 	container: { flex: 1 },
 	header: {
-		paddingTop: Spacing.md,
 		borderBottomWidth: StyleSheet.hairlineWidth,
 	},
 	tabsContainer: {

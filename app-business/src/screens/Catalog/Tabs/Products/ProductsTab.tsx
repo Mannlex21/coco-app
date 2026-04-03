@@ -2,7 +2,13 @@ import React from "react";
 import { Spacing } from "@coco/shared/config/theme";
 import { useTheme } from "@coco/shared/hooks/useTheme";
 import { useNavigation } from "@react-navigation/native";
-import { FlatList, RefreshControl, StyleSheet, View } from "react-native";
+import {
+	ActivityIndicator,
+	FlatList,
+	RefreshControl,
+	StyleSheet,
+	View,
+} from "react-native";
 import { EmptyState } from "../../components/EmptyState";
 import { SearchInput } from "../../components/SearchInput";
 import { FloatingButton } from "../../components/FloatingButton";
@@ -12,7 +18,7 @@ import { VisualizationPicker } from "../../components/VisualizationPicker";
 import { useProductsTab } from "@/hooks/useProductsTab";
 import { useAppStore } from "@coco/shared/hooks/useAppStore";
 
-export const ProductsTab = ({ businessId }: { businessId?: string }) => {
+export const ProductsTab = () => {
 	const navigation = useNavigation<any>();
 	const { colors } = useTheme();
 	const { user } = useAppStore();
@@ -27,7 +33,8 @@ export const ProductsTab = ({ businessId }: { businessId?: string }) => {
 		handleOpenMenu,
 		viewType,
 		setViewType,
-	} = useProductsTab(businessId, colors);
+		loadingProduct,
+	} = useProductsTab(colors);
 
 	return (
 		<>
@@ -75,10 +82,19 @@ export const ProductsTab = ({ businessId }: { businessId?: string }) => {
 					/>
 				}
 				ListEmptyComponent={
-					<EmptyState
-						isFiltering={searchTerm.trim().length > 0}
-						colors={colors}
-					/>
+					loadingProduct && !refreshing ? (
+						<View style={styles.loaderContainer}>
+							<ActivityIndicator
+								size="large"
+								color={colors.businessBg}
+							/>
+						</View>
+					) : (
+						<EmptyState
+							isFiltering={searchTerm.trim().length > 0}
+							colors={colors}
+						/>
+					)
 				}
 				renderItem={({ item }) =>
 					viewType === "grid" ? (
@@ -126,8 +142,15 @@ const styles = StyleSheet.create({
 	listContent: {
 		paddingHorizontal: Spacing.md,
 		paddingBottom: 100,
+		flexGrow: 1,
 	},
 	gridRow: {
 		justifyContent: "space-between",
+	},
+	loaderContainer: {
+		flex: 1,
+		justifyContent: "center",
+		alignItems: "center",
+		minHeight: 200,
 	},
 });

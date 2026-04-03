@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import { supabase } from "@/infrastructure/supabase/config";
 import { useTheme } from "@coco/shared/hooks/useTheme";
 import { useDialog } from "@coco/shared/providers/DialogContext";
 import { useNavigation, useRoute } from "@react-navigation/native";
@@ -13,88 +12,93 @@ import {
 } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { useProduct, useSection } from "@coco/shared/hooks/supabase";
-import { useAppStore } from "@coco/shared/hooks/useAppStore";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { FontSize, BorderRadius, FontWeight } from "@coco/shared/config/theme";
-
-// 💡 Importamos los componentes compartidos
+import {
+	FontSize,
+	BorderRadius,
+	FontWeight,
+	Spacing,
+} from "@coco/shared/config/theme";
 import { ScreenHeader } from "../../components/ScreenHeader";
 import { InputField } from "../../components/InputField";
 import { ToggleField } from "../../components/ToggleField";
-
+import { PrimaryButton } from "../../components/PrimaryButton";
+import { Ionicons } from "@expo/vector-icons";
+import { ChipList } from "../../components/ChipList";
 interface RouteParams {
 	title?: string;
 	productId?: string;
-	businessId?: string;
 	sectionId?: string;
+	selectedSections?: string[]; // 🌟 Recibimos el objeto completo desde el Picker
 }
 
 export const ProductForm = () => {
-	const navigation = useNavigation();
-	const route = useRoute();
+	const navigation = useNavigation<any>();
+	const route = useRoute<any>();
 	const insets = useSafeAreaInsets();
-
 	const { productId, sectionId } = (route.params as RouteParams) || {};
-
-	const { colors, isDark } = useTheme();
+	const [currentProductId] = useState(productId);
+	const { colors } = useTheme();
 	const { showDialog } = useDialog();
-	const { user } = useAppStore();
+	const { saveProduct, getProductById, loadingProduct } = useProduct();
+	const { sections, fetchSections } = useSection();
 
-	const { saveProduct, getProductById } = useProduct(
-		supabase,
-		user?.lastActiveBusinessId,
-	);
-	const { sections, fetchSections } = useSection(
-		supabase,
-		user?.lastActiveBusinessId,
-	);
+	const subTextColor = colors.textSecondaryLight;
+	const borderColor = colors.borderLight;
+	const bgApp = colors.backgroundLight;
 
-	// --- VARIABLES DE ESTILO ---
-	const textColor = isDark ? "rgba(255,255,255,0.9)" : "rgba(0,0,0,0.85)";
-	const subTextColor = isDark ? "rgba(255,255,255,0.6)" : "rgba(0,0,0,0.55)";
-	const borderColor = isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.05)";
-
-	// El fondo ahora es el directo de la app, sin cartas encima
-	const bgApp = isDark ? "#121212" : "#FFFFFF";
-
-	// --- ESTADOS ---
 	const [loading, setLoading] = useState(false);
-	const [saving, setSaving] = useState(false);
 
-	const [form, setForm] = useState({
+	const [formData, setFormData] = useState({
 		name: "",
 		description: "",
 		price: "",
 		isAvailable: true,
+		selectedSection: [] as string[], // 🌟 Almacena puros IDs
 	});
-	const [selectedSectionIds, setSelectedSectionIds] = useState<string[]>([]);
 
 	useEffect(() => {
 		loadData();
 	}, []);
 
-	const loadData = async () => {
-		if (!user?.lastActiveBusinessId) return;
+	useEffect(() => {
+		const params = route.params as RouteParams;
 
+		// 1. Validamos que existan las secciones en los parámetros
+		if (params?.selectedSections) {
+			setFormData((prev) => ({
+				...prev,
+				// 🚀 El truco está aquí: Si params.selectedSections es falsy, cae en []
+				selectedSection: params.selectedSections || [],
+			}));
+
+			// Limpiamos los parámetros para que no se cicle
+			navigation.setParams({ selectedSections: undefined });
+		}
+	}, [route.params]);
+
+	const loadData = async () => {
 		setLoading(true);
 		try {
 			await fetchSections("");
 
-			if (productId) {
-				const currentProduct = await getProductById(productId);
+			if (currentProductId) {
+				const currentProduct = await getProductById(currentProductId);
 
 				if (currentProduct) {
-					setForm({
+					setFormData({
 						name: currentProduct.name,
 						description: currentProduct.description || "",
 						price: currentProduct.price?.toString() || "",
 						isAvailable: currentProduct.isAvailable,
+						selectedSection: currentProduct.sectionIds || [],
 					});
-
-					setSelectedSectionIds(currentProduct.sectionIds || []);
 				}
 			} else if (sectionId) {
-				setSelectedSectionIds([sectionId]);
+				setFormData((prev) => ({
+					...prev,
+					selectedSection: [sectionId],
+				}));
 			}
 		} catch (error) {
 			console.error(error);
@@ -103,16 +107,17 @@ export const ProductForm = () => {
 		}
 	};
 
-	const toggleSectionSelection = (id: string) => {
-		setSelectedSectionIds((prev) =>
-			prev.includes(id)
-				? prev.filter((item) => item !== id)
-				: [...prev, id],
-		);
+	const handleRemoveSection = (id: string) => {
+		setFormData((prev) => ({
+			...prev,
+			selectedSection: prev.selectedSection.filter(
+				(secId) => secId !== id,
+			),
+		}));
 	};
 
 	const handleSave = async () => {
-		if (!form.name.trim()) {
+		if (!formData.name.trim()) {
 			return showDialog({
 				title: "Atención",
 				message: "El nombre del producto es obligatorio.",
@@ -120,7 +125,7 @@ export const ProductForm = () => {
 			});
 		}
 
-		if (selectedSectionIds.length === 0) {
+		if (formData.selectedSection.length === 0) {
 			return showDialog({
 				title: "Atención",
 				message:
@@ -129,14 +134,13 @@ export const ProductForm = () => {
 			});
 		}
 
-		setSaving(true);
 		try {
-			await saveProduct(productId, {
-				name: form.name.trim(),
-				description: form.description.trim(),
-				price: Number.parseFloat(form.price) || 0,
-				isAvailable: form.isAvailable,
-				sectionIds: selectedSectionIds,
+			await saveProduct(currentProductId, {
+				name: formData.name.trim(),
+				description: formData.description.trim(),
+				price: Number.parseFloat(formData.price) || 0,
+				isAvailable: formData.isAvailable,
+				sectionIds: formData.selectedSection,
 			});
 			showDialog({
 				title: "¡Éxito!",
@@ -151,15 +155,7 @@ export const ProductForm = () => {
 				message: "No pudimos guardar el producto en este momento.",
 				intent: "error",
 			});
-		} finally {
-			setSaving(false);
 		}
-	};
-
-	const getSaveButtonText = (): string => {
-		if (saving) return "Guardando...";
-		if (productId) return "Guardar Cambios";
-		return "Crear Producto";
 	};
 
 	if (loading) {
@@ -172,9 +168,8 @@ export const ProductForm = () => {
 
 	return (
 		<View style={{ flex: 1, backgroundColor: bgApp }}>
-			{/* 1. Cabecera Reutilizable */}
 			<ScreenHeader
-				title={productId ? "Editar Producto" : "Nuevo Producto"}
+				title={currentProductId ? "Editar Producto" : "Nuevo Producto"}
 				onBack={() => navigation.goBack()}
 			/>
 
@@ -183,144 +178,115 @@ export const ProductForm = () => {
 				contentContainerStyle={styles.scrollContent}
 				keyboardShouldPersistTaps="handled"
 				enableOnAndroid={true}
-				extraScrollHeight={16}
+				extraScrollHeight={Spacing.md}
 				showsVerticalScrollIndicator={false}
 			>
 				<Text style={[styles.headerSub, { color: subTextColor }]}>
-					Llena los datos del artículo para mostrarlo en tu catalogo.
+					Llena los datos del artículo para mostrarlo en tu catálogo.
 				</Text>
 
-				{/* 2. Formulario Directo sin Cartas de fondo */}
 				<InputField
 					label="Nombre del artículo"
 					placeholder="Ej. Hamburguesa Doble Queso"
-					value={form.name}
-					onChangeText={(val) => setForm({ ...form, name: val })}
-					editable={!saving}
+					value={formData.name}
+					onChangeText={(val) =>
+						setFormData({ ...formData, name: val })
+					}
+					editable={!loadingProduct}
 				/>
 
 				<InputField
 					label="Precio (MXN)"
 					placeholder="0.00"
-					value={form.price}
-					onChangeText={(val) => setForm({ ...form, price: val })}
+					value={formData.price}
+					onChangeText={(val) =>
+						setFormData({ ...formData, price: val })
+					}
 					keyboardType="numeric"
-					editable={!saving}
+					editable={!loadingProduct}
 				/>
 
 				<InputField
 					label="Descripción"
 					placeholder="Ingredientes, porciones, etc..."
-					value={form.description}
+					value={formData.description}
 					onChangeText={(val) =>
-						setForm({ ...form, description: val })
+						setFormData({ ...formData, description: val })
 					}
 					multiline
-					editable={!saving}
+					editable={!loadingProduct}
 				/>
 
 				<View style={[styles.divider]}>
-					{/* 3. Sección de Chips */}
 					<Text style={[styles.label, { color: subTextColor }]}>
-						¿En qué secciones aparece?
+						¿En qué sección(es) aparece este producto?
 					</Text>
 
-					{sections.length === 0 ? (
+					<TouchableOpacity
+						style={[
+							styles.addProductBtn,
+							{ borderColor: colors.businessBg },
+						]}
+						onPress={() => {
+							navigation.navigate("SectionPicker", {
+								alreadySelectedSections:
+									formData.selectedSection,
+								returnScreen: "ProductForm",
+							});
+						}}
+					>
+						<Ionicons
+							name="add-circle-outline"
+							size={20}
+							color={colors.businessBg}
+						/>
 						<Text
-							style={{
-								color: subTextColor,
-								fontSize: 14,
-								marginTop: 5,
-							}}
+							style={[
+								styles.addProductBtnText,
+								{ color: colors.businessBg },
+							]}
 						>
-							Aún no tienes secciones creadas.
+							Vincular secciones
 						</Text>
-					) : (
-						<View style={styles.chipContainer}>
-							{sections.map((section) => {
-								const isActive = selectedSectionIds.includes(
-									section.id,
-								);
-								return (
-									<TouchableOpacity
-										key={section.id}
-										style={[
-											styles.chip,
-											{
-												backgroundColor: isDark
-													? "rgba(255,255,255,0.05)"
-													: "#F9F9F9",
-												borderColor: borderColor,
-											},
-											isActive && {
-												backgroundColor:
-													colors.businessBg,
-												borderColor: colors.businessBg,
-											},
-										]}
-										onPress={() =>
-											toggleSectionSelection(section.id)
-										}
-										disabled={saving}
-									>
-										<Text
-											style={[
-												styles.chipText,
-												{ color: subTextColor },
-												isActive && {
-													color: "#FFFFFF",
-													fontWeight: "600",
-												},
-											]}
-										>
-											{section.name}
-										</Text>
-									</TouchableOpacity>
-								);
-							})}
-						</View>
-					)}
+					</TouchableOpacity>
+
+					{/* 🌟 Pintamos los chips buscando la data completa desde el hook local */}
+					<ChipList
+						items={sections.filter((section) =>
+							formData.selectedSection?.includes(section.id),
+						)}
+						getLabel={(item) => item.name}
+						onRemoveProduct={(id) => handleRemoveSection(id)}
+					/>
 				</View>
 
-				{/* 4. Usamos el ToggleField que ya maneja su propio estilo limpio */}
 				<View style={[styles.divider]}>
 					<ToggleField
 						label="Disponibilidad"
 						activeDescription="Los clientes pueden ver este producto"
 						inactiveDescription="Producto oculto"
-						value={form.isAvailable}
+						value={formData.isAvailable}
 						onValueChange={(val) =>
-							setForm({ ...form, isAvailable: val })
+							setFormData({ ...formData, isAvailable: val })
 						}
-						disabled={saving}
+						disabled={loadingProduct}
 					/>
 				</View>
 			</KeyboardAwareScrollView>
 
-			{/* 5. Botón de guardado fijo abajo al estilo Uber */}
 			<View
 				style={[
 					styles.bottomContainer,
 					{ borderTopColor: borderColor, backgroundColor: bgApp },
 				]}
 			>
-				<TouchableOpacity
-					style={[
-						styles.saveBtn,
-						{
-							backgroundColor: colors.businessBg,
-							marginBottom:
-								Platform.OS === "ios" ? insets.bottom : 12,
-						},
-						saving && { opacity: 0.7 },
-					]}
+				<PrimaryButton
+					title={`Guardar cambios`}
 					onPress={handleSave}
-					disabled={saving}
-				>
-					<Text style={styles.saveBtnText}>
-						{getSaveButtonText()}
-					</Text>
-				</TouchableOpacity>
+					marginBottom={
+						Platform.OS === "ios" ? insets.bottom : Spacing.md
+					}
+				/>
 			</View>
 		</View>
 	);
@@ -328,8 +294,8 @@ export const ProductForm = () => {
 
 const styles = StyleSheet.create({
 	scrollContent: {
-		paddingHorizontal: 16,
-		paddingBottom: 20,
+		paddingHorizontal: Spacing.md,
+		paddingBottom: Spacing.lg,
 	},
 	centered: {
 		flex: 1,
@@ -338,46 +304,35 @@ const styles = StyleSheet.create({
 	},
 	headerSub: {
 		fontSize: FontSize.md,
-		marginBottom: 20,
-		marginTop: 4,
+		marginBottom: Spacing.lg,
+		marginTop: Spacing.xs,
 	},
 	label: {
 		fontSize: FontSize.sm,
 		fontWeight: FontWeight.bold,
-		marginBottom: 8,
-		marginTop: 15,
+		marginBottom: Spacing.sm,
+		marginTop: Spacing.md,
 	},
 	divider: {
-		marginVertical: 5,
-	},
-	chipContainer: {
-		flexDirection: "row",
-		flexWrap: "wrap",
-		marginTop: 5,
-	},
-	chip: {
-		paddingVertical: 8,
-		paddingHorizontal: 16,
-		borderWidth: 1,
-		borderRadius: 25,
-		marginRight: 8,
-		marginBottom: 10,
-	},
-	chipText: {
-		fontSize: 14,
+		marginVertical: Spacing.xs,
 	},
 	bottomContainer: {
-		padding: 16,
+		padding: Spacing.md,
 		borderTopWidth: 1,
 	},
-	saveBtn: {
-		padding: 16,
-		borderRadius: BorderRadius.md,
+	addProductBtn: {
+		flexDirection: "row",
 		alignItems: "center",
+		justifyContent: "center",
+		padding: Spacing.md,
+		borderRadius: BorderRadius.md,
+		borderWidth: 1,
+		borderStyle: "dashed",
+		marginTop: Spacing.xs,
+		gap: Spacing.xs,
 	},
-	saveBtnText: {
-		color: "white",
-		fontWeight: FontWeight.bold,
-		fontSize: 16,
+	addProductBtnText: {
+		fontWeight: FontWeight.semibold,
+		fontSize: FontSize.sm,
 	},
 });

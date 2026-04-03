@@ -5,13 +5,13 @@ import {
 	FontWeight,
 	Spacing,
 	BorderRadius,
-	ColorPalette, // Importamos la interfaz para tipar colors
+	ColorPalette,
 } from "@coco/shared/config/theme";
 import { RolesApp } from "@coco/shared/constants";
 
 interface ModifierGroupListItemProps {
-	item: any; // Aquí usarás tu interfaz ModifierGroup con un agregado de productCount
-	colors: ColorPalette; // 👈 Tipado estricto con tu interfaz
+	item: any;
+	colors: ColorPalette;
 	onPress: () => void;
 	role?: RolesApp;
 }
@@ -31,7 +31,7 @@ export const ModifierGroupListItem = ({
 	if (min <= 0) {
 		selectionRule = "Sin cantidad";
 	} else if (min === max) {
-		selectionRule = min === 1 ? "Selección unica" : `Selecciona ${min}`;
+		selectionRule = min === 1 ? "Selección única" : `Selecciona ${min}`;
 	} else if (min > 0) {
 		selectionRule = `Mínimo ${min} - Máximo ${max}`;
 	} else {
@@ -50,6 +50,7 @@ export const ModifierGroupListItem = ({
 				{
 					backgroundColor: colors.surfaceLight,
 					borderBottomColor: colors.borderLight,
+					opacity: item.isAvailable ? 1 : 0.7,
 				},
 			]}
 			activeOpacity={0.7}
@@ -89,51 +90,59 @@ export const ModifierGroupListItem = ({
 
 			{/* Contenedor de Badges (Lado Derecho) */}
 			<View style={styles.badgeContainer}>
-				{/* 1. Badge de Cantidad de Opciones */}
-				<View
-					style={[
-						styles.badge,
-						{ backgroundColor: colors.borderLight },
-					]}
-				>
-					<Text
-						style={[
-							styles.badgeText,
-							{ color: colors.textPrimaryLight },
-						]}
-					>
-						{optionsCount} opciones
-					</Text>
-				</View>
-				<View
-					style={[
-						styles.statusTag,
-						{
-							// 🎨 Usamos los colores semánticos puros de tu paleta
-							backgroundColor: isRequired
-								? colors.errorLight
-								: colors.successLight,
-						},
-					]}
-				>
-					<Text
-						style={[
-							styles.statusTagText,
-							{
-								color: isRequired
-									? colors.error
-									: colors.success,
-								fontWeight: FontWeight.bold,
-							},
-						]}
-					>
-						{isRequired ? "Requerido" : "Opcional"}
-					</Text>
-				</View>
+				{/* 1. Cantidad de Opciones */}
+				<Badge
+					text={`${optionsCount} opciones`}
+					bgColor={colors.borderLight}
+					textColor={colors.textPrimaryLight}
+				/>
+
+				{/* 2. Requerido / Opcional */}
+				<Badge
+					text={isRequired ? "Requerido" : "Opcional"}
+					bgColor={
+						isRequired ? colors.errorLight : colors.successLight
+					}
+					textColor={isRequired ? colors.error : colors.success}
+					isBold={true}
+				/>
+
+				{/* 3. Estado de pausa */}
+				{!item.isAvailable && (
+					<Badge
+						text="Pausado"
+						bgColor={colors.errorLight}
+						textColor={colors.error}
+						isBold={true}
+					/>
+				)}
 			</View>
 		</TouchableOpacity>
 	);
 };
+
+interface BadgeProps {
+	text: string;
+	bgColor: string;
+	textColor: string;
+	isBold?: boolean;
+}
+
+const Badge = ({ text, bgColor, textColor, isBold = false }: BadgeProps) => (
+	<View style={[styles.badgeBase, { backgroundColor: bgColor }]}>
+		<Text
+			style={[
+				styles.badgeTextBase,
+				{
+					color: textColor,
+					fontWeight: isBold ? FontWeight.bold : FontWeight.medium,
+				},
+			]}
+		>
+			{text}
+		</Text>
+	</View>
+);
 
 const styles = StyleSheet.create({
 	container: {
@@ -141,56 +150,41 @@ const styles = StyleSheet.create({
 		alignItems: "flex-start",
 		justifyContent: "space-between",
 		paddingVertical: Spacing.md,
-		paddingHorizontal: Spacing.xs, // 4 según tu theme
+		paddingHorizontal: Spacing.xs,
 		borderBottomWidth: 1,
 	},
 	textContainer: {
 		flex: 1,
-		paddingRight: Spacing.sm, // 8 según tu theme
+		paddingRight: Spacing.sm,
 	},
 	title: {
-		fontSize: FontSize.md, // 15
-		fontWeight: FontWeight.semibold, // "600"
+		fontSize: FontSize.md,
+		fontWeight: FontWeight.semibold,
 	},
 	internalName: {
-		fontSize: FontSize.sm, // 13
+		fontSize: FontSize.sm,
 		marginTop: 2,
 	},
 	subtitle: {
-		fontSize: FontSize.sm, // 13
-		fontWeight: FontWeight.medium, // "500"
+		fontSize: FontSize.sm,
+		fontWeight: FontWeight.medium,
 		marginTop: 4,
-	},
-	productsCount: {
-		fontSize: FontSize.xs, // 11
-		marginTop: 2,
 	},
 	badgeContainer: {
 		alignItems: "flex-end",
-		gap: Spacing.xs, // 4
+		gap: Spacing.xs,
 	},
-	badge: {
+	badgeBase: {
 		minWidth: 80,
-		paddingVertical: 4,
-		paddingHorizontal: Spacing.sm, // 8
-		borderRadius: BorderRadius.full, // 9999 para píldora perfecta
+		paddingVertical: 2,
+		paddingHorizontal: Spacing.xs,
+		borderRadius: BorderRadius.full,
 		justifyContent: "center",
 		alignItems: "center",
 	},
-	badgeText: {
-		fontSize: FontSize.xs, // 11
-		fontWeight: FontWeight.medium, // "500"
-	},
-	statusTag: {
-		minWidth: 80,
-
-		paddingVertical: 2,
-		paddingHorizontal: Spacing.sm, // 8
-		borderRadius: BorderRadius.full, // 8
-	},
-	statusTagText: {
+	badgeTextBase: {
 		textAlign: "center",
-		fontSize: FontSize.xs - 1, // Reducido un pelín a 10 para balancear el texto en mayúsculas
-		letterSpacing: 0.5,
+		fontSize: FontSize.xs,
+		letterSpacing: 0.2,
 	},
 });

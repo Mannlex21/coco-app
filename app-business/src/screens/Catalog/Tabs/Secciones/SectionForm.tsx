@@ -3,56 +3,38 @@ import {
 	View,
 	Text,
 	StyleSheet,
-	TouchableOpacity,
 	ActivityIndicator,
 	Platform,
+	TouchableOpacity,
 } from "react-native";
-import {
-	Colors,
-	FontSize,
-	BorderRadius,
-	Spacing,
-	FontWeight,
-} from "@coco/shared/config/theme";
+import { FontSize, BorderRadius, FontWeight } from "@coco/shared/config/theme";
 import { useNavigation, useRoute } from "@react-navigation/native";
-import { useAppStore } from "@coco/shared/hooks/useAppStore";
 import { useTheme } from "@coco/shared/hooks/useTheme";
 import { useDialog } from "@coco/shared/providers/DialogContext";
-import { supabase } from "@/infrastructure/supabase/config";
 import { useSection } from "@coco/shared/hooks/supabase";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { Ionicons } from "@expo/vector-icons";
 import { Product } from "@coco/shared/core/entities/";
-
-// Componentes extraídos
 import { VisualizationPicker } from "../../components/VisualizationPicker";
 import { InputField } from "../../components/InputField";
 import { ToggleField } from "../../components/ToggleField";
 import { ChipList } from "../../components/ChipList";
 import { ScreenHeader } from "../../components/ScreenHeader";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { PrimaryButton } from "../../components/PrimaryButton";
 
 export const SectionForm = () => {
 	const navigation = useNavigation<any>();
 	const route = useRoute<any>();
-	const { user } = useAppStore();
-	const { colors, isDark } = useTheme();
+	const { colors } = useTheme();
 	const { showDialog } = useDialog();
 	const [sectionId, setSectionId] = useState(undefined);
 	const insets = useSafeAreaInsets();
-	const businessId = user?.lastActiveBusinessId;
-
-	const { getSectionById, saveSection, loadingSection } = useSection(
-		supabase,
-		businessId,
-	);
-
-	const textColor = isDark ? "rgba(255,255,255,0.9)" : "rgba(0,0,0,0.85)";
-	const subTextColor = isDark ? "rgba(255,255,255,0.6)" : "rgba(0,0,0,0.55)";
-	const borderColor = isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.05)";
-
-	// El fondo ahora es el directo de la app, sin cartas grises/blancas encima
-	const bgApp = isDark ? "#121212" : "#FFFFFF";
+	const { getSectionById, saveSection } = useSection();
+	const textColor = colors.textPrimaryLight;
+	const subTextColor = colors.textSecondaryLight;
+	const borderColor = colors.borderLight;
+	const bgApp = colors.backgroundLight;
 
 	const [formData, setFormData] = useState({
 		name: "",
@@ -78,7 +60,6 @@ export const SectionForm = () => {
 		}
 	}, [route.params?.selectedProducts]);
 
-	// Corregido: Dependencia correcta para route.params?.sectionId
 	useEffect(() => {
 		if (route.params?.sectionId) {
 			setSectionId(route.params.sectionId);
@@ -101,6 +82,7 @@ export const SectionForm = () => {
 						});
 					}
 				} catch (error) {
+					console.error("Error fetching section data:", error);
 					showDialog({
 						title: "Error",
 						message:
@@ -160,12 +142,6 @@ export const SectionForm = () => {
 		}
 	};
 
-	const getSaveButtonText = (): string => {
-		if (loadingSection) return "Guardando...";
-		if (sectionId) return "Guardar Cambios";
-		return "Crear Sección";
-	};
-
 	if (fetchingData) {
 		return (
 			<View style={[styles.centered, { backgroundColor: bgApp }]}>
@@ -176,7 +152,6 @@ export const SectionForm = () => {
 
 	return (
 		<View style={{ flex: 1, backgroundColor: bgApp }}>
-			{/* 1. Cabecera Reutilizable */}
 			<ScreenHeader
 				title={sectionId ? "Editar Sección" : "Nueva Sección"}
 				onBack={() => navigation.goBack()}
@@ -190,13 +165,11 @@ export const SectionForm = () => {
 				extraScrollHeight={16}
 				showsVerticalScrollIndicator={false}
 			>
-				{/* Texto de ayuda nativo de la lista */}
 				<Text style={[styles.headerSub, { color: subTextColor }]}>
 					Organiza tus productos en categorías (ej. Entradas,
 					Bebidas).
 				</Text>
 
-				{/* Formulario sin Envoltorio de Carta (Sigue el flujo de la app) */}
 				<InputField
 					label="Nombre de la sección"
 					placeholder="Ejemplo: Hamburguesas, Bebidas o Postres"
@@ -217,6 +190,7 @@ export const SectionForm = () => {
 					editable={!loading}
 					showLabel={true}
 				/>
+
 				<View style={[styles.divider]}>
 					<VisualizationPicker
 						type={formData.visualizationType}
@@ -243,7 +217,6 @@ export const SectionForm = () => {
 						]}
 						onPress={() =>
 							navigation.navigate("ProductPicker", {
-								businessId,
 								alreadySelectedProducts:
 									formData.selectedProducts,
 							})
@@ -260,7 +233,7 @@ export const SectionForm = () => {
 								{ color: colors.businessBg },
 							]}
 						>
-							Vincular productos existentes
+							Vincular productos
 						</Text>
 					</TouchableOpacity>
 
@@ -272,8 +245,12 @@ export const SectionForm = () => {
 				</View>
 
 				<View
-					style={[styles.divider, { backgroundColor: borderColor }]}
+					style={[
+						styles.dividerLine,
+						{ backgroundColor: borderColor },
+					]}
 				/>
+
 				<View style={[styles.divider]}>
 					<ToggleField
 						label="Disponibilidad"
@@ -288,30 +265,18 @@ export const SectionForm = () => {
 				</View>
 			</KeyboardAwareScrollView>
 
-			{/* 2. Botón de guardado fijo abajo (Estilo Uber) */}
 			<View
 				style={[
 					styles.bottomContainer,
 					{ borderTopColor: borderColor, backgroundColor: bgApp },
 				]}
 			>
-				<TouchableOpacity
-					style={[
-						styles.saveBtn,
-						{
-							backgroundColor: colors.businessBg,
-							marginBottom:
-								Platform.OS === "ios" ? insets.bottom : 12,
-						},
-						loading && { opacity: 0.7 },
-					]}
+				<PrimaryButton
+					title="Guardar Cambios"
 					onPress={handleSave}
-					disabled={loading}
-				>
-					<Text style={styles.saveBtnText}>
-						{getSaveButtonText()}
-					</Text>
-				</TouchableOpacity>
+					loading={loading}
+					marginBottom={Platform.OS === "ios" ? insets.bottom : 12}
+				/>
 			</View>
 		</View>
 	);
@@ -341,6 +306,11 @@ const styles = StyleSheet.create({
 	divider: {
 		marginVertical: 5,
 	},
+	// Le cambié el nombre para no confundirlo con el marginVertical
+	dividerLine: {
+		height: 1,
+		marginVertical: 5,
+	},
 	addProductBtn: {
 		flexDirection: "row",
 		alignItems: "center",
@@ -359,15 +329,5 @@ const styles = StyleSheet.create({
 	bottomContainer: {
 		padding: 16,
 		borderTopWidth: 1,
-	},
-	saveBtn: {
-		padding: 16,
-		borderRadius: BorderRadius.md, // Uber usa bordes redondeados estándar, no píldoras completas
-		alignItems: "center",
-	},
-	saveBtnText: {
-		color: "white",
-		fontWeight: FontWeight.bold,
-		fontSize: 16,
 	},
 });

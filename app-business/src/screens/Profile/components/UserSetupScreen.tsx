@@ -25,7 +25,6 @@ import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import { User } from "@coco/shared/core/entities/User";
 import { useDialog } from "@coco/shared/providers/DialogContext";
-import { supabase } from "@/infrastructure/supabase/config";
 
 export const UserSetupScreen = () => {
 	const { user } = useAppStore();
@@ -33,7 +32,7 @@ export const UserSetupScreen = () => {
 	const insets = useSafeAreaInsets();
 	const navigation = useNavigation();
 	const { showDialog } = useDialog();
-	const { updateProfile } = useUser(supabase, user?.id);
+	const { updateProfile } = useUser(user?.id);
 	const [form, setForm] = useState({
 		name: "",
 		phone: "",

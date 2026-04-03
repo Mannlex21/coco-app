@@ -7,25 +7,14 @@ import {
 	Spacing,
 	Shadow,
 } from "@coco/shared/config/theme";
-import { useAppStore } from "@coco/shared/hooks/useAppStore";
-import { useBusiness, useUser } from "@coco/shared/hooks/supabase";
+import { useBusiness } from "@coco/shared/hooks/supabase";
 import { useTheme } from "@coco/shared/hooks/useTheme";
-import { supabase } from "@/infrastructure/supabase/config";
 import { Skeleton } from "@/components/Sekeleton";
 
 export const StatsCard = () => {
 	const { colors } = useTheme();
-	const { user } = useAppStore();
 
-	// 1. Obtenemos los datos del usuario de forma aislada
-	const { userData, loadingUser } = useUser(supabase, user?.id);
-
-	// 2. Obtenemos el negocio activo para leer la deuda semanal
-	const { activeBusiness, loadingBusinesses } = useBusiness(
-		supabase,
-		user?.id,
-		userData?.lastActiveBusinessId,
-	);
+	const { activeBusiness, loadingBusinesses } = useBusiness();
 
 	return (
 		<View style={styles.statsRow}>

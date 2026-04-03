@@ -19,12 +19,13 @@ import {
 import { useTheme } from "@coco/shared/hooks/useTheme";
 import { useDialog } from "@coco/shared/providers/DialogContext";
 import { StatusBar } from "expo-status-bar";
-import { supabase } from "@/infrastructure/supabase/config";
+import { useSupabaseContext } from "@coco/shared/providers/SupabaseContext";
 
 export const RegisterScreen = ({ onBack }: { onBack: () => void }) => {
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
 	const [loading, setLoading] = useState(false);
+	const supabase = useSupabaseContext();
 	const { colors } = useTheme();
 	const { showDialog } = useDialog();
 

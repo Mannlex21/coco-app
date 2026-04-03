@@ -1,15 +1,13 @@
 import { useState, useEffect, useCallback } from "react";
-import { SupabaseClient } from "@supabase/supabase-js";
 import { TABLES } from "@coco/shared/constants";
 import { Modifier } from "core/entities/Modifier";
 import { useAppStore } from "@coco/shared/hooks/useAppStore";
+import { useSupabaseContext } from "@coco/shared/providers/SupabaseContext";
 
-export const useModifiersGroup = (
-	supabase: SupabaseClient,
-	businessId?: string,
-) => {
+export const useModifiersGroup = () => {
+	const supabase = useSupabaseContext();
 	const [searchTerm, setSearchTerm] = useState("");
-	const { user } = useAppStore();
+	const { user, activeBusiness } = useAppStore();
 
 	// 💡 Puedes meter esto a un store global de Zustand en el futuro si gustas.
 	// De momento, para no añadir dependencias, lo dejamos reactivo en el hook.
@@ -22,7 +20,7 @@ export const useModifiersGroup = (
 	// 1. Obtener todos los grupos con sus opciones y el conteo de productos vinculados
 	const fetchModifierGroups = useCallback(
 		async (searchQuery: string = "") => {
-			if (!businessId) return;
+			if (!activeBusiness?.id) return;
 
 			setLoading(true);
 			setError(null);
@@ -39,7 +37,7 @@ export const useModifiersGroup = (
                         product_modifiers (count)
                     `,
 					)
-					.eq("business_id", businessId);
+					.eq("business_id", activeBusiness?.id);
 
 				// Filtrado por barra de búsqueda (por nombre público o interno)
 				if (searchQuery.trim() !== "") {
@@ -83,7 +81,7 @@ export const useModifiersGroup = (
 				setRefreshing(false);
 			}
 		},
-		[supabase, businessId],
+		[supabase, activeBusiness],
 	);
 
 	// 2. Obtener un grupo por ID para cuando entres al formulario a editar
@@ -153,7 +151,7 @@ export const useModifiersGroup = (
 
 		try {
 			const payload: any = {
-				business_id: businessId,
+				business_id: activeBusiness?.id,
 				name: dataToSave.name.trim(),
 				internal_name: dataToSave.internal_name?.trim() || null,
 				min_selectable: dataToSave.minSelectable,
@@ -173,7 +171,6 @@ export const useModifiersGroup = (
 
 				if (supabaseError) throw supabaseError;
 			} else {
-				console.log(payload);
 				// --- MODO CREACIÓN ---
 				const { data, error: supabaseError } = await supabase
 					.from(TABLES.MODIFIER_GROUPS)
@@ -266,10 +263,10 @@ export const useModifiersGroup = (
 	};
 
 	useEffect(() => {
-		if (businessId) {
+		if (activeBusiness?.id) {
 			fetchModifierGroups("");
 		}
-	}, [businessId, fetchModifierGroups]);
+	}, [activeBusiness, fetchModifierGroups]);
 
 	return {
 		modifierGroups,

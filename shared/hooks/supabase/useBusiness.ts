@@ -1,14 +1,12 @@
 import { useState, useEffect, useCallback } from "react";
 import { Business } from "@coco/shared/core/entities/Business";
 import { useAppStore } from "../useAppStore";
+import { useSupabaseContext } from "@coco/shared/providers/SupabaseContext";
 
-export const useBusiness = (
-	supabase: any,
-	userId: string | undefined,
-	lastActiveBusinessId?: string,
-) => {
+export const useBusiness = () => {
+	const supabase = useSupabaseContext();
 	const [businesses, setBusinesses] = useState<Business[]>([]);
-	const { activeBusiness, setActiveBusiness } = useAppStore();
+	const { user, activeBusiness, setActiveBusiness } = useAppStore();
 	const [loadingBusinesses, setLoadingBusinesses] = useState(true);
 	const [refreshing, setRefreshing] = useState(false);
 	const [isToggling, setIsToggling] = useState(false);
@@ -20,7 +18,7 @@ export const useBusiness = (
 
 			if (list.length > 0) {
 				const matchedBusiness = list.find(
-					(b) => b.id === lastActiveBusinessId,
+					(b) => b.id === activeBusiness?.id,
 				);
 
 				if (matchedBusiness) {
@@ -33,13 +31,13 @@ export const useBusiness = (
 			}
 			setLoadingBusinesses(false);
 		},
-		[lastActiveBusinessId, activeBusiness, setActiveBusiness],
+		[activeBusiness, activeBusiness, setActiveBusiness],
 	);
 
 	// 2. Mantenemos el useEffect limpio con CERO dependencias que muten
 	useEffect(() => {
 		// Si no hay usuario o cliente, simplemente apagamos el loader y salimos.
-		if (!userId || !supabase) {
+		if (!user?.id || !supabase) {
 			setLoadingBusinesses(false);
 			return;
 		}
@@ -50,7 +48,7 @@ export const useBusiness = (
 			const { data, error } = await supabase
 				.from("businesses")
 				.select("*")
-				.eq("ownerId", userId);
+				.eq("ownerId", user?.id);
 
 			if (error) {
 				console.error("Error al cargar negocios:", error.message);
@@ -65,14 +63,14 @@ export const useBusiness = (
 
 		// Suscripción al canal de tiempo real
 		const channel = supabase
-			.channel(`realtime:businesses:${userId}`)
+			.channel(`realtime:businesses:${user?.id}`)
 			.on(
 				"postgres_changes",
 				{
 					event: "*",
 					schema: "public",
 					table: "businesses",
-					filter: `ownerId=eq.${userId}`,
+					filter: `ownerId=eq.${user?.id}`,
 				},
 				(payload: any) => {
 					// En lugar de manipular estados complejos aquí que causen bucles,
@@ -90,18 +88,18 @@ export const useBusiness = (
 		// Ignoramos 'supabase' y 'handleBusinessesUpdate' para evitar que referencias inestables
 		// destruyan y recreen el canal de realtime en cada renderizado.
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [userId]);
+	}, [user?.id]);
 
 	// 3. REGISTRO DE NEGOCIO
 	const registerBusiness = async (formData: any) => {
-		if (!userId) throw new Error("No hay usuario autenticado.");
+		if (!user?.id) throw new Error("No hay usuario autenticado.");
 		try {
 			const { data, error } = await supabase
 				.from("businesses")
 				.insert([
 					{
 						...formData,
-						ownerId: userId,
+						ownerId: user?.id,
 						status: "pending_approval",
 						plan: "free",
 						isOpen: false,
@@ -183,13 +181,13 @@ export const useBusiness = (
 	const onRefresh = async () => {
 		setRefreshing(true);
 		try {
-			if (userId) {
+			if (user?.id) {
 				// 🚀 Ejecutamos la petición y el temporizador EN PARALELO
 				const [supabaseResponse] = await Promise.all([
 					supabase
 						.from("businesses")
 						.select("*")
-						.eq("ownerId", userId),
+						.eq("ownerId", user?.id),
 					new Promise((resolve) => setTimeout(resolve, 800)), // Mínimo 800ms de esferita girando
 				]);
 

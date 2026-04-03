@@ -11,6 +11,7 @@ import { useTheme } from "@coco/shared/hooks/useTheme";
 import { StatusBar } from "expo-status-bar";
 import { supabase } from "@/infrastructure/supabase/config";
 import { ContextMenuProvider, DialogProvider } from "../shared/providers";
+import { SupabaseProvider } from "@coco/shared/providers/SupabaseContext";
 
 export default function App() {
 	const { user, setUser, isLoadingAuth, setLoadingAuth, themeMode } =
@@ -91,21 +92,26 @@ export default function App() {
 				style={[styles.container, { backgroundColor: headerBgColor }]}
 				edges={["top"]}
 			>
-				<StatusBar style={isDark ? "light" : "dark"} animated={true} />
-				<ContextMenuProvider>
-					<DialogProvider>
-						<NavigationContainer theme={CocoAppTheme}>
-							{user ? (
-								<MainNavigator />
-							) : (
-								<AuthStack
-									isRegistering={isRegistering}
-									setIsRegistering={setIsRegistering}
-								/>
-							)}
-						</NavigationContainer>
-					</DialogProvider>
-				</ContextMenuProvider>
+				<SupabaseProvider supabaseClient={supabase}>
+					<StatusBar
+						style={isDark ? "light" : "dark"}
+						animated={true}
+					/>
+					<ContextMenuProvider>
+						<DialogProvider>
+							<NavigationContainer theme={CocoAppTheme}>
+								{user ? (
+									<MainNavigator />
+								) : (
+									<AuthStack
+										isRegistering={isRegistering}
+										setIsRegistering={setIsRegistering}
+									/>
+								)}
+							</NavigationContainer>
+						</DialogProvider>
+					</ContextMenuProvider>
+				</SupabaseProvider>
 			</SafeAreaView>
 		</SafeAreaProvider>
 	);

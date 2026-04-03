@@ -1,26 +1,20 @@
 import React, { useState, useCallback } from "react";
 import { useNavigation, useFocusEffect } from "@react-navigation/native";
-import { supabase } from "@/infrastructure/supabase/config";
 import { useProduct } from "@coco/shared/hooks/supabase";
 import { useContextMenu, useDialog } from "@coco/shared/providers";
 import { Product } from "@coco/shared/core/entities";
 import { MaterialIcons, Ionicons } from "@expo/vector-icons";
 import { ContextMenuItem } from "@coco/shared/components/CustomContextMenu";
 
-export const useProductsTab = (businessId?: string, colors?: any) => {
+export const useProductsTab = (colors?: any) => {
 	const navigation = useNavigation<any>();
 	const { showDialog } = useDialog();
 	const { showContextMenu } = useContextMenu();
-
-	// 👁️ Estado para controlar la visualización (se queda en el hook)
 	const [viewType, setViewType] = useState<"list" | "grid">("list");
-
-	// Estados para saber si el producto está en los extremos (para deshabilitar flechas de mover)
 	const [isFirst, setIsFirst] = useState(false);
 	const [isLast, setIsLast] = useState(false);
 	const [movingProductId, setMovingProductId] = useState<string | null>(null);
 
-	// Traemos el hook base de Supabase que ya tenías
 	const {
 		products,
 		refreshing,
@@ -31,13 +25,13 @@ export const useProductsTab = (businessId?: string, colors?: any) => {
 		toggleProductAvailability,
 		moveProduct,
 		fetchProducts,
-	} = useProduct(supabase, businessId);
+		loadingProduct,
+	} = useProduct();
 
-	// useFocusEffect para recargar cuando la pestaña vuelva a estar activa
 	useFocusEffect(
 		useCallback(() => {
 			fetchProducts(searchTerm);
-		}, [businessId, searchTerm, fetchProducts]),
+		}, [searchTerm, fetchProducts]),
 	);
 
 	const handleSearch = () => {
@@ -104,7 +98,6 @@ export const useProductsTab = (businessId?: string, colors?: any) => {
 		const options: ContextMenuItem[] = [];
 		const isFiltering = searchTerm.trim().length > 0;
 
-		// Solo permitimos mover si el usuario no está filtrando (misma regla que secciones)
 		if (!isFiltering) {
 			if (!isFirst) {
 				options.push({
@@ -136,7 +129,7 @@ export const useProductsTab = (businessId?: string, colors?: any) => {
 		}
 
 		return [
-			...options, // Primero las opciones de mover si aplican
+			...options,
 			{
 				label: product.isAvailable
 					? "Pausar Producto"
@@ -166,11 +159,12 @@ export const useProductsTab = (businessId?: string, colors?: any) => {
 						color={colors.textPrimaryLight}
 					/>
 				),
-				onPress: () =>
+				onPress: () => {
 					navigation.navigate("ProductForm", {
 						title: "Editar Producto",
 						productId: product.id,
-					}),
+					});
+				},
 			},
 			{
 				label: "Eliminar Producto",
@@ -200,7 +194,6 @@ export const useProductsTab = (businessId?: string, colors?: any) => {
 		);
 	};
 
-	// Exponemos lo que la vista necesita
 	return {
 		products,
 		refreshing,
@@ -213,5 +206,6 @@ export const useProductsTab = (businessId?: string, colors?: any) => {
 		viewType,
 		setViewType,
 		movingProductId,
+		loadingProduct,
 	};
 };

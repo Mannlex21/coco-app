@@ -7,29 +7,22 @@ import {
 	Spacing,
 	Shadow,
 } from "@coco/shared/config/theme";
-import { useAppStore } from "@coco/shared/hooks/useAppStore";
-import { useBusiness, useUser } from "@coco/shared/hooks/supabase";
+import { useBusiness } from "@coco/shared/hooks/supabase";
 import { useTheme } from "@coco/shared/hooks/useTheme";
 import { useDialog } from "@coco/shared/providers/DialogContext";
 import { useNavigation } from "@react-navigation/native";
-import { supabase } from "@/infrastructure/supabase/config";
 import { Skeleton } from "@/components/Sekeleton";
 
 export const StatusCard = () => {
 	const { colors } = useTheme();
 	const navigation = useNavigation<any>();
 	const { showDialog } = useDialog();
-	const { user } = useAppStore();
-	// 1. Obtenemos los datos del usuario de forma aislada
-	const { userData } = useUser(supabase, user?.id);
-
-	// 2. Obtenemos el negocio activo y la función para cambiar el estado
 	const {
 		activeBusiness,
 		toggleBusinessStatus,
 		isToggling,
 		loadingBusinesses,
-	} = useBusiness(supabase, user?.id, userData?.lastActiveBusinessId);
+	} = useBusiness();
 	const handleToggle = async () => {
 		if (!activeBusiness || isToggling) return;
 		try {

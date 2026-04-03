@@ -1,5 +1,11 @@
 import React from "react";
-import { FlatList, StyleSheet, RefreshControl, View } from "react-native";
+import {
+	FlatList,
+	StyleSheet,
+	RefreshControl,
+	View,
+	ActivityIndicator,
+} from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { useTheme } from "@coco/shared/hooks/useTheme";
 import { Spacing } from "@coco/shared/config/theme";
@@ -9,7 +15,7 @@ import { SectionItem } from "./components/SectionItem";
 import { SearchInput } from "../../components/SearchInput";
 import { FloatingButton } from "../../components/FloatingButton";
 
-export const SectionsTab = ({ businessId }: { businessId?: string }) => {
+export const SectionsTab = () => {
 	const navigation = useNavigation<any>();
 	const { colors } = useTheme();
 
@@ -23,7 +29,8 @@ export const SectionsTab = ({ businessId }: { businessId?: string }) => {
 		handleClearSearch,
 		handleOpenMenu,
 		movingSectionId,
-	} = useSectionsTab(businessId, colors);
+		loadingSection,
+	} = useSectionsTab(colors);
 
 	return (
 		<>
@@ -66,10 +73,19 @@ export const SectionsTab = ({ businessId }: { businessId?: string }) => {
 					/>
 				}
 				ListEmptyComponent={
-					<EmptyState
-						isFiltering={searchTerm.trim().length > 0}
-						colors={colors}
-					/>
+					loadingSection && !refreshing ? (
+						<View style={styles.loaderContainer}>
+							<ActivityIndicator
+								size="large"
+								color={colors.businessBg}
+							/>
+						</View>
+					) : (
+						<EmptyState
+							isFiltering={searchTerm.trim().length > 0}
+							colors={colors}
+						/>
+					)
 				}
 			/>
 
@@ -98,5 +114,12 @@ const styles = StyleSheet.create({
 	listContent: {
 		paddingTop: Spacing.xs,
 		paddingBottom: 100,
+		flexGrow: 1,
+	},
+	loaderContainer: {
+		flex: 1,
+		justifyContent: "center",
+		alignItems: "center",
+		minHeight: 200,
 	},
 });

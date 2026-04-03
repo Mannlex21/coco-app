@@ -218,7 +218,7 @@ const styles = StyleSheet.create({
 	overlay: {
 		flex: 1,
 		justifyContent: "flex-end", // Mantiene la tarjeta pegada abajo
-		backgroundColor: "rgba(0, 0, 0, 0.6)", // Fondo oscuro semitransparente
+		backgroundColor: "rgba(0, 0, 0, 0.1)", // Fondo oscuro semitransparente
 	},
 	container: {
 		width: "100%",

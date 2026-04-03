@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import { supabase } from "@/infrastructure/supabase/config";
 import { useTheme } from "@coco/shared/hooks/useTheme";
 import { useDialog } from "@coco/shared/providers/DialogContext";
 import { useNavigation, useRoute } from "@react-navigation/native";
@@ -40,12 +39,8 @@ export const ModifierGroupForm = () => {
 	const { colors, isDark } = useTheme();
 	const { showDialog } = useDialog();
 	const { user } = useAppStore();
-	const businessId = user?.lastActiveBusinessId;
 
-	const { saveModifierGroup, getModifierGroupById } = useModifiersGroup(
-		supabase,
-		user?.lastActiveBusinessId,
-	);
+	const { saveModifierGroup, getModifierGroupById } = useModifiersGroup();
 
 	// --- VARIABLES DE ESTILO ---
 	const subTextColor = isDark ? "rgba(255,255,255,0.6)" : "rgba(0,0,0,0.55)";
@@ -77,7 +72,6 @@ export const ModifierGroupForm = () => {
 			const currentGroup = await getModifierGroupById(groupId);
 
 			if (currentGroup) {
-				console.log(currentGroup.choices);
 				setFormData({
 					name: currentGroup.name,
 					internalName: currentGroup.internal_name || "",
@@ -283,7 +277,6 @@ export const ModifierGroupForm = () => {
 						]}
 						onPress={() =>
 							navigation.navigate("ModifierPicker", {
-								businessId,
 								groupId,
 								// 👇 CAMBIO AQUÍ: En lugar de mapear solo IDs, mandamos los objetos completos en memoria
 								currentMemoryModifiers:

@@ -5,19 +5,15 @@ import { useAppStore } from "@coco/shared/hooks/useAppStore";
 import { useBusiness, useUser } from "@coco/shared/hooks/supabase";
 import { FontSize, FontWeight, Spacing } from "@coco/shared/config/theme";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { supabase } from "@/infrastructure/supabase/config";
 import { Skeleton } from "@/components/Sekeleton";
 
 export const DashboardHeader = () => {
 	const { colors } = useTheme();
 	const { user } = useAppStore();
 	const insets = useSafeAreaInsets();
-	const { loadingUser } = useUser(supabase, user?.id);
+	const { loadingUser } = useUser(user?.id);
 
-	const { activeBusiness, loadingBusinesses } = useBusiness(
-		supabase,
-		user?.id,
-	);
+	const { activeBusiness, loadingBusinesses } = useBusiness();
 	const firstName = user?.name ? user.name.split(" ")[0] : "Socio";
 	return (
 		<View

@@ -11,9 +11,9 @@ import {
 } from "react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { useTheme } from "@coco/shared/hooks/useTheme";
-import { useProduct } from "@coco/shared/hooks/supabase";
+import { useSection } from "@coco/shared/hooks/supabase";
 import { Ionicons } from "@expo/vector-icons";
-import { Product } from "@coco/shared/core/entities/";
+import { Section } from "@coco/shared/core/entities/";
 import {
 	FontSize,
 	FontWeight,
@@ -21,24 +21,25 @@ import {
 	Spacing,
 } from "@coco/shared/config/theme";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { ScreenHeader } from "../../components/ScreenHeader";
-import { PrimaryButton } from "../../components/PrimaryButton";
+import { ScreenHeader } from "@/screens/Catalog/components/ScreenHeader";
+import { PrimaryButton } from "@/screens/Catalog/components/PrimaryButton";
 
-export const ProductPicker = () => {
+export const SectionPicker = () => {
 	const navigation = useNavigation<any>();
 	const route = useRoute<any>();
 	const { colors, isDark } = useTheme();
 	const insets = useSafeAreaInsets();
 
-	const { alreadySelectedProducts = [] } = route.params || {};
+	// 🌟 Recibe las secciones ya seleccionadas para persistir la selección
+	const { alreadySelectedSections = [], returnScreen = "ProductForm" } =
+		route.params || {};
 
-	const { products, refreshing, fetchProducts, searchTerm, setSearchTerm } =
-		useProduct();
+	const { sections, fetchSections, refreshing, searchTerm, setSearchTerm } =
+		useSection();
 
-	const [selectedProducts, setSelectedProducts] = useState<Product[]>(
-		alreadySelectedProducts,
+	const [selectedSectionIds, setSelectedSectionIds] = useState<string[]>(
+		alreadySelectedSections,
 	);
-
 	const textColor = colors.textPrimaryLight;
 	const subTextColor = colors.textSecondaryLight;
 	const borderColor = colors.borderLight;
@@ -46,34 +47,41 @@ export const ProductPicker = () => {
 	const bgSearchInput = colors.inputBg;
 
 	useEffect(() => {
-		fetchProducts(searchTerm);
-	}, [searchTerm, fetchProducts]);
+		fetchSections(searchTerm);
+		// 🚀 Quitamos fetchSections de aquí abajo para evitar el bucle infinito
+	}, [searchTerm]);
 
-	const toggleProductSelection = (product: Product) => {
-		const isSelected = selectedProducts.some((p) => p.id === product.id);
+	const toggleSectionSelection = (sectionId: string) => {
+		const isSelected = selectedSectionIds?.includes(sectionId);
 		if (isSelected) {
-			setSelectedProducts(
-				selectedProducts.filter((p) => p.id !== product.id),
+			setSelectedSectionIds(
+				selectedSectionIds.filter((id) => id !== sectionId),
 			);
 		} else {
-			setSelectedProducts([...selectedProducts, product]);
+			setSelectedSectionIds([...selectedSectionIds, sectionId]);
 		}
 	};
 
 	const handleFinish = () => {
-		navigation.popTo("SectionForm", {
-			selectedProducts: selectedProducts,
+		// 🔥 Limpieza en un Set para garantizar unicidad de IDs de vuelta
+		const uniqueIds = Array.from(new Set(selectedSectionIds));
+
+		console.log("Regresando IDs únicos:", uniqueIds);
+
+		// 🌟 Redirige mandando el arreglo finalizado de puros IDs
+		navigation.popTo(returnScreen, {
+			selectedSections: uniqueIds,
 		});
 	};
 
-	const renderProductItem = ({ item }: { item: Product }) => {
-		const isSelected = selectedProducts.some((p) => p.id === item.id);
+	const renderSectionItem = ({ item }: { item: Section }) => {
+		const isSelected = selectedSectionIds?.includes(item.id);
 
 		return (
 			<TouchableOpacity
 				style={[styles.card, { borderBottomColor: borderColor }]}
 				activeOpacity={0.7}
-				onPress={() => toggleProductSelection(item)}
+				onPress={() => toggleSectionSelection(item.id)} // 🚀 Mandamos el ID
 			>
 				<View style={{ flex: 1 }}>
 					<Text style={[styles.name, { color: textColor }]}>
@@ -99,7 +107,7 @@ export const ProductPicker = () => {
 	return (
 		<View style={{ flex: 1, backgroundColor: bgApp }}>
 			<ScreenHeader
-				title="Vincular Productos"
+				title="Vincular Secciones"
 				onBack={() => navigation.goBack()}
 				fontSizeTitle={FontSize.xl}
 			/>
@@ -120,7 +128,7 @@ export const ProductPicker = () => {
 				/>
 				<TextInput
 					style={[styles.searchInput, { color: textColor }]}
-					placeholder="Buscar producto por nombre..."
+					placeholder="Buscar sección por nombre..."
 					placeholderTextColor={
 						isDark ? "rgba(255,255,255,0.3)" : "rgba(0,0,0,0.3)"
 					}
@@ -139,8 +147,8 @@ export const ProductPicker = () => {
 			</View>
 
 			<Text style={[styles.headerSub, { color: subTextColor }]}>
-				Busca y selecciona los productos que formarán parte de esta
-				sección.
+				Busca y selecciona las secciones en las que se mostrará este
+				producto.
 			</Text>
 
 			{refreshing ? (
@@ -149,16 +157,16 @@ export const ProductPicker = () => {
 				</View>
 			) : (
 				<FlatList
-					data={products}
+					data={sections}
 					keyExtractor={(item) => item.id}
-					renderItem={renderProductItem}
+					renderItem={renderSectionItem}
 					contentContainerStyle={styles.scrollContent}
 					showsVerticalScrollIndicator={false}
 					ListEmptyComponent={
 						<Text
 							style={[styles.emptyText, { color: subTextColor }]}
 						>
-							No se encontraron productos.
+							No se encontraron secciones.
 						</Text>
 					}
 				/>
@@ -171,7 +179,7 @@ export const ProductPicker = () => {
 				]}
 			>
 				<PrimaryButton
-					title={`Guardar cambios (${selectedProducts.length})`}
+					title={`Guardar cambios (${selectedSectionIds.length})`}
 					onPress={handleFinish}
 					marginBottom={
 						Platform.OS === "ios" ? insets.bottom : Spacing.md
@@ -202,7 +210,7 @@ const styles = StyleSheet.create({
 		alignItems: "center",
 		marginHorizontal: Spacing.md,
 		marginBottom: Spacing.sm,
-		paddingHorizontal: Spacing.md, // Cambiado de 12 a Spacing.md (16)
+		paddingHorizontal: Spacing.md,
 		height: 46,
 		borderRadius: BorderRadius.md,
 		borderWidth: StyleSheet.hairlineWidth,
@@ -226,7 +234,7 @@ const styles = StyleSheet.create({
 	},
 	emptyText: {
 		textAlign: "center",
-		marginTop: Spacing.xxl, // Cambiado de 40 a Spacing.xxl (48)
+		marginTop: Spacing.xxl,
 		fontSize: FontSize.md,
 	},
 	bottomContainer: {

@@ -1,7 +1,10 @@
 import React, { ComponentProps } from "react";
 import { View, Text, Platform } from "react-native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import { createStackNavigator } from "@react-navigation/stack";
+import {
+	createStackNavigator,
+	StackNavigationOptions,
+} from "@react-navigation/stack";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { DashboardScreen } from "@/screens/Dashboard/DashboardScreen";
@@ -17,6 +20,7 @@ import { ProductPicker } from "@/screens/Catalog/Tabs/Products/ProductPicker";
 import { ModifierForm } from "@/screens/Catalog/Tabs/ModifiersGroup/components/ModifierForm";
 import { ModifierPicker } from "@/screens/Catalog/Tabs/ModifiersGroup/components/ModifierPicker";
 import { ModifierGroupForm } from "@/screens/Catalog/Tabs/ModifiersGroup/ModifierGroupForm";
+import { SectionPicker } from "@/screens/Catalog/Tabs/Secciones/components/SectionPicker";
 
 const RootStack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -130,6 +134,33 @@ const TabNavigator = () => {
 export const MainNavigator = () => {
 	const { colors } = useTheme();
 
+	// 🌟 1. Función generadora para abstraer el boilerplate de las opciones
+	const getScreenOptions = (
+		defaultTitle: string,
+		presentation: "card" | "modal" = "card",
+	) => {
+		return ({ route }: any): StackNavigationOptions => ({
+			headerShown: false,
+			title: route.params?.title || defaultTitle,
+			headerTintColor: colors.businessBg,
+			headerTitleStyle: {
+				fontWeight: FontWeight.bold,
+				fontSize: FontSize.lg,
+				color: colors.textPrimaryLight,
+			},
+			headerBackTitle: "",
+			presentation: presentation,
+			...(presentation === "modal" && { animation: "slide_from_bottom" }),
+			headerStyle: {
+				backgroundColor: colors.surfaceLight,
+				elevation: 0,
+				shadowOpacity: 0,
+				borderBottomWidth: 1,
+				borderBottomColor: colors.borderLight,
+			},
+		});
+	};
+
 	return (
 		<RootStack.Navigator
 			screenOptions={{
@@ -138,202 +169,63 @@ export const MainNavigator = () => {
 			}}
 		>
 			<RootStack.Screen name="Tabs" component={TabNavigator} />
+
+			{/* 🌟 2. Reducción drástica de código repetido */}
 			<RootStack.Screen
 				name="BusinessSetup"
 				component={BusinessSetupScreen}
-				options={({ route }: any) => ({
-					headerShown: true,
-					title: route.params?.title || "Configurar Negocio",
-					headerTintColor: colors.businessBg,
-					headerTitleStyle: {
-						fontWeight: FontWeight.bold,
-						fontSize: FontSize.lg,
-						color: colors.textPrimaryLight,
-					},
-					headerBackTitle: "",
-					presentation: "card",
-					headerStyle: {
-						backgroundColor: colors.surfaceLight,
-						elevation: 0,
-						shadowOpacity: 0,
-						borderBottomWidth: 1,
-						borderBottomColor: colors.borderLight,
-					},
-				})}
+				options={getScreenOptions("Configurar Negocio")}
 			/>
+
 			<RootStack.Screen
 				name="ProductForm"
 				component={ProductForm}
-				options={({ route }: any) => ({
-					headerShown: false,
-					title: route.params?.title || "Producto",
-					headerTintColor: colors.businessBg,
-					headerTitleStyle: {
-						fontWeight: FontWeight.bold,
-						fontSize: FontSize.lg,
-						color: colors.textPrimaryLight,
-					},
-					headerBackTitle: "",
-					presentation: "card",
-					headerStyle: {
-						backgroundColor: colors.surfaceLight,
-						elevation: 0,
-						shadowOpacity: 0,
-						borderBottomWidth: 1,
-						borderBottomColor: colors.borderLight,
-					},
-				})}
+				options={getScreenOptions("Producto")}
 			/>
 
 			<RootStack.Screen
 				name="ProductPicker"
-				component={ProductPicker} // Asegúrate de importar tu componente
-				options={({ route }: any) => ({
-					headerShown: true,
-					title: route.params?.title || "Seleccionar Productos",
-					headerTintColor: colors.businessBg,
-					headerTitleStyle: {
-						fontWeight: FontWeight.bold,
-						fontSize: FontSize.lg,
-						color: colors.textPrimaryLight,
-					},
-					headerBackTitle: "",
-
-					// 🌟 CONFIGURACIÓN CLAVE PARA EL PICKER 🌟
-					presentation: "modal", // Lo muestra como modal levantándose desde abajo
-					animation: "slide_from_bottom", // Animación natural de modal
-
-					headerStyle: {
-						backgroundColor: colors.surfaceLight,
-						elevation: 0,
-						shadowOpacity: 0,
-						borderBottomWidth: 1,
-						borderBottomColor: colors.borderLight,
-					},
-				})}
+				component={ProductPicker}
+				options={getScreenOptions("Seleccionar Productos", "modal")}
 			/>
+
+			<RootStack.Screen
+				name="SectionPicker"
+				component={SectionPicker}
+				options={getScreenOptions("Seleccionar Secciones", "modal")}
+			/>
+
 			<RootStack.Screen
 				name="ModifierPicker"
-				component={ModifierPicker} // Asegúrate de importar tu componente
-				options={({ route }: any) => ({
-					headerShown: false,
-					title: route.params?.title || "Seleccionar Modificadores",
-					headerTintColor: colors.businessBg,
-					headerTitleStyle: {
-						fontWeight: FontWeight.bold,
-						fontSize: FontSize.lg,
-						color: colors.textPrimaryLight,
-					},
-					headerBackTitle: "",
-
-					// 🌟 CONFIGURACIÓN CLAVE PARA EL PICKER 🌟
-					presentation: "modal", // Lo muestra como modal levantándose desde abajo
-					animation: "slide_from_bottom", // Animación natural de modal
-
-					headerStyle: {
-						backgroundColor: colors.surfaceLight,
-						elevation: 0,
-						shadowOpacity: 0,
-						borderBottomWidth: 1,
-						borderBottomColor: colors.borderLight,
-					},
-				})}
+				component={ModifierPicker}
+				options={getScreenOptions("Seleccionar Modificadores", "modal")}
 			/>
+
 			<RootStack.Screen
 				name="ModifierForm"
-				component={ModifierForm} // Asegúrate de importar tu componente
-				options={({ route }: any) => ({
-					headerShown: true,
-					title: route.params?.title || "Seleccionar modificador",
-					headerTintColor: colors.businessBg,
-					headerTitleStyle: {
-						fontWeight: FontWeight.bold,
-						fontSize: FontSize.lg,
-						color: colors.textPrimaryLight,
-					},
-					headerBackTitle: "",
-
-					// 🌟 CONFIGURACIÓN CLAVE PARA EL PICKER 🌟
-					presentation: "modal", // Lo muestra como modal levantándose desde abajo
-					animation: "slide_from_bottom", // Animación natural de modal
-
-					headerStyle: {
-						backgroundColor: colors.surfaceLight,
-						elevation: 0,
-						shadowOpacity: 0,
-						borderBottomWidth: 1,
-						borderBottomColor: colors.borderLight,
-					},
-				})}
+				component={ModifierForm}
+				options={getScreenOptions("Seleccionar modificador", "modal")}
 			/>
+
 			<RootStack.Screen
 				name="SectionForm"
 				component={SectionForm}
-				options={({ route }: any) => ({
-					headerShown: false,
-					title: route.params?.title || "Sección",
-					headerTintColor: colors.businessBg,
-					headerTitleStyle: {
-						fontWeight: FontWeight.bold,
-						fontSize: FontSize.lg,
-						color: colors.textPrimaryLight,
-					},
-					headerBackTitle: "",
-					presentation: "card",
-					headerStyle: {
-						backgroundColor: colors.surfaceLight,
-						elevation: 0,
-						shadowOpacity: 0,
-						borderBottomWidth: 1,
-						borderBottomColor: colors.borderLight,
-					},
-				})}
+				options={getScreenOptions("Formulario de Sección", "modal")}
 			/>
+
 			<RootStack.Screen
 				name="ModifierGroupForm"
 				component={ModifierGroupForm}
-				options={({ route }: any) => ({
-					headerShown: false,
-					title: route.params?.title || "Sección",
-					headerTintColor: colors.businessBg,
-					headerTitleStyle: {
-						fontWeight: FontWeight.bold,
-						fontSize: FontSize.lg,
-						color: colors.textPrimaryLight,
-					},
-					headerBackTitle: "",
-					presentation: "card",
-					headerStyle: {
-						backgroundColor: colors.surfaceLight,
-						elevation: 0,
-						shadowOpacity: 0,
-						borderBottomWidth: 1,
-						borderBottomColor: colors.borderLight,
-					},
-				})}
+				options={getScreenOptions(
+					"Formulario de Grupo de Modificadores",
+					"modal",
+				)}
 			/>
+
 			<RootStack.Screen
 				name="UserSetup"
 				component={UserSetupScreen}
-				options={({ route }: any) => ({
-					headerShown: true,
-					title: route.params?.title || "Editar Perfil",
-					headerTintColor: colors.businessBg,
-					headerTitleStyle: {
-						fontWeight: FontWeight.bold,
-						fontSize: FontSize.lg,
-						color: colors.textPrimaryLight,
-					},
-					headerBackTitle: "",
-					presentation: "card",
-					headerStyle: {
-						backgroundColor: colors.surfaceLight,
-						elevation: 0,
-						shadowOpacity: 0,
-						borderBottomWidth: 1,
-						borderBottomColor: colors.borderLight,
-					},
-				})}
+				options={getScreenOptions("Editar Perfil", "modal")}
 			/>
 		</RootStack.Navigator>
 	);

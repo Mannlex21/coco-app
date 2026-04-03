@@ -73,6 +73,7 @@ export const AppDialog = ({
 			transparent
 			animationType="none"
 			onRequestClose={handleClose}
+			statusBarTranslucent={true}
 		>
 			<TouchableWithoutFeedback
 				onPress={type === "info" ? handleClose : undefined}

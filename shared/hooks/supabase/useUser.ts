@@ -1,17 +1,15 @@
-import { useState, useEffect, useCallback, useMemo } from "react"; // 👈 Agregamos useCallback
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useAppStore } from "@coco/shared/hooks/useAppStore";
 import { User } from "core/entities";
 import {
 	EntityType,
 	StorageRepository,
 } from "@coco/shared/infrastructure/supabase/StorageRepository";
-import { SupabaseClient } from "@supabase/supabase-js";
+import { useSupabaseContext } from "@coco/shared/providers/SupabaseContext";
 
-export const useUser = (
-	supabase: SupabaseClient,
-	userId: string | undefined,
-) => {
-	const { user, setUser } = useAppStore();
+export const useUser = (userId: string | undefined) => {
+	const supabase = useSupabaseContext();
+	const { user, setUser, activeBusiness } = useAppStore();
 	const [loadingUser, setLoadingUser] = useState(true);
 	const storageRepository = useMemo(
 		() => new StorageRepository(supabase),
@@ -155,14 +153,14 @@ export const useUser = (
 		}
 	};
 
-	const updateLastActiveBusiness = async (businessId: string) => {
+	const updateLastActiveBusiness = async () => {
 		if (!userId) return { success: false, error: "No user ID" };
 
 		try {
 			const { error } = await supabase
 				.from("users")
 				.update({
-					last_active_business_id: businessId,
+					last_active_business_id: activeBusiness?.id,
 					updated_at: new Date().toISOString(),
 				})
 				.eq("id", userId);

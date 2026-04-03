@@ -20,7 +20,6 @@ import {
 	Shadow,
 } from "@coco/shared/config/theme";
 import { useNavigation } from "@react-navigation/native";
-import { supabase } from "@/infrastructure/supabase/config";
 
 export const ProfileHeader = () => {
 	const { user } = useAppStore();
@@ -28,7 +27,7 @@ export const ProfileHeader = () => {
 	const insets = useSafeAreaInsets();
 	const navigation = useNavigation<any>();
 
-	const { userData } = useUser(supabase, user?.id);
+	const { userData } = useUser(user?.id);
 	const rawAvatarUrl = userData?.avatarUrl || user?.avatarUrl;
 	const lastUpdate = userData?.updatedAt
 		? new Date(userData.updatedAt).getTime()

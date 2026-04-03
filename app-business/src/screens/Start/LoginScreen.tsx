@@ -23,7 +23,7 @@ import {
 import { useTheme } from "@coco/shared/hooks/useTheme";
 import { useDialog } from "@coco/shared/providers/DialogContext";
 import { StatusBar } from "expo-status-bar";
-import { supabase } from "@/infrastructure/supabase/config";
+import { useSupabaseContext } from "@coco/shared/providers/SupabaseContext";
 
 interface LoginProps {
 	onRegister: () => void;
@@ -35,6 +35,7 @@ export const LoginScreen: React.FC<LoginProps> = ({ onRegister }) => {
 	const { colors } = useTheme();
 	const { showDialog } = useDialog();
 	const [loading, setLoading] = useState(false);
+	const supabase = useSupabaseContext();
 
 	const handleLogin = async () => {
 		const cleanEmail = email.trim();

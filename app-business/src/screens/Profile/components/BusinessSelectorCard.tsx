@@ -20,15 +20,14 @@ import {
 } from "@coco/shared/config/theme";
 import { useBusiness } from "@coco/shared/hooks/supabase";
 import { Business } from "@coco/shared/core/entities/Business";
-import { supabase } from "@/infrastructure/supabase/config";
 
 export const BusinessSelectorCard = () => {
 	// 🔌 Conexiones a los hooks globales de la app
 	const { colors, isDark } = useTheme();
 	const { showDialog } = useDialog();
 	const navigation = useNavigation<any>();
-	const { user, activeBusiness, setActiveBusiness } = useAppStore();
-	const { businesses, loadingBusinesses } = useBusiness(supabase, user?.id);
+	const { activeBusiness, setActiveBusiness } = useAppStore();
+	const { businesses, loadingBusinesses } = useBusiness();
 
 	const cardBg = isDark ? "#1C1C1E" : "#FFFFFF";
 	const subTextColor = isDark ? "rgba(255,255,255,0.6)" : "rgba(0,0,0,0.55)";

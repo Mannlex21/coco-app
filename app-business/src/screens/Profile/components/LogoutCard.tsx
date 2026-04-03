@@ -3,7 +3,6 @@ import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "@coco/shared/hooks/useTheme";
 import { useDialog } from "@coco/shared/providers/DialogContext";
-import { AuthService } from "@/infrastructure/auth/AuthService";
 import {
 	FontSize,
 	FontWeight,
@@ -11,10 +10,11 @@ import {
 	Spacing,
 	Shadow,
 } from "@coco/shared/config/theme";
-import { supabase } from "@/infrastructure/supabase/config";
 import { useAppStore } from "@coco/shared/hooks/useAppStore";
+import { useSupabaseContext } from "@coco/shared/providers/SupabaseContext";
 
 export const LogoutCard = () => {
+	const supabase = useSupabaseContext();
 	const { isDark } = useTheme();
 	const { showDialog } = useDialog();
 	const { setActiveBusiness, setUser } = useAppStore();

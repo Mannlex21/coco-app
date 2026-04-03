@@ -7,26 +7,17 @@ import {
 	Spacing,
 	Shadow,
 } from "@coco/shared/config/theme";
-import { useAppStore } from "@coco/shared/hooks/useAppStore";
-import { useBusiness, useUser } from "@coco/shared/hooks/supabase";
+import { useBusiness } from "@coco/shared/hooks/supabase";
 import { useTheme } from "@coco/shared/hooks/useTheme";
 import { useDialog } from "@coco/shared/providers/DialogContext";
 import { useNavigation } from "@react-navigation/native";
-import { supabase } from "@/infrastructure/supabase/config";
 
 export const QuickAccessCard = () => {
 	const { colors } = useTheme();
 	const navigation = useNavigation<any>();
 	const { showDialog } = useDialog();
-	const { user } = useAppStore();
 
-	const { userData } = useUser(supabase, user?.id);
-
-	const { activeBusiness, deleteBusiness, loadingBusinesses } = useBusiness(
-		supabase,
-		user?.id,
-		userData?.lastActiveBusinessId,
-	);
+	const { activeBusiness, deleteBusiness, loadingBusinesses } = useBusiness();
 
 	const handleDelete = () => {
 		if (!activeBusiness) return;

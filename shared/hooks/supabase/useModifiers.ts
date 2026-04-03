@@ -1,16 +1,14 @@
 import { useState, useEffect, useCallback } from "react";
-import { SupabaseClient } from "@supabase/supabase-js";
 import { useCatalogStore } from "@coco/shared/hooks/useCatalogStore";
 import { TABLES } from "@coco/shared/constants";
-import { Modifier } from "core/entities/Modifier";
+import { Modifier } from "@coco/shared/core/entities/Modifier";
+import { useAppStore } from "@coco/shared/hooks/useAppStore";
+import { useSupabaseContext } from "@coco/shared/providers/SupabaseContext";
 
-export const useModifier = (
-	supabase: SupabaseClient,
-	businessId?: string,
-	modifierGroupId?: string,
-) => {
+export const useModifier = (modifierGroupId?: string) => {
+	const supabase = useSupabaseContext();
+	const { activeBusiness } = useAppStore();
 	const [searchTerm, setSearchTerm] = useState("");
-
 	const modifiers = useCatalogStore((state) => state.modifiers) || [];
 	const setModifiers = useCatalogStore((state) => state.setModifiers);
 
@@ -21,7 +19,7 @@ export const useModifier = (
 	// 1. Obtener los modificadores (Ya sea por Negocio o por Grupo)
 	const fetchModifiers = useCallback(
 		async (searchQuery: string = "") => {
-			if (!businessId && !modifierGroupId) return;
+			if (!activeBusiness?.id && !modifierGroupId) return;
 
 			setLoading(true);
 			setError(null);
@@ -37,8 +35,11 @@ export const useModifier = (
 					)
 					.order("name", { ascending: true });
 
-				if (businessId) {
-					query = query.eq("modifier_groups.business_id", businessId);
+				if (activeBusiness?.id) {
+					query = query.eq(
+						"modifier_groups.business_id",
+						activeBusiness?.id,
+					);
 				} else if (modifierGroupId) {
 					query = query.eq("modifier_group_id", modifierGroupId);
 				}
@@ -73,7 +74,7 @@ export const useModifier = (
 				setRefreshing(false);
 			}
 		},
-		[supabase, businessId, modifierGroupId, setModifiers],
+		[supabase, activeBusiness, modifierGroupId, setModifiers],
 	);
 
 	// 2. Obtener UN modificador por ID

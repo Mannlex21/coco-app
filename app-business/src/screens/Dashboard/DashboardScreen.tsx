@@ -1,34 +1,23 @@
 import React from "react";
-import {
-	View,
-	Text,
-	StyleSheet,
-	ScrollView,
-	RefreshControl,
-} from "react-native";
+import { View, StyleSheet, ScrollView, RefreshControl } from "react-native";
 import { FontSize, Spacing } from "@coco/shared/config/theme";
 import { useAppStore } from "@coco/shared/hooks/useAppStore";
 import { useBusiness, useUser } from "@coco/shared/hooks/supabase";
 import { useTheme } from "@coco/shared/hooks/useTheme";
 import { DashboardHeader } from "./components/DashboardHeader";
-import { supabase } from "@/infrastructure/supabase/config";
 import { StatusCard } from "./components/StatusCard";
 import { StatsCard } from "./components/StatsCard";
 import { QuickAccessCard } from "./components/QuickAccessCard";
 
 export const DashboardScreen = () => {
 	const { colors } = useTheme();
-	const { user } = useAppStore();
+	const { user, activeBusiness } = useAppStore();
 
-	const { userData, updateLastActiveBusiness } = useUser(supabase, user?.id);
+	const { userData, updateLastActiveBusiness } = useUser(user?.id);
 
-	const { activeBusiness, onRefresh, refreshing } = useBusiness(
-		supabase,
-		user?.id,
-		userData?.lastActiveBusinessId,
-	);
+	const { onRefresh, refreshing } = useBusiness();
 	if (userData && !userData.lastActiveBusinessId && activeBusiness) {
-		updateLastActiveBusiness(activeBusiness.id);
+		updateLastActiveBusiness();
 	}
 	return (
 		<View style={{ flex: 1 }}>

@@ -1,13 +1,12 @@
 import React, { useCallback } from "react";
 import { useNavigation, useFocusEffect } from "@react-navigation/native";
-import { supabase } from "@/infrastructure/supabase/config";
 import { useContextMenu, useDialog } from "@coco/shared/providers";
 import { MaterialIcons, Ionicons } from "@expo/vector-icons";
 import { ContextMenuItem } from "@coco/shared/components/CustomContextMenu";
 import { useModifier } from "@coco/shared/hooks/supabase/useModifiers";
 import { Modifier } from "@coco/shared/core/entities/Modifier";
 
-export const useModifiersTab = (businessId?: string, colors?: any) => {
+export const useModifiersTab = (colors?: any) => {
 	const navigation = useNavigation<any>();
 	const { showDialog } = useDialog();
 	const { showContextMenu } = useContextMenu();
@@ -21,13 +20,13 @@ export const useModifiersTab = (businessId?: string, colors?: any) => {
 		setSearchTerm,
 		deleteModifier,
 		toggleModifierAvailability,
-	} = useModifier(supabase, businessId);
+	} = useModifier();
 
 	// useFocusEffect para recargar cuando la pestaña de modificadores vuelva a estar activa
 	useFocusEffect(
 		useCallback(() => {
 			fetchModifiers(searchTerm);
-		}, [businessId, searchTerm, fetchModifiers]),
+		}, [searchTerm, fetchModifiers]),
 	);
 
 	const handleSearch = () => {
