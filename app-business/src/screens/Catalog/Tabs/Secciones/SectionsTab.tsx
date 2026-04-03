@@ -21,7 +21,7 @@ export const SectionsTab = () => {
 
 	const {
 		sections,
-		refreshing,
+
 		onRefresh,
 		searchTerm,
 		setSearchTerm,
@@ -29,8 +29,8 @@ export const SectionsTab = () => {
 		handleClearSearch,
 		handleOpenMenu,
 		movingSectionId,
-		loadingSection,
-	} = useSectionsTab(colors);
+		loadings,
+	} = useSectionsTab();
 
 	return (
 		<>
@@ -67,13 +67,13 @@ export const SectionsTab = () => {
 				)}
 				refreshControl={
 					<RefreshControl
-						refreshing={refreshing}
+						refreshing={loadings.refresh}
 						onRefresh={onRefresh}
 						colors={[colors.businessBg]}
 					/>
 				}
 				ListEmptyComponent={
-					loadingSection && !refreshing ? (
+					loadings.fetch && !loadings.refresh ? (
 						<View style={styles.loaderContainer}>
 							<ActivityIndicator
 								size="large"

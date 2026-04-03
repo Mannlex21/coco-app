@@ -15,13 +15,28 @@ export const useProduct = () => {
 	const sections = useCatalogStore((state) => state.sections);
 	const setSections = useCatalogStore((state) => state.setSections);
 
-	const [refreshing, setRefreshing] = useState(false);
-	const [loading, setLoading] = useState(false);
+	// ⚡ 1. Agrupamos todos los loadings. Agregué "move" y "sections".
+	const [loadings, setLoadings] = useState({
+		fetch: true, // Para la carga de productos
+		sections: false, // Para la carga inicial de secciones
+		save: false, // Guardar (crear o actualizar)
+		delete: false, // Eliminar
+		toggle: false, // Cambiar disponibilidad
+		move: false, // Reordenar posiciones
+		refresh: false, // Pull-to-refresh
+	});
+
 	const [error, setError] = useState<string | null>(null);
+
+	// Función auxiliar para manipular los estados de carga
+	const setFunctionLoading = (key: keyof typeof loadings, value: boolean) => {
+		setLoadings((prev) => ({ ...prev, [key]: value }));
+	};
 
 	const fetchSectionsIfEmpty = useCallback(async () => {
 		if (!activeBusiness?.id || sections.length > 0) return;
 
+		setFunctionLoading("sections", true);
 		try {
 			const { data, error: supabaseError } = await supabase
 				.from(TABLES.SECTIONS)
@@ -42,26 +57,25 @@ export const useProduct = () => {
 				createdAt: new Date(item.created_at),
 				updatedAt: new Date(item.updated_at),
 			}));
-
 			setSections(mappedSections);
 		} catch (err) {
 			console.error(
 				"Error fetching fallback sections in useProduct:",
 				err,
 			);
+		} finally {
+			setFunctionLoading("sections", false);
 		}
-	}, [supabase, activeBusiness, sections.length, setSections]);
+	}, [supabase, activeBusiness?.id, sections.length, setSections]);
 
-	// 1. Obtener todos los productos con sus secciones (Muchos a Muchos)
 	const fetchProducts = useCallback(
 		async (searchQuery: string = "") => {
 			if (!activeBusiness?.id) return;
 
-			setLoading(true);
+			setFunctionLoading("fetch", true);
 			setError(null);
 
 			try {
-				// ⚡ Modificamos el select para traer la relación de la tabla pivote
 				let query = supabase
 					.from(TABLES.PRODUCTS)
 					.select(
@@ -70,7 +84,7 @@ export const useProduct = () => {
                         product_sections(section_id)
                     `,
 					)
-					.eq("business_id", activeBusiness?.id)
+					.eq("business_id", activeBusiness.id)
 					.order("position", { ascending: true });
 
 				if (searchQuery.trim() !== "") {
@@ -106,14 +120,12 @@ export const useProduct = () => {
 				console.error("Error fetching products:", err);
 				setError(err.message || "No se pudieron cargar los productos");
 			} finally {
-				setLoading(false);
-				setRefreshing(false);
+				setFunctionLoading("fetch", false);
 			}
 		},
-		[supabase, activeBusiness, setProducts],
+		[supabase, activeBusiness?.id, setProducts],
 	);
 
-	// 2. Obtener UN producto por ID (Adaptado para traer sus secciónes)
 	const getProductById = useCallback(
 		async (productId: string) => {
 			const productInMemory = products.find((p) => p.id === productId);
@@ -160,11 +172,10 @@ export const useProduct = () => {
 		[supabase, products],
 	);
 
-	// 3. Crear o Actualizar un producto (Muchos a Muchos)
 	const saveProduct = async (
 		productId?: string,
 		dataToSave?: {
-			sectionIds: string[]; // 👈 Ahora recibe un array de strings (puede estar vacío)
+			sectionIds: string[];
 			name: string;
 			description: string;
 			price: number;
@@ -172,15 +183,13 @@ export const useProduct = () => {
 			isAvailable: boolean;
 		},
 	) => {
-		console.log(productId, dataToSave);
-		setLoading(true);
 		if (!user?.lastActiveBusinessId || !dataToSave)
 			throw new Error(
 				"No se pudo guardar: Falta businessId o dataToSave",
 			);
 
+		setFunctionLoading("save", true);
 		try {
-			// ⚡ Eliminamos section_id del payload directo a la tabla de productos
 			const payload: any = {
 				business_id: activeBusiness?.id,
 				name: dataToSave.name.trim(),
@@ -194,7 +203,6 @@ export const useProduct = () => {
 			let currentProductId = productId;
 
 			if (productId) {
-				// --- MODO EDICIÓN ---
 				const { error: supabaseError } = await supabase
 					.from(TABLES.PRODUCTS)
 					.update(payload)
@@ -202,9 +210,6 @@ export const useProduct = () => {
 
 				if (supabaseError) throw supabaseError;
 			} else {
-				// --- MODO CREACIÓN ---
-				// Para simplificar (como comentas que la posición se arreglará después)
-				// Usamos la posición global más alta del negocio para el nuevo producto
 				const { data: lastProduct } = await supabase
 					.from(TABLES.PRODUCTS)
 					.select("position")
@@ -222,20 +227,15 @@ export const useProduct = () => {
 					.single();
 
 				if (supabaseError) throw supabaseError;
-				currentProductId = data.id; // Capturamos el ID generado
+				currentProductId = data.id;
 			}
 
-			// ⚡ FLUJO PARA GUARDAR LAS SECCIONES EN LA TABLA PIVOTE ⚡
-			// 1. Limpiamos las relaciones viejas
 			await supabase
 				.from("product_sections")
 				.delete()
 				.eq("product_id", currentProductId);
 
-			// 2. Insertamos las nuevas (si el usuario seleccionó alguna)
-			// 2. Insertamos las nuevas (eliminando duplicados de forma segura)
 			if (dataToSave.sectionIds && dataToSave.sectionIds.length > 0) {
-				// 🔥 Array.from funciona perfecto en ES5 con Sets
 				const uniqueSectionIds = Array.from(
 					new Set(dataToSave.sectionIds),
 				);
@@ -252,18 +252,17 @@ export const useProduct = () => {
 				if (relError) throw relError;
 			}
 
-			// Refrescamos la lista del store
 			await fetchProducts("");
 		} catch (err: any) {
 			console.error("Error saving product:", err);
 			throw err;
 		} finally {
-			setLoading(false);
+			setFunctionLoading("save", false);
 		}
 	};
 
-	// 4. Eliminar un producto
 	const deleteProduct = async (productId: string) => {
+		setFunctionLoading("delete", true);
 		try {
 			const { error: supabaseError } = await supabase
 				.from(TABLES.PRODUCTS)
@@ -276,14 +275,18 @@ export const useProduct = () => {
 		} catch (err: any) {
 			console.error("Error deleting product:", err);
 			throw err;
+		} finally {
+			setFunctionLoading("delete", false);
 		}
 	};
 
-	// 5. Toggle de disponibilidad
 	const toggleProductAvailability = async (
 		productId: string,
 		currentStatus: boolean,
 	) => {
+		if (loadings.toggle) return;
+
+		setFunctionLoading("toggle", true);
 		const newStatus = !currentStatus;
 
 		try {
@@ -302,6 +305,8 @@ export const useProduct = () => {
 		} catch (err: any) {
 			console.error("Error toggling product availability:", err);
 			throw err;
+		} finally {
+			setFunctionLoading("toggle", false);
 		}
 	};
 
@@ -329,9 +334,6 @@ export const useProduct = () => {
 		currentProduct: Product,
 		direction: "up" | "down",
 	) => {
-		// Dejamos este método con su lógica por defecto. Como dijiste que lo de las posiciones
-		// y ordenamientos por sección lo resolveremos luego debido a las confusiones,
-		// este método seguirá intentando swappear basándose en la posición global por ahora.
 		const currentPos = currentProduct.position ?? 1;
 		const targetPos = direction === "up" ? currentPos - 1 : currentPos + 1;
 
@@ -342,6 +344,7 @@ export const useProduct = () => {
 			};
 		}
 
+		setFunctionLoading("move", true);
 		try {
 			const { data, error } = await supabase
 				.from(TABLES.PRODUCTS)
@@ -373,26 +376,35 @@ export const useProduct = () => {
 				success: false,
 				message: "No se pudo actualizar la posición en el servidor.",
 			};
+		} finally {
+			setFunctionLoading("move", false);
 		}
 	};
 
-	const onRefresh = async () => {
-		setRefreshing(true);
-		await fetchProducts(searchTerm);
-		setRefreshing(false);
-	};
+	const onRefresh = useCallback(async () => {
+		setFunctionLoading("refresh", true);
+		try {
+			await Promise.all([
+				fetchProducts(searchTerm),
+				new Promise((resolve) => setTimeout(resolve, 800)),
+			]);
+		} catch (err) {
+			console.error("Error al refrescar productos:", err);
+		} finally {
+			setFunctionLoading("refresh", false);
+		}
+	}, [fetchProducts, searchTerm]);
 
 	useEffect(() => {
 		if (activeBusiness?.id) {
 			fetchSectionsIfEmpty();
 			fetchProducts("");
 		}
-	}, [activeBusiness, fetchProducts, fetchSectionsIfEmpty]);
+	}, [activeBusiness?.id, fetchProducts, fetchSectionsIfEmpty]);
 
 	return {
 		products,
-		loadingProduct: loading,
-		refreshing,
+		loadings,
 		error,
 		onRefresh,
 		getProductById,

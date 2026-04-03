@@ -17,7 +17,7 @@ export const QuickAccessCard = () => {
 	const navigation = useNavigation<any>();
 	const { showDialog } = useDialog();
 
-	const { activeBusiness, deleteBusiness, loadingBusinesses } = useBusiness();
+	const { activeBusiness, deleteBusiness, loadings } = useBusiness();
 
 	const handleDelete = () => {
 		if (!activeBusiness) return;
@@ -94,7 +94,7 @@ export const QuickAccessCard = () => {
 						},
 					]}
 					onPress={handleDelete}
-					disabled={loadingBusinesses}
+					disabled={loadings.delete}
 				>
 					<Text
 						style={[styles.deleteBtnText, { color: colors.error }]}

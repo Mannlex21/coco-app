@@ -1,4 +1,5 @@
 export const TABLES = {
+	BUSINESSES: "businesses",
 	SECTIONS: "sections",
 	PRODUCTS: "products",
 	MODIFIER_GROUPS: "modifier_groups",

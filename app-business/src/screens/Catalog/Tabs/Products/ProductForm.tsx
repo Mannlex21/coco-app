@@ -40,8 +40,8 @@ export const ProductForm = () => {
 	const [currentProductId] = useState(productId);
 	const { colors } = useTheme();
 	const { showDialog } = useDialog();
-	const { saveProduct, getProductById, loadingProduct } = useProduct();
-	const { sections, fetchSections } = useSection();
+	const { saveProduct, getProductById, loadings } = useProduct();
+	const { sections, fetch: fetchSections } = useSection();
 
 	const subTextColor = colors.textSecondaryLight;
 	const borderColor = colors.borderLight;
@@ -192,7 +192,7 @@ export const ProductForm = () => {
 					onChangeText={(val) =>
 						setFormData({ ...formData, name: val })
 					}
-					editable={!loadingProduct}
+					editable={!loadings.save}
 				/>
 
 				<InputField
@@ -203,7 +203,7 @@ export const ProductForm = () => {
 						setFormData({ ...formData, price: val })
 					}
 					keyboardType="numeric"
-					editable={!loadingProduct}
+					editable={!loadings.save}
 				/>
 
 				<InputField
@@ -214,7 +214,7 @@ export const ProductForm = () => {
 						setFormData({ ...formData, description: val })
 					}
 					multiline
-					editable={!loadingProduct}
+					editable={!loadings.save}
 				/>
 
 				<View style={[styles.divider]}>
@@ -269,7 +269,7 @@ export const ProductForm = () => {
 						onValueChange={(val) =>
 							setFormData({ ...formData, isAvailable: val })
 						}
-						disabled={loadingProduct}
+						disabled={loadings.save}
 					/>
 				</View>
 			</KeyboardAwareScrollView>

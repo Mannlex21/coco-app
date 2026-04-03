@@ -5,9 +5,11 @@ import { useContextMenu, useDialog } from "@coco/shared/providers";
 import { Section } from "@coco/shared/core/entities";
 import { MaterialIcons, Ionicons } from "@expo/vector-icons";
 import { ContextMenuItem } from "@coco/shared/components";
+import { useTheme } from "@coco/shared/hooks/useTheme";
 
-export const useSectionsTab = (colors?: any) => {
+export const useSectionsTab = () => {
 	const navigation = useNavigation<any>();
+	const { colors } = useTheme();
 	const { showDialog } = useDialog();
 	const { showContextMenu } = useContextMenu();
 	const [isFirst, setIsFirst] = useState(false);
@@ -16,24 +18,23 @@ export const useSectionsTab = (colors?: any) => {
 	// Traemos el hook base de Supabase que ya tenías
 	const {
 		sections,
-		refreshing,
 		onRefresh,
 		searchTerm,
 		setSearchTerm,
 		deleteSection,
 		toggleSectionAvailability,
 		moveSection,
-		fetchSections,
-		loadingSection,
+		fetch,
+		loadings,
 	} = useSection();
 
 	const handleSearch = () => {
-		fetchSections(searchTerm);
+		fetch(searchTerm);
 	};
 
 	const handleClearSearch = () => {
 		setSearchTerm("");
-		fetchSections("");
+		fetch("");
 	};
 
 	const handleMoveSection = async (
@@ -204,7 +205,6 @@ export const useSectionsTab = (colors?: any) => {
 	// Exponemos solo lo que la vista necesita para renderizar
 	return {
 		sections,
-		refreshing,
 		onRefresh,
 		searchTerm,
 		setSearchTerm,
@@ -212,6 +212,6 @@ export const useSectionsTab = (colors?: any) => {
 		handleClearSearch,
 		handleOpenMenu,
 		movingSectionId,
-		loadingSection,
+		loadings,
 	};
 };

@@ -17,14 +17,9 @@ export const StatusCard = () => {
 	const { colors } = useTheme();
 	const navigation = useNavigation<any>();
 	const { showDialog } = useDialog();
-	const {
-		activeBusiness,
-		toggleBusinessStatus,
-		isToggling,
-		loadingBusinesses,
-	} = useBusiness();
+	const { activeBusiness, toggleBusinessStatus, loadings } = useBusiness();
 	const handleToggle = async () => {
-		if (!activeBusiness || isToggling) return;
+		if (!activeBusiness || loadings.toggle) return;
 		try {
 			await toggleBusinessStatus(
 				activeBusiness.id,
@@ -40,7 +35,7 @@ export const StatusCard = () => {
 		}
 	};
 
-	if (loadingBusinesses) {
+	if (loadings.fetch) {
 		return (
 			<Skeleton
 				variant="circle"
@@ -134,7 +129,7 @@ export const StatusCard = () => {
 						: "PAUSADO / CERRADO"}
 				</Text>
 			</View>
-			{!loadingBusinesses && (
+			{!loadings.fetch && (
 				<Switch
 					value={activeBusiness.isOpen}
 					onValueChange={handleToggle}
@@ -144,7 +139,7 @@ export const StatusCard = () => {
 					}}
 					thumbColor={colors.surfaceLight}
 					ios_backgroundColor={colors.borderLight}
-					disabled={isToggling}
+					disabled={loadings.toggle}
 				/>
 			)}
 		</View>

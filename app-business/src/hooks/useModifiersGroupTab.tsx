@@ -1,41 +1,36 @@
-import React, { useCallback } from "react";
-import { useNavigation, useFocusEffect } from "@react-navigation/native";
+import React from "react";
+import { useNavigation } from "@react-navigation/native";
 import { useContextMenu, useDialog } from "@coco/shared/providers";
 import { MaterialIcons, Ionicons } from "@expo/vector-icons";
 import { ContextMenuItem } from "@coco/shared/components/CustomContextMenu";
 import { useModifiersGroup } from "@coco/shared/hooks/supabase/useModifiersGroup";
+import { useTheme } from "@coco/shared/hooks/useTheme";
 
-export const useModifiersGroupTab = (colors?: any) => {
+export const useModifiersGroupTab = () => {
 	const navigation = useNavigation<any>();
+	const { colors } = useTheme();
 	const { showDialog } = useDialog();
 	const { showContextMenu } = useContextMenu();
 
 	// Traemos el hook base de Supabase para modificadores
 	const {
 		modifierGroups,
-		refreshing,
 		onRefresh,
 		searchTerm,
 		setSearchTerm,
 		deleteModifierGroup,
 		toggleModifierStatus,
-		fetchModifierGroups,
+		refetch,
+		loadings,
 	} = useModifiersGroup();
 
-	// useFocusEffect para recargar cuando la pestaña vuelva a estar activa
-	useFocusEffect(
-		useCallback(() => {
-			fetchModifierGroups(searchTerm);
-		}, [searchTerm, fetchModifierGroups]),
-	);
-
 	const handleSearch = () => {
-		fetchModifierGroups(searchTerm);
+		refetch(searchTerm);
 	};
 
 	const handleClearSearch = () => {
 		setSearchTerm("");
-		fetchModifierGroups("");
+		refetch("");
 	};
 
 	const handleDelete = (groupId: string, groupName: string) => {
@@ -131,7 +126,7 @@ export const useModifiersGroupTab = (colors?: any) => {
 	// Exponemos lo que la vista necesita
 	return {
 		modifierGroups,
-		refreshing,
+		loadings,
 		onRefresh,
 		searchTerm,
 		setSearchTerm,

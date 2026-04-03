@@ -11,14 +11,8 @@ import { QuickAccessCard } from "./components/QuickAccessCard";
 
 export const DashboardScreen = () => {
 	const { colors } = useTheme();
-	const { user, activeBusiness } = useAppStore();
+	const { onRefresh, loadings } = useBusiness();
 
-	const { userData, updateLastActiveBusiness } = useUser(user?.id);
-
-	const { onRefresh, refreshing } = useBusiness();
-	if (userData && !userData.lastActiveBusinessId && activeBusiness) {
-		updateLastActiveBusiness();
-	}
 	return (
 		<View style={{ flex: 1 }}>
 			<DashboardHeader />
@@ -27,7 +21,7 @@ export const DashboardScreen = () => {
 				contentContainerStyle={styles.content}
 				refreshControl={
 					<RefreshControl
-						refreshing={refreshing}
+						refreshing={loadings.refresh}
 						onRefresh={onRefresh}
 						colors={[colors.businessBg]}
 						tintColor={colors.businessBg}
@@ -35,11 +29,7 @@ export const DashboardScreen = () => {
 				}
 			>
 				<StatusCard />
-
-				{/* 2. FILA DE ESTADÍSTICAS */}
 				<StatsCard />
-
-				{/* 3. ACCESOS RÁPIDOS */}
 				<QuickAccessCard />
 			</ScrollView>
 		</View>

@@ -21,6 +21,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ScreenHeader } from "../../../components/ScreenHeader";
 import { Modifier } from "@coco/shared/core/entities/Modifier";
 import { useDialog } from "@coco/shared/providers";
+import { PrimaryButton } from "@/screens/Catalog/components/PrimaryButton";
 
 interface RouteParams {
 	groupId?: string;
@@ -192,22 +193,13 @@ export const ModifierPicker = () => {
 					{ borderTopColor: borderColor, backgroundColor: bgApp },
 				]}
 			>
-				<TouchableOpacity
-					style={[
-						styles.saveBtn,
-						{
-							backgroundColor: colors.businessBg,
-							marginBottom:
-								Platform.OS === "ios" ? insets.bottom : 12,
-						},
-					]}
+				<PrimaryButton
+					title={`Guardar cambios (${activeModifiers.length})`}
 					onPress={handleConfirmSelection}
-					activeOpacity={0.9}
-				>
-					<Text style={styles.saveBtnText}>
-						Guardar cambios ({activeModifiers.length})
-					</Text>
-				</TouchableOpacity>
+					marginBottom={
+						Platform.OS === "ios" ? insets.bottom : Spacing.md
+					}
+				/>
 			</View>
 		</View>
 	);

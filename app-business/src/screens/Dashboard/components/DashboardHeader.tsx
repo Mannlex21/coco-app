@@ -11,10 +11,11 @@ export const DashboardHeader = () => {
 	const { colors } = useTheme();
 	const { user } = useAppStore();
 	const insets = useSafeAreaInsets();
-	const { loadingUser } = useUser(user?.id);
+	const { loadingUser } = useUser();
 
-	const { activeBusiness, loadingBusinesses } = useBusiness();
+	const { activeBusiness, loadings } = useBusiness();
 	const firstName = user?.name ? user.name.split(" ")[0] : "Socio";
+
 	return (
 		<View
 			style={[
@@ -45,7 +46,7 @@ export const DashboardHeader = () => {
 			</Text>
 
 			<View style={styles.selector}>
-				{loadingBusinesses ? (
+				{loadings.fetch ? (
 					<Skeleton
 						width={180}
 						height={24}

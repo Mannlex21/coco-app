@@ -7,7 +7,7 @@ import {
 } from "@coco/shared/infrastructure/supabase/StorageRepository";
 import { useSupabaseContext } from "@coco/shared/providers/SupabaseContext";
 
-export const useUser = (userId: string | undefined) => {
+export const useUser = () => {
 	const supabase = useSupabaseContext();
 	const { user, setUser, activeBusiness } = useAppStore();
 	const [loadingUser, setLoadingUser] = useState(true);
@@ -18,13 +18,13 @@ export const useUser = (userId: string | undefined) => {
 	// 1. Memorizamos la función fetchUserData con useCallback.
 	// Solo cambiará si cambian 'userId' o 'setUser'.
 	const fetchUserData = useCallback(async () => {
-		if (!userId || !setUser) return;
+		if (!user?.id || !setUser) return;
 
 		try {
 			const { data, error } = await supabase
 				.from("users")
 				.select("*")
-				.eq("id", userId)
+				.eq("id", user.id)
 				.maybeSingle();
 
 			if (error) throw error;
@@ -54,11 +54,11 @@ export const useUser = (userId: string | undefined) => {
 		} finally {
 			setLoadingUser(false);
 		}
-	}, [userId, setUser, supabase]); // Agregamos supabase aquí de forma segura
+	}, [user?.id, setUser, supabase]); // Agregamos supabase aquí de forma segura
 
 	// 2. useEffect enfocado estrictamente en la orquestación y el tiempo real
 	useEffect(() => {
-		if (!userId) {
+		if (!user?.id) {
 			setLoadingUser(false);
 			return;
 		}
@@ -68,14 +68,14 @@ export const useUser = (userId: string | undefined) => {
 
 		// Suscripción en tiempo real con Supabase
 		const userChannel = supabase
-			.channel(`public:users:id=eq.${userId}`)
+			.channel(`public:users:id=eq.${user.id}`)
 			.on(
 				"postgres_changes",
 				{
 					event: "UPDATE",
 					schema: "public",
 					table: "users",
-					filter: `id=eq.${userId}`,
+					filter: `id=eq.${user.id}`,
 				},
 				() => {
 					// 👈 En lugar de adivinar el merge de 'user', simplemente
@@ -92,10 +92,10 @@ export const useUser = (userId: string | undefined) => {
 
 		// ⚠️ Dejamos ÚNICAMENTE 'userId' y 'fetchUserData' como dependencias.
 		// Esto garantiza que el canal de realtime no se destruya ni cree loops.
-	}, [userId, fetchUserData, supabase]);
+	}, [user?.id, fetchUserData, supabase]);
 
 	const updateProfile = async (data: Partial<User>) => {
-		if (!userId) return { success: false, error: "No user ID" };
+		if (!user?.id) return { success: false, error: "No user ID" };
 
 		try {
 			let finalAvatarUrl = data.avatarUrl || "";
@@ -110,7 +110,7 @@ export const useUser = (userId: string | undefined) => {
 				const imageResult = await storageRepository.uploadImage(
 					data.avatarUrl,
 					entityFolder,
-					userId,
+					user.id,
 					["avatar"],
 					"profileAvatar",
 				);
@@ -133,7 +133,7 @@ export const useUser = (userId: string | undefined) => {
 					avatar_url: finalAvatarUrl,
 					updated_at: new Date().toISOString(),
 				})
-				.eq("id", userId);
+				.eq("id", user.id);
 
 			if (error) throw error;
 
@@ -154,18 +154,28 @@ export const useUser = (userId: string | undefined) => {
 	};
 
 	const updateLastActiveBusiness = async () => {
-		if (!userId) return { success: false, error: "No user ID" };
+		if (!user?.id || !activeBusiness?.id)
+			return { success: false, error: "No user ID or active business" };
 
 		try {
 			const { error } = await supabase
 				.from("users")
 				.update({
-					last_active_business_id: activeBusiness?.id,
+					last_active_business_id: activeBusiness.id, // Guardamos la snake_case para DB
 					updated_at: new Date().toISOString(),
 				})
-				.eq("id", userId);
+				.eq("id", user.id);
 
 			if (error) throw error;
+
+			// ⚡ IMPORTANTE: Actualizamos el estado global para que no se desfase
+			if (user) {
+				setUser({
+					...user,
+					lastActiveBusinessId: activeBusiness.id, // Guardamos camelCase para el estado
+					updatedAt: new Date(),
+				});
+			}
 
 			return { success: true };
 		} catch (error) {

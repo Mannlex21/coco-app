@@ -24,7 +24,6 @@ export const ProductsTab = () => {
 	const { user } = useAppStore();
 	const {
 		products,
-		refreshing,
 		onRefresh,
 		searchTerm,
 		setSearchTerm,
@@ -33,9 +32,8 @@ export const ProductsTab = () => {
 		handleOpenMenu,
 		viewType,
 		setViewType,
-		loadingProduct,
-	} = useProductsTab(colors);
-
+		loadings,
+	} = useProductsTab();
 	return (
 		<>
 			<View
@@ -76,13 +74,13 @@ export const ProductsTab = () => {
 				}
 				refreshControl={
 					<RefreshControl
-						refreshing={refreshing}
+						refreshing={loadings.refresh}
 						onRefresh={onRefresh}
 						colors={[colors.businessBg]}
 					/>
 				}
 				ListEmptyComponent={
-					loadingProduct && !refreshing ? (
+					loadings.fetch && !loadings.refresh ? (
 						<View style={styles.loaderContainer}>
 							<ActivityIndicator
 								size="large"

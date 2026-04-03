@@ -2,7 +2,13 @@ import React from "react";
 import { Spacing } from "@coco/shared/config/theme";
 import { useTheme } from "@coco/shared/hooks/useTheme";
 import { useNavigation } from "@react-navigation/native";
-import { FlatList, RefreshControl, StyleSheet, View } from "react-native";
+import {
+	ActivityIndicator,
+	FlatList,
+	RefreshControl,
+	StyleSheet,
+	View,
+} from "react-native";
 import { EmptyState } from "../../components/EmptyState";
 import { SearchInput } from "../../components/SearchInput";
 import { FloatingButton } from "../../components/FloatingButton";
@@ -15,17 +21,16 @@ export const ModifiersGroupTab = () => {
 	const { colors } = useTheme();
 	const { user } = useAppStore();
 
-	// Asumimos que crearás un hook similar al de productos para separar la lógica
 	const {
 		modifierGroups,
-		refreshing,
+		loadings,
 		onRefresh,
 		searchTerm,
 		setSearchTerm,
 		handleSearch,
 		handleClearSearch,
 		handleOpenMenu,
-	} = useModifiersGroupTab(colors);
+	} = useModifiersGroupTab();
 
 	return (
 		<>
@@ -51,16 +56,25 @@ export const ModifiersGroupTab = () => {
 				contentContainerStyle={styles.listContent}
 				refreshControl={
 					<RefreshControl
-						refreshing={refreshing}
+						refreshing={loadings.fetch}
 						onRefresh={onRefresh}
 						colors={[colors.businessBg]}
 					/>
 				}
 				ListEmptyComponent={
-					<EmptyState
-						isFiltering={searchTerm.trim().length > 0}
-						colors={colors}
-					/>
+					loadings.fetch && !loadings.refresh ? (
+						<View style={styles.loaderContainer}>
+							<ActivityIndicator
+								size="large"
+								color={colors.businessBg}
+							/>
+						</View>
+					) : (
+						<EmptyState
+							isFiltering={searchTerm.trim().length > 0}
+							colors={colors}
+						/>
+					)
 				}
 				renderItem={({ item }) => (
 					<ModifierGroupListItem
@@ -96,5 +110,11 @@ const styles = StyleSheet.create({
 	listContent: {
 		paddingHorizontal: Spacing.md,
 		paddingBottom: 100,
+	},
+	loaderContainer: {
+		flex: 1,
+		justifyContent: "center",
+		alignItems: "center",
+		minHeight: 200,
 	},
 });

@@ -18,7 +18,7 @@ import {
 	Spacing,
 	Shadow,
 } from "@coco/shared/config/theme";
-import { useBusiness } from "@coco/shared/hooks/supabase";
+import { useBusiness, useUser } from "@coco/shared/hooks/supabase";
 import { Business } from "@coco/shared/core/entities/Business";
 
 export const BusinessSelectorCard = () => {
@@ -26,17 +26,18 @@ export const BusinessSelectorCard = () => {
 	const { colors, isDark } = useTheme();
 	const { showDialog } = useDialog();
 	const navigation = useNavigation<any>();
+
 	const { activeBusiness, setActiveBusiness } = useAppStore();
-	const { businesses, loadingBusinesses } = useBusiness();
+	const { updateLastActiveBusiness } = useUser();
+	const { businesses, loadings } = useBusiness();
 
 	const cardBg = isDark ? "#1C1C1E" : "#FFFFFF";
 	const subTextColor = isDark ? "rgba(255,255,255,0.6)" : "rgba(0,0,0,0.55)";
 	const textColor = isDark ? "rgba(255,255,255,0.9)" : "rgba(0,0,0,0.85)";
 
-	const handleSelectBusiness = (business: Business) => {
-		// Guardamos el objeto completo del negocio en el Zustand store
+	const handleSelectBusiness = async (business: Business) => {
 		setActiveBusiness(business);
-
+		await updateLastActiveBusiness();
 		showDialog({
 			title: "Negocio Seleccionado",
 			message: `Ahora estás gestionando "${business.name}".`,
@@ -47,6 +48,7 @@ export const BusinessSelectorCard = () => {
 	const handleRegisterBusiness = () => {
 		navigation.navigate("BusinessSetup", { title: "Registrar Negocio" });
 	};
+
 	const getIconColor = (
 		isSelected: boolean,
 		isDark: boolean,
@@ -62,7 +64,7 @@ export const BusinessSelectorCard = () => {
 				Tus Negocios
 			</Text>
 
-			{loadingBusinesses ? (
+			{loadings.fetch ? (
 				<View style={styles.loadingContainer}>
 					<ActivityIndicator size="small" color={colors.businessBg} />
 					<Text style={[styles.loadingText, { color: subTextColor }]}>

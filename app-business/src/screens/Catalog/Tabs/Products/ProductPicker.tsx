@@ -32,7 +32,7 @@ export const ProductPicker = () => {
 
 	const { alreadySelectedProducts = [] } = route.params || {};
 
-	const { products, refreshing, fetchProducts, searchTerm, setSearchTerm } =
+	const { products, loadings, fetchProducts, searchTerm, setSearchTerm } =
 		useProduct();
 
 	const [selectedProducts, setSelectedProducts] = useState<Product[]>(
@@ -143,7 +143,7 @@ export const ProductPicker = () => {
 				sección.
 			</Text>
 
-			{refreshing ? (
+			{loadings.fetch ? (
 				<View style={styles.centered}>
 					<ActivityIndicator size="large" color={colors.businessBg} />
 				</View>

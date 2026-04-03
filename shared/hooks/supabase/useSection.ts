@@ -9,18 +9,33 @@ export const useSection = () => {
 	const supabase = useSupabaseContext();
 	const { activeBusiness } = useAppStore();
 	const [searchTerm, setSearchTerm] = useState("");
+
 	const sections = useCatalogStore((state) => state.sections);
 	const setSections = useCatalogStore((state) => state.setSections);
-	const [refreshing, setRefreshing] = useState(false);
-	const [loading, setLoading] = useState(false);
+
+	// ⚡ 1. Agrupamos todos los loadings bajo el mismo estándar
+	const [loadings, setLoadings] = useState({
+		fetch: true, // Para la carga de secciones
+		save: false, // Guardar (crear o actualizar)
+		delete: false, // Eliminar
+		toggle: false, // Cambiar disponibilidad
+		move: false, // Reordenar posiciones (swap o masivo)
+		refresh: false, // Pull-to-refresh
+	});
+
 	const [error, setError] = useState<string | null>(null);
+
+	// Función auxiliar para manipular los estados de carga
+	const setFunctionLoading = (key: keyof typeof loadings, value: boolean) => {
+		setLoadings((prev) => ({ ...prev, [key]: value }));
+	};
 
 	// 1. Obtener todas las secciones
 	const fetchSections = useCallback(
 		async (searchQuery: string = "") => {
 			if (!activeBusiness?.id) return;
 
-			setLoading(true);
+			setFunctionLoading("fetch", true);
 			setError(null);
 
 			try {
@@ -53,7 +68,7 @@ export const useSection = () => {
                         )
                     `,
 					)
-					.eq("business_id", activeBusiness?.id)
+					.eq("business_id", activeBusiness.id)
 					.order("position", { ascending: true });
 
 				if (searchQuery.trim() !== "") {
@@ -67,18 +82,15 @@ export const useSection = () => {
 				if (supabaseError) throw supabaseError;
 
 				const mappedSections = (data || []).map((item: any) => {
-					// 1. Extraemos los productos crudos
 					const rawProducts =
 						item.product_sections?.map((ps: any) => ps.products) ||
 						[];
 
-					// 2. Filtramos nulos y aplicamos el mapeo idéntico al de fetchProducts
 					const mappedProducts: Product[] = rawProducts
 						.filter((p: any) => p !== null && p !== undefined)
 						.map((p: any) => ({
 							id: p.id,
 							businessId: p.business_id,
-							// Como vienen de la consulta de secciones, asumimos que pertenecen a esta sección
 							sectionIds: [item.id],
 							name: p.name,
 							description: p.description,
@@ -100,28 +112,19 @@ export const useSection = () => {
 						visualizationType: item.visualization_type,
 						createdAt: new Date(item.created_at),
 						updatedAt: new Date(item.updated_at),
-						products: mappedProducts, // <--- Aquí ya van limpios y mapeados
+						products: mappedProducts,
 					};
 				});
 
-				// Guardamos en Zustand en el store volátil (sin persistencia)
 				setSections(mappedSections);
 			} catch (err: any) {
 				console.error("Error fetching sections:", err);
 				setError(err.message || "No se pudieron cargar las secciones");
 			} finally {
-				setLoading(false);
-				setRefreshing(false);
+				setFunctionLoading("fetch", false);
 			}
 		},
-		[
-			supabase,
-			activeBusiness,
-			setSections,
-			setLoading,
-			setError,
-			setRefreshing,
-		],
+		[supabase, activeBusiness?.id, setSections],
 	);
 
 	const getSectionById = useCallback(
@@ -167,13 +170,13 @@ export const useSection = () => {
 			description: string;
 			isAvailable: boolean;
 			visualizationType: string;
-			productIds?: string[]; // 👈 Aquí recibimos los IDs
+			productIds?: string[];
 		},
 	) => {
 		if (!activeBusiness?.id || !dataToSave) return;
 
+		setFunctionLoading("save", true);
 		try {
-			setLoading(true);
 			const {
 				name,
 				description,
@@ -185,7 +188,6 @@ export const useSection = () => {
 			let targetSectionId = sectionId;
 
 			if (sectionId) {
-				// 1. Actualizar la sección existente
 				const { error: supabaseError } = await supabase
 					.from(TABLES.SECTIONS)
 					.update({
@@ -199,31 +201,28 @@ export const useSection = () => {
 
 				if (supabaseError) throw supabaseError;
 
-				// 2. Limpiar las relaciones viejas en la tabla intermedia para esta sección
 				const { error: deleteError } = await supabase
-					.from("product_sections") // Ajusta el nombre de la tabla si no es exactamente este
+					.from("product_sections")
 					.delete()
 					.eq("section_id", sectionId);
 
 				if (deleteError) throw deleteError;
 			} else {
-				// 1. Obtener la última posición para la nueva sección
 				const { data: lastSection } = await supabase
 					.from(TABLES.SECTIONS)
 					.select("position")
-					.eq("business_id", activeBusiness?.id)
+					.eq("business_id", activeBusiness.id)
 					.order("position", { ascending: false })
 					.limit(1)
 					.maybeSingle();
 
 				const nextPosition = lastSection ? lastSection.position + 1 : 1;
 
-				// 2. Insertar la nueva sección
 				const { data: newSectionData, error: supabaseError } =
 					await supabase
 						.from(TABLES.SECTIONS)
 						.insert({
-							business_id: activeBusiness?.id,
+							business_id: activeBusiness.id,
 							name: name.trim(),
 							description: description.trim(),
 							position: nextPosition,
@@ -238,7 +237,6 @@ export const useSection = () => {
 				targetSectionId = newSectionData.id;
 			}
 
-			// 3. Si hay productos seleccionados, los insertamos en la tabla intermedia
 			if (productIds.length > 0 && targetSectionId) {
 				const relationRows = productIds.map((productId) => ({
 					section_id: targetSectionId,
@@ -246,25 +244,24 @@ export const useSection = () => {
 				}));
 
 				const { error: relationError } = await supabase
-					.from("product_sections") // Ajusta el nombre de la tabla si no es exactamente este
+					.from("product_sections")
 					.insert(relationRows);
 
 				if (relationError) throw relationError;
 			}
 
-			// 4. Volvemos a sincronizar todo con fetchSections para que traiga los productos
-			// mapeados con su nombre, precio, etc., tal cual lo espera tu SectionList.
 			await fetchSections(searchTerm);
 		} catch (err: any) {
 			console.error("Error saving section with products:", err);
 			setError(err.message || "No se pudo guardar la sección");
 			throw err;
 		} finally {
-			setLoading(false);
+			setFunctionLoading("save", false);
 		}
 	};
 
 	const deleteSection = async (sectionId: string) => {
+		setFunctionLoading("delete", true);
 		try {
 			const { error: supabaseError } = await supabase
 				.from(TABLES.SECTIONS)
@@ -277,6 +274,8 @@ export const useSection = () => {
 		} catch (err: any) {
 			console.error("Error deleting section:", err);
 			throw err;
+		} finally {
+			setFunctionLoading("delete", false);
 		}
 	};
 
@@ -284,6 +283,9 @@ export const useSection = () => {
 		sectionId: string,
 		currentStatus: boolean,
 	) => {
+		if (loadings.toggle) return;
+
+		setFunctionLoading("toggle", true);
 		const newStatus = !currentStatus;
 
 		try {
@@ -302,10 +304,13 @@ export const useSection = () => {
 		} catch (err: any) {
 			console.error("Error toggling section availability:", err);
 			throw err;
+		} finally {
+			setFunctionLoading("toggle", false);
 		}
 	};
 
 	const updateSectionsOrder = async (updatedSections: Section[]) => {
+		setFunctionLoading("move", true);
 		try {
 			setSections(updatedSections);
 
@@ -323,6 +328,8 @@ export const useSection = () => {
 		} catch (error) {
 			console.error("Error al actualizar el orden masivo:", error);
 			throw error;
+		} finally {
+			setFunctionLoading("move", false);
 		}
 	};
 
@@ -358,7 +365,6 @@ export const useSection = () => {
 		currentSection: Section,
 		direction: "up" | "down",
 	) => {
-		// 1. Buscamos en qué número de fila (índice) está la sección actual en la pantalla
 		const currentIndex = sections.findIndex(
 			(s) => s.id === currentSection.id,
 		);
@@ -367,11 +373,9 @@ export const useSection = () => {
 			return { success: false, message: "No se encontró la sección." };
 		}
 
-		// 2. Calculamos el índice al que queremos movernos en el arreglo
 		const targetIndex =
 			direction === "up" ? currentIndex - 1 : currentIndex + 1;
 
-		// 3. Validamos según los límites reales de la lista visual
 		if (targetIndex < 0) {
 			return {
 				success: false,
@@ -388,12 +392,11 @@ export const useSection = () => {
 
 		const targetSection = sections[targetIndex];
 
+		setFunctionLoading("move", true);
 		try {
-			// Aseguramos que tratamos las posiciones como números puros
 			const currentPos = Number(currentSection.position) || 0;
 			const targetPos = Number(targetSection.position) || 0;
 
-			// Mandamos a actualizar (puedes usar el RPC transaccional que te sugerí antes o tus métodos actuales)
 			const { error: rpcError } = await supabase.rpc(
 				"swap_sections_position",
 				{
@@ -406,7 +409,6 @@ export const useSection = () => {
 
 			if (rpcError) throw rpcError;
 
-			// Refrescamos la lista pasándole el término de búsqueda actual
 			await fetchSections(searchTerm);
 
 			return { success: true };
@@ -416,25 +418,34 @@ export const useSection = () => {
 				success: false,
 				message: "No se pudo actualizar la posición.",
 			};
+		} finally {
+			setFunctionLoading("move", false);
 		}
 	};
 
-	const onRefresh = async () => {
-		setRefreshing(true);
-		await fetchSections(searchTerm);
-		setRefreshing(false);
-	};
+	const onRefresh = useCallback(async () => {
+		setFunctionLoading("refresh", true);
+		try {
+			await Promise.all([
+				fetchSections(searchTerm),
+				new Promise((resolve) => setTimeout(resolve, 800)),
+			]);
+		} catch (err) {
+			console.error("Error al refrescar secciones:", err);
+		} finally {
+			setFunctionLoading("refresh", false);
+		}
+	}, [fetchSections, searchTerm]);
 
 	useEffect(() => {
 		if (activeBusiness?.id) {
 			fetchSections("");
 		}
-	}, [activeBusiness, fetchSections]);
+	}, [activeBusiness?.id, fetchSections]);
 
 	return {
 		sections,
-		loadingSection: loading,
-		refreshing,
+		loadings,
 		error,
 		onRefresh,
 		getSectionById,
@@ -447,6 +458,6 @@ export const useSection = () => {
 		searchTerm,
 		setSearchTerm,
 		moveSection,
-		fetchSections,
+		fetch: fetchSections,
 	};
 };

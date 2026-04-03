@@ -3,31 +3,39 @@ import { TABLES } from "@coco/shared/constants";
 import { Modifier } from "core/entities/Modifier";
 import { useAppStore } from "@coco/shared/hooks/useAppStore";
 import { useSupabaseContext } from "@coco/shared/providers/SupabaseContext";
+import { useCatalogStore } from "@coco/shared/hooks/useCatalogStore";
 
 export const useModifiersGroup = () => {
 	const supabase = useSupabaseContext();
 	const [searchTerm, setSearchTerm] = useState("");
 	const { user, activeBusiness } = useAppStore();
+	const modifierGroups = useCatalogStore((state) => state.modifiersGroup);
+	const setModifierGroups = useCatalogStore(
+		(state) => state.setModifiersGroup,
+	);
+	const [loadings, setLoadings] = useState({
+		fetch: true, // Para la carga inicial o búsquedas
+		save: false, // Guardar (crear o actualizar)
+		delete: false, // Eliminar
+		toggle: false, // Cambiar disponibilidad
+		refresh: false, // Pull-to-refresh
+	});
 
-	// 💡 Puedes meter esto a un store global de Zustand en el futuro si gustas.
-	// De momento, para no añadir dependencias, lo dejamos reactivo en el hook.
-	const [modifierGroups, setModifierGroups] = useState<any[]>([]);
-
-	const [refreshing, setRefreshing] = useState(false);
-	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 
-	// 1. Obtener todos los grupos con sus opciones y el conteo de productos vinculados
+	// Función auxiliar para manipular los estados de carga de forma segura
+	const setFunctionLoading = (key: keyof typeof loadings, value: boolean) => {
+		setLoadings((prev) => ({ ...prev, [key]: value }));
+	};
+
 	const fetchModifierGroups = useCallback(
 		async (searchQuery: string = "") => {
 			if (!activeBusiness?.id) return;
 
-			setLoading(true);
+			setFunctionLoading("fetch", true);
 			setError(null);
 
 			try {
-				// Traemos los grupos, sus opciones hijas (haciendo join)
-				// y usamos .count() en la tabla pivote para saber a cuántos productos pertenece
 				let query = supabase
 					.from(TABLES.MODIFIER_GROUPS)
 					.select(
@@ -37,9 +45,8 @@ export const useModifiersGroup = () => {
                         product_modifiers (count)
                     `,
 					)
-					.eq("business_id", activeBusiness?.id);
+					.eq("business_id", activeBusiness.id);
 
-				// Filtrado por barra de búsqueda (por nombre público o interno)
 				if (searchQuery.trim() !== "") {
 					query = query.or(
 						`name.ilike.%${searchQuery}%,internal_name.ilike.%${searchQuery}%`,
@@ -50,7 +57,6 @@ export const useModifiersGroup = () => {
 
 				if (supabaseError) throw supabaseError;
 
-				// Mapeamos para que coincida con tus interfaces y lo que el useModifiersTab espera
 				const mappedGroups = (data || []).map((item: any) => ({
 					id: item.id,
 					businessId: item.business_id,
@@ -59,9 +65,7 @@ export const useModifiersGroup = () => {
 					minSelectable: item.min_selectable,
 					maxSelectable: item.max_selectable,
 					isAvailable: item.is_available,
-					// Conteo extraído de la relación muchos a muchos
 					productsCount: item.product_modifiers?.[0]?.count || 0,
-					// Mapeamos las opciones hijas
 					choices: (item.modifier_options || []).map((opt: any) => ({
 						id: opt.id,
 						name: opt.name,
@@ -77,14 +81,12 @@ export const useModifiersGroup = () => {
 					err.message || "No se pudieron cargar los modificadores",
 				);
 			} finally {
-				setLoading(false);
-				setRefreshing(false);
+				setFunctionLoading("fetch", false);
 			}
 		},
-		[supabase, activeBusiness],
+		[supabase, activeBusiness?.id, setModifierGroups],
 	);
 
-	// 2. Obtener un grupo por ID para cuando entres al formulario a editar
 	const getModifierGroupById = useCallback(
 		async (groupId: string) => {
 			const groupInMemory = modifierGroups.find((g) => g.id === groupId);
@@ -132,7 +134,6 @@ export const useModifiersGroup = () => {
 		[supabase, modifierGroups],
 	);
 
-	// 3. Crear o Actualizar un grupo con todas sus opciones de golpe (Patrón Upsert)
 	const saveModifierGroup = async (
 		groupId?: string,
 		dataToSave?: {
@@ -141,7 +142,7 @@ export const useModifiersGroup = () => {
 			minSelectable: number;
 			maxSelectable: number;
 			isAvailable: boolean;
-			choices: Omit<Modifier, "id">[]; // Creamos opciones sin necesidad de mandar ID
+			choices: Omit<Modifier, "id">[];
 		},
 	) => {
 		if (!user?.lastActiveBusinessId || !dataToSave)
@@ -149,6 +150,7 @@ export const useModifiersGroup = () => {
 				"No se pudo guardar: Falta businessId o dataToSave",
 			);
 
+		setFunctionLoading("save", true);
 		try {
 			const payload: any = {
 				business_id: activeBusiness?.id,
@@ -163,7 +165,6 @@ export const useModifiersGroup = () => {
 			let currentGroupId = groupId;
 
 			if (groupId) {
-				// --- MODO EDICIÓN ---
 				const { error: supabaseError } = await supabase
 					.from(TABLES.MODIFIER_GROUPS)
 					.update(payload)
@@ -171,7 +172,6 @@ export const useModifiersGroup = () => {
 
 				if (supabaseError) throw supabaseError;
 			} else {
-				// --- MODO CREACIÓN ---
 				const { data, error: supabaseError } = await supabase
 					.from(TABLES.MODIFIER_GROUPS)
 					.insert(payload)
@@ -182,14 +182,11 @@ export const useModifiersGroup = () => {
 				currentGroupId = data.id;
 			}
 
-			// ⚡ FLUJO PARA LAS OPCIONES HIJAS (CHOICES) ⚡
-			// 1. Matamos las opciones que ya no existan o estén registradas para reescribir limpio
 			await supabase
 				.from("modifier_options")
 				.delete()
 				.eq("modifier_group_id", currentGroupId);
 
-			// 2. Insertamos el listado nuevo que mande el cliente
 			if (dataToSave.choices && dataToSave.choices.length > 0) {
 				const optionsToInsert = dataToSave.choices.map((choice) => ({
 					modifier_group_id: currentGroupId,
@@ -205,16 +202,17 @@ export const useModifiersGroup = () => {
 				if (optionsError) throw optionsError;
 			}
 
-			// Refrescamos la lista local del hook
 			await fetchModifierGroups("");
 		} catch (err: any) {
 			console.error("Error saving modifier group:", err);
 			throw err;
+		} finally {
+			setFunctionLoading("save", false);
 		}
 	};
 
-	// 4. Eliminar un grupo (Por cascada borrará también sus opciones hijas)
 	const deleteModifierGroup = async (groupId: string) => {
+		setFunctionLoading("delete", true);
 		try {
 			const { error: supabaseError } = await supabase
 				.from(TABLES.MODIFIER_GROUPS)
@@ -227,14 +225,18 @@ export const useModifiersGroup = () => {
 		} catch (err: any) {
 			console.error("Error deleting modifier group:", err);
 			throw err;
+		} finally {
+			setFunctionLoading("delete", false);
 		}
 	};
 
-	// 5. Toggle de estado (active / inactive)
 	const toggleModifierStatus = async (
 		groupId: string,
 		currentStatus: boolean,
 	) => {
+		if (loadings.toggle) return;
+
+		setFunctionLoading("toggle", true);
 		const newStatus = !currentStatus;
 
 		try {
@@ -253,25 +255,35 @@ export const useModifiersGroup = () => {
 		} catch (err: any) {
 			console.error("Error toggling modifier group isAvailable:", err);
 			throw err;
+		} finally {
+			setFunctionLoading("toggle", false);
 		}
 	};
 
-	const onRefresh = async () => {
-		setRefreshing(true);
-		await fetchModifierGroups(searchTerm);
-		setRefreshing(false);
-	};
+	// ⚡ 2. Optimizamos onRefresh (con el delay estético y useCallback)
+	const onRefresh = useCallback(async () => {
+		setFunctionLoading("refresh", true);
+		try {
+			await Promise.all([
+				fetchModifierGroups(searchTerm),
+				new Promise((resolve) => setTimeout(resolve, 800)),
+			]);
+		} catch (err) {
+			console.error("Error al refrescar modificadores:", err);
+		} finally {
+			setFunctionLoading("refresh", false);
+		}
+	}, [fetchModifierGroups, searchTerm]);
 
 	useEffect(() => {
 		if (activeBusiness?.id) {
 			fetchModifierGroups("");
 		}
-	}, [activeBusiness, fetchModifierGroups]);
+	}, [activeBusiness?.id, fetchModifierGroups]);
 
 	return {
 		modifierGroups,
-		loadingModifiers: loading,
-		refreshing,
+		loadings,
 		error,
 		onRefresh,
 		getModifierGroupById,
@@ -281,6 +293,5 @@ export const useModifiersGroup = () => {
 		refetch: fetchModifierGroups,
 		searchTerm,
 		setSearchTerm,
-		fetchModifierGroups,
 	};
 };

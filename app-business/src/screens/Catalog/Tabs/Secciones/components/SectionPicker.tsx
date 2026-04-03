@@ -34,7 +34,7 @@ export const SectionPicker = () => {
 	const { alreadySelectedSections = [], returnScreen = "ProductForm" } =
 		route.params || {};
 
-	const { sections, fetchSections, refreshing, searchTerm, setSearchTerm } =
+	const { sections, fetch, loadings, searchTerm, setSearchTerm } =
 		useSection();
 
 	const [selectedSectionIds, setSelectedSectionIds] = useState<string[]>(
@@ -47,7 +47,7 @@ export const SectionPicker = () => {
 	const bgSearchInput = colors.inputBg;
 
 	useEffect(() => {
-		fetchSections(searchTerm);
+		fetch(searchTerm);
 		// 🚀 Quitamos fetchSections de aquí abajo para evitar el bucle infinito
 	}, [searchTerm]);
 
@@ -151,7 +151,7 @@ export const SectionPicker = () => {
 				producto.
 			</Text>
 
-			{refreshing ? (
+			{loadings.fetch ? (
 				<View style={styles.centered}>
 					<ActivityIndicator size="large" color={colors.businessBg} />
 				</View>

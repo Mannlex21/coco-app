@@ -1,13 +1,15 @@
-import React, { useState, useCallback } from "react";
-import { useNavigation, useFocusEffect } from "@react-navigation/native";
+import React, { useState } from "react";
+import { useNavigation } from "@react-navigation/native";
 import { useProduct } from "@coco/shared/hooks/supabase";
 import { useContextMenu, useDialog } from "@coco/shared/providers";
 import { Product } from "@coco/shared/core/entities";
 import { MaterialIcons, Ionicons } from "@expo/vector-icons";
 import { ContextMenuItem } from "@coco/shared/components/CustomContextMenu";
+import { useTheme } from "@coco/shared/hooks/useTheme";
 
-export const useProductsTab = (colors?: any) => {
+export const useProductsTab = () => {
 	const navigation = useNavigation<any>();
+	const { colors } = useTheme();
 	const { showDialog } = useDialog();
 	const { showContextMenu } = useContextMenu();
 	const [viewType, setViewType] = useState<"list" | "grid">("list");
@@ -17,7 +19,6 @@ export const useProductsTab = (colors?: any) => {
 
 	const {
 		products,
-		refreshing,
 		onRefresh,
 		searchTerm,
 		setSearchTerm,
@@ -25,14 +26,8 @@ export const useProductsTab = (colors?: any) => {
 		toggleProductAvailability,
 		moveProduct,
 		fetchProducts,
-		loadingProduct,
+		loadings,
 	} = useProduct();
-
-	useFocusEffect(
-		useCallback(() => {
-			fetchProducts(searchTerm);
-		}, [searchTerm, fetchProducts]),
-	);
 
 	const handleSearch = () => {
 		fetchProducts(searchTerm);
@@ -196,7 +191,6 @@ export const useProductsTab = (colors?: any) => {
 
 	return {
 		products,
-		refreshing,
 		onRefresh,
 		searchTerm,
 		setSearchTerm,
@@ -206,6 +200,6 @@ export const useProductsTab = (colors?: any) => {
 		viewType,
 		setViewType,
 		movingProductId,
-		loadingProduct,
+		loadings,
 	};
 };

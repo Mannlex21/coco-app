@@ -14,12 +14,12 @@ import { Skeleton } from "@/components/Sekeleton";
 export const StatsCard = () => {
 	const { colors } = useTheme();
 
-	const { activeBusiness, loadingBusinesses } = useBusiness();
+	const { activeBusiness, loadings } = useBusiness();
 
 	return (
 		<View style={styles.statsRow}>
 			{/* Tarjeta de Ventas */}
-			{loadingBusinesses ? (
+			{loadings.fetch ? (
 				<Skeleton
 					height={70}
 					variant="circle"
@@ -66,7 +66,7 @@ export const StatsCard = () => {
 			)}
 
 			{/* Tarjeta de Fee Coco */}
-			{loadingBusinesses ? (
+			{loadings.fetch ? (
 				<Skeleton
 					width={70}
 					height={70}
