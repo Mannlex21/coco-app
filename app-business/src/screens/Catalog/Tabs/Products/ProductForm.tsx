@@ -10,6 +10,8 @@ import {
 	Text,
 	View,
 	Platform,
+	TouchableOpacity,
+	Image,
 } from "react-native";
 import {
 	useModifiersGroup,
@@ -29,6 +31,8 @@ import {
 	PrimaryButton,
 } from "@/components";
 import { FormChipSelector } from "@/components/FormChipSelector";
+import * as ImagePicker from "expo-image-picker";
+import { MaterialIcons } from "@expo/vector-icons";
 
 interface RouteParams {
 	title?: string;
@@ -61,6 +65,7 @@ export const ProductForm = () => {
 		name: "",
 		description: "",
 		price: "",
+		imageUrl: "",
 		isAvailable: true,
 		selectedSection: [] as string[],
 		selectedModifierGroups: [] as string[],
@@ -107,6 +112,7 @@ export const ProductForm = () => {
 						name: currentProduct.name,
 						description: currentProduct.description || "",
 						price: currentProduct.price?.toString() || "",
+						imageUrl: currentProduct.imageUrl || "",
 						isAvailable: currentProduct.isAvailable,
 						selectedSection: currentProduct.sectionIds || [],
 						selectedModifierGroups:
@@ -167,6 +173,7 @@ export const ProductForm = () => {
 				name: formData.name.trim(),
 				description: formData.description.trim(),
 				price: Number.parseFloat(formData.price) || 0,
+				imageUrl: formData.imageUrl,
 				isAvailable: formData.isAvailable,
 				sectionIds: formData.selectedSection,
 				modifierGroupIds: formData.selectedModifierGroups,
@@ -187,6 +194,36 @@ export const ProductForm = () => {
 		}
 	};
 
+	const handleSelectImage = async () => {
+		const { status } =
+			await ImagePicker.requestMediaLibraryPermissionsAsync();
+		if (status !== "granted") {
+			showDialog({
+				title: "Permiso denegado",
+				message: "Necesitamos permiso para acceder a tus fotos.",
+				type: "info",
+			});
+			return;
+		}
+
+		const result = await ImagePicker.launchImageLibraryAsync({
+			mediaTypes: ["images"],
+			allowsEditing: true,
+			aspect: [1, 1],
+			quality: 0.5,
+		});
+
+		if (!result.canceled) {
+			setFormData({ ...formData, imageUrl: result.assets[0].uri });
+		}
+	};
+	const handleDeleteImage = () => {
+		setFormData({
+			...formData,
+			imageUrl: "", // O imageUrl: null según uses
+		});
+	};
+
 	if (loading) {
 		return (
 			<View style={[styles.centered, { backgroundColor: bgApp }]}>
@@ -194,7 +231,6 @@ export const ProductForm = () => {
 			</View>
 		);
 	}
-
 	return (
 		<View style={{ flex: 1, backgroundColor: bgApp }}>
 			<ScreenHeader
@@ -213,6 +249,102 @@ export const ProductForm = () => {
 				<Text style={[styles.headerSub, { color: subTextColor }]}>
 					Llena los datos del artículo para mostrarlo en tu catálogo.
 				</Text>
+
+				<Text style={styles.label}>Imagen del producto</Text>
+				<View style={{ width: "100%" }}>
+					<TouchableOpacity
+						style={[
+							styles.imageContainer,
+							{
+								borderColor: colors.borderLight,
+								backgroundColor: colors.inputBg,
+							},
+						]}
+						onPress={handleSelectImage}
+						disabled={loadings.save}
+					>
+						{formData.imageUrl ? (
+							<Image
+								source={{
+									uri: formData.imageUrl,
+								}}
+								style={styles.image}
+								resizeMode="cover"
+							/>
+						) : (
+							<View style={styles.imagePlaceholder}>
+								<View style={styles.pureCssIcon}>
+									<View
+										style={[
+											styles.iconVertical,
+											{
+												backgroundColor:
+													colors.textSecondaryLight,
+											},
+										]}
+									/>
+									<View
+										style={[
+											styles.iconHorizontal,
+											{
+												backgroundColor:
+													colors.textSecondaryLight,
+											},
+										]}
+									/>
+								</View>
+
+								<Text
+									style={[
+										styles.placeholderText,
+										{ color: colors.textSecondaryLight },
+									]}
+								>
+									Subir imagen
+								</Text>
+							</View>
+						)}
+					</TouchableOpacity>
+
+					{/* Botones de acción flotantes (solo si hay imagen) */}
+					{formData.imageUrl && (
+						<View style={styles.actionButtonsContainer}>
+							<TouchableOpacity
+								style={[
+									styles.actionBtn,
+									{ backgroundColor: colors.surfaceLight },
+								]}
+								onPress={handleSelectImage}
+							>
+								<Text
+									style={[
+										styles.actionBtnText,
+										{ color: colors.textPrimaryLight },
+									]}
+								>
+									Cambiar
+								</Text>
+							</TouchableOpacity>
+
+							<TouchableOpacity
+								style={[
+									styles.actionBtn,
+									{ backgroundColor: colors.errorLight },
+								]}
+								onPress={handleDeleteImage}
+							>
+								<Text
+									style={[
+										styles.actionBtnText,
+										{ color: colors.error },
+									]}
+								>
+									Eliminar
+								</Text>
+							</TouchableOpacity>
+						</View>
+					)}
+				</View>
 
 				<InputField
 					label="Nombre del artículo"
@@ -369,5 +501,73 @@ const styles = StyleSheet.create({
 	addProductBtnText: {
 		fontWeight: FontWeight.semibold,
 		fontSize: FontSize.sm,
+	},
+	imageContainer: {
+		width: "100%",
+		height: 120,
+		borderRadius: BorderRadius.md,
+		borderWidth: 1.5,
+		borderStyle: "dashed",
+		justifyContent: "center",
+		alignItems: "center",
+		overflow: "hidden",
+		marginTop: Spacing.xs,
+	},
+	image: {
+		width: "100%",
+		height: "100%",
+	},
+	imagePlaceholder: {
+		flexDirection: "row",
+		alignItems: "center",
+		justifyContent: "center",
+	},
+	placeholderText: {
+		fontSize: FontSize.sm,
+		fontWeight: FontWeight.medium,
+		marginLeft: Spacing.sm,
+	},
+	pureCssIcon: {
+		width: 16,
+		height: 16,
+		justifyContent: "center",
+		alignItems: "center",
+	},
+	iconVertical: {
+		width: 2,
+		height: 14,
+		borderRadius: 1,
+		position: "absolute",
+	},
+	iconHorizontal: {
+		width: 14,
+		height: 2,
+		borderRadius: 1,
+		position: "absolute",
+	},
+	// --- NUEVOS ESTILOS PARA LOS BOTONES ---
+	actionButtonsContainer: {
+		flexDirection: "row",
+		position: "absolute",
+		top: 12,
+		right: 8,
+		gap: 6, // Espaciado entre botones
+	},
+	actionBtn: {
+		paddingVertical: 4,
+		paddingHorizontal: 10,
+		borderRadius: 6,
+		borderWidth: 1,
+		borderColor: "#EEEEEE",
+		// Una sombrita ligera para elevarlos sobre la imagen
+		shadowColor: "#000",
+		shadowOffset: { width: 0, height: 1 },
+		shadowOpacity: 0.1,
+		shadowRadius: 1,
+		elevation: 2,
+	},
+	actionBtnText: {
+		fontSize: 12,
+		fontWeight: "600",
 	},
 });

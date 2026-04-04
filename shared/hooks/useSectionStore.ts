@@ -1,10 +1,12 @@
 import { create } from "zustand";
-import { Section } from "core/entities";
+import { Section } from "@coco/shared/core/entities";
 
 interface SectionState {
 	sections: Section[];
+	searchTerm: string;
 
 	setSections: (sections: Section[]) => void;
+	setSearchTerm: (term: string) => void;
 	addSection: (section: Section) => void;
 	updateSection: (
 		sectionId: string,
@@ -16,8 +18,10 @@ interface SectionState {
 
 export const useSectionStore = create<SectionState>((set) => ({
 	sections: [],
+	searchTerm: "",
 
 	setSections: (sections) => set({ sections: [...sections] }),
+	setSearchTerm: (term) => set({ searchTerm: term }),
 
 	addSection: (section) =>
 		set((state) => ({
@@ -35,6 +39,5 @@ export const useSectionStore = create<SectionState>((set) => ({
 		set((state) => ({
 			sections: state.sections.filter((s) => s.id !== sectionId),
 		})),
-
-	clearSections: () => set({ sections: [] }),
+	clearSections: () => set({ sections: [], searchTerm: "" }),
 }));

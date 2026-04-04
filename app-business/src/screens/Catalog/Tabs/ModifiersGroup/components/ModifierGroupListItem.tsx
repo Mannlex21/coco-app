@@ -60,11 +60,11 @@ export const ModifierGroupListItem = ({
 				<Text
 					style={[styles.title, { color: colors.textPrimaryLight }]}
 				>
-					{item.internal_name}
+					{item.internalName}
 				</Text>
 
 				{/* Nombre Interno si existe */}
-				{item.internal_name && (
+				{item.internalName && (
 					<Text
 						style={[
 							styles.internalName,

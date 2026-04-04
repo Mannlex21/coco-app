@@ -1,10 +1,12 @@
 import { create } from "zustand";
-import { Product } from "core/entities";
+import { Product } from "@coco/shared/core/entities";
 
 interface ProductState {
 	products: Product[];
+	searchTerm: string;
 
 	setProducts: (products: Product[]) => void;
+	setSearchTerm: (term: string) => void;
 	addProduct: (product: Product) => void;
 	updateProduct: (
 		productId: string,
@@ -16,8 +18,11 @@ interface ProductState {
 
 export const useProductStore = create<ProductState>((set) => ({
 	products: [],
+	searchTerm: "",
 
 	setProducts: (products) => set({ products: [...products] }),
+
+	setSearchTerm: (term) => set({ searchTerm: term }),
 
 	addProduct: (product) =>
 		set((state) => ({
@@ -36,5 +41,5 @@ export const useProductStore = create<ProductState>((set) => ({
 			products: state.products.filter((p) => p.id !== productId),
 		})),
 
-	clearProducts: () => set({ products: [] }),
+	clearProducts: () => set({ products: [], searchTerm: "" }),
 }));

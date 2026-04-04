@@ -96,27 +96,12 @@ export const ProductListItem = React.memo(
 				<View style={styles.listActionColumn}>
 					{showImage && (
 						<View style={styles.listImageContainer}>
-							{hasImage ? (
+							{hasImage && (
 								<Image
 									source={{ uri: item.imageUrl }}
 									style={styles.listProductImage}
 									resizeMode="cover"
 								/>
-							) : (
-								/* 🍔 Imagen / Icono por defecto si no tiene imagen */
-								<View
-									style={[
-										styles.listProductImage,
-										styles.fallbackPlaceholder,
-										{ backgroundColor: colors.borderLight },
-									]}
-								>
-									<Ionicons
-										name="fast-food-outline"
-										size={36} // Ajustado para que quepa bien en el cuadro de 88
-										color={colors.textSecondaryLight}
-									/>
-								</View>
 							)}
 
 							{/* Badge de edición encima de la imagen (Estilo Uber) */}

@@ -26,7 +26,7 @@ export const ProductGridItem = ({
 	onAdd = () => {},
 	role,
 }: ProductGridItemProps) => {
-	const hasImage = item.image_url && item.image_url.trim() !== "";
+	const hasImage = item.imageUrl && item.imageUrl.trim() !== "";
 
 	return (
 		<TouchableOpacity
@@ -38,7 +38,7 @@ export const ProductGridItem = ({
 			<View style={styles.imageWrapper}>
 				{hasImage ? (
 					<Image
-						source={{ uri: item.image_url }}
+						source={{ uri: item.imageUrl }}
 						style={styles.gridProductImage}
 						resizeMode="cover"
 					/>

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { Product, Section } from "@coco/shared/core/entities";
 import { TABLES } from "@coco/shared/constants";
 import { useSupabaseContext } from "@coco/shared/providers";
@@ -7,11 +7,17 @@ import {
 	useProductStore,
 	useSectionStore,
 } from "@coco/shared/hooks";
+import { StorageRepository } from "../../infrastructure/supabase/StorageRepository";
 
 export const useProduct = () => {
 	const supabase = useSupabaseContext();
-	const [searchTerm, setSearchTerm] = useState("");
 
+	const storageRepository = useMemo(
+		() => new StorageRepository(supabase),
+		[supabase],
+	);
+	const searchTerm = useProductStore((state) => state.searchTerm);
+	const setSearchTerm = useProductStore((state) => state.setSearchTerm);
 	const { user, activeBusiness } = useAppStore();
 	const products = useProductStore((state) => state.products);
 	const setProducts = useProductStore((state) => state.setProducts);
@@ -188,7 +194,7 @@ export const useProduct = () => {
 			name: string;
 			description: string;
 			price: number;
-			imageUrl?: string;
+			imageUrl?: string; // Aquí puede venir un "file://..." de ImagePicker o una URL de red
 			isAvailable: boolean;
 		},
 	) => {
@@ -199,19 +205,41 @@ export const useProduct = () => {
 
 		setFunctionLoading("save", true);
 		try {
+			let finalImageUrl = dataToSave.imageUrl || "";
+
+			// 🌟 1. Si viene una nueva imagen local (de ImagePicker)
+			if (dataToSave?.imageUrl?.startsWith("file://")) {
+				const entityFolder = "merchants"; // O la carpeta que uses para productos
+
+				// Generamos un identificador único para la imagen si es un producto nuevo
+				const fileNameId = productId || `new-${Date.now()}`;
+
+				const imageResult = await storageRepository.uploadImage(
+					dataToSave.imageUrl,
+					entityFolder,
+					activeBusiness?.id || user.lastActiveBusinessId, // Usamos el ID del negocio como agrupador
+					["products"], // Subcarpetas
+					`product-${fileNameId}`, // Nombre del archivo
+				);
+
+				if (imageResult.error) throw new Error(imageResult.error);
+
+				finalImageUrl = imageResult.url || "";
+			}
+
 			const payload: any = {
 				business_id: activeBusiness?.id,
 				name: dataToSave.name.trim(),
 				description: dataToSave.description.trim(),
 				price: dataToSave.price,
-				image_url: dataToSave.imageUrl,
+				image_url: finalImageUrl, // 🎯 Guardamos la URL final
 				is_available: dataToSave.isAvailable,
 				updated_at: new Date().toISOString(),
 			};
 
 			let currentProductId = productId;
 
-			// 1. Crear o actualizar el producto base
+			// 2. Crear o actualizar el producto base
 			if (productId) {
 				const { error: supabaseError } = await supabase
 					.from(TABLES.PRODUCTS)
@@ -240,7 +268,6 @@ export const useProduct = () => {
 				currentProductId = data.id;
 			}
 
-			// 2. Gestionar relaciones con SECCIONES
 			await supabase
 				.from("product_sections")
 				.delete()
@@ -293,7 +320,7 @@ export const useProduct = () => {
 			}
 
 			// 4. Refrescar la lista de productos
-			await fetchProducts("");
+			await fetchProducts(searchTerm);
 		} catch (err: any) {
 			console.error("Error saving product:", err);
 			throw err;
@@ -441,9 +468,9 @@ export const useProduct = () => {
 	useEffect(() => {
 		if (activeBusiness?.id) {
 			fetchSectionsIfEmpty();
-			fetchProducts("");
+			fetchProducts(searchTerm);
 		}
-	}, [activeBusiness?.id, fetchProducts, fetchSectionsIfEmpty]);
+	}, [activeBusiness?.id]);
 
 	return {
 		products,

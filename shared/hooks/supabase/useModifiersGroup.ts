@@ -6,7 +6,8 @@ import { useSupabaseContext } from "@coco/shared/providers/SupabaseContext";
 
 export const useModifiersGroup = () => {
 	const supabase = useSupabaseContext();
-	const [searchTerm, setSearchTerm] = useState("");
+	const searchTerm = useModifierStore((state) => state.searchTerm);
+	const setSearchTerm = useModifierStore((state) => state.setSearchTerm);
 	const { user, activeBusiness } = useAppStore();
 	const modifierGroups = useModifierStore((state) => state.modifiersGroup);
 	const setModifierGroups = useModifierStore(
@@ -60,7 +61,7 @@ export const useModifiersGroup = () => {
 					id: item.id,
 					businessId: item.business_id,
 					name: item.name,
-					internal_name: item.internal_name,
+					internalName: item.internal_name,
 					minSelectable: item.min_selectable,
 					maxSelectable: item.max_selectable,
 					isAvailable: item.is_available,
@@ -110,7 +111,7 @@ export const useModifiersGroup = () => {
 						id: data.id,
 						businessId: data.business_id,
 						name: data.name,
-						internal_name: data.internal_name,
+						internalName: data.internal_name,
 						minSelectable: data.min_selectable,
 						maxSelectable: data.max_selectable,
 						isAvailable: data.is_available,
@@ -137,7 +138,7 @@ export const useModifiersGroup = () => {
 		groupId?: string,
 		dataToSave?: {
 			name: string;
-			internal_name?: string;
+			internalName?: string;
 			minSelectable: number;
 			maxSelectable: number;
 			isAvailable: boolean;
@@ -154,7 +155,7 @@ export const useModifiersGroup = () => {
 			const payload: any = {
 				business_id: activeBusiness?.id,
 				name: dataToSave.name.trim(),
-				internal_name: dataToSave.internal_name?.trim() || null,
+				internal_name: dataToSave.internalName?.trim() || null,
 				min_selectable: dataToSave.minSelectable,
 				max_selectable: dataToSave.maxSelectable,
 				is_available: dataToSave.isAvailable,
@@ -201,7 +202,7 @@ export const useModifiersGroup = () => {
 				if (optionsError) throw optionsError;
 			}
 
-			await fetchModifierGroups("");
+			await fetchModifierGroups(searchTerm);
 		} catch (err: any) {
 			console.error("Error saving modifier group:", err);
 			throw err;
@@ -278,7 +279,7 @@ export const useModifiersGroup = () => {
 
 	useEffect(() => {
 		if (activeBusiness?.id) {
-			fetchModifierGroups("");
+			fetchModifierGroups(searchTerm);
 		}
 	}, [activeBusiness?.id, fetchModifierGroups]);
 

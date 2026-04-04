@@ -67,6 +67,7 @@ export const ModifierGroupForm = () => {
 			const currentGroup = await getModifierGroupById(groupId);
 
 			if (currentGroup) {
+				console.log(currentGroup);
 				setFormData({
 					name: currentGroup.name,
 					internalName: currentGroup.internalName || "",
@@ -119,7 +120,7 @@ export const ModifierGroupForm = () => {
 			// Enviamos todo el paquete (incluyendo los modificadores temporales y fijos)
 			await saveModifierGroup(groupId, {
 				name: formData.name.trim(),
-				internal_name: formData.internalName.trim(),
+				internalName: formData.internalName.trim(),
 				minSelectable: min,
 				maxSelectable: max,
 				isAvailable: formData.isAvailable,

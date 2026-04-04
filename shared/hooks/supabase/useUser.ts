@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useAppStore } from "@coco/shared/hooks/useAppStore";
-import { Business, User } from "core/entities";
+import { Business, User } from "@coco/shared/core/entities";
 import {
 	EntityType,
 	StorageRepository,
@@ -9,7 +9,7 @@ import { useSupabaseContext } from "@coco/shared/providers/SupabaseContext";
 
 export const useUser = () => {
 	const supabase = useSupabaseContext();
-	const { user, setUser, activeBusiness } = useAppStore();
+	const { user, setUser } = useAppStore();
 	const [loadingUser, setLoadingUser] = useState(true);
 	const storageRepository = useMemo(
 		() => new StorageRepository(supabase),

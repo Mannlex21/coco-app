@@ -7,7 +7,8 @@ import { useSupabaseContext } from "@coco/shared/providers";
 export const useSection = () => {
 	const supabase = useSupabaseContext();
 	const { activeBusiness } = useAppStore();
-	const [searchTerm, setSearchTerm] = useState("");
+	const searchTerm = useSectionStore((state) => state.searchTerm);
+	const setSearchTerm = useSectionStore((state) => state.setSearchTerm);
 
 	const sections = useSectionStore((state) => state.sections);
 	const setSections = useSectionStore((state) => state.setSections);
@@ -439,9 +440,9 @@ export const useSection = () => {
 
 	useEffect(() => {
 		if (activeBusiness?.id) {
-			fetchSections("");
+			fetchSections(searchTerm);
 		}
-	}, [activeBusiness?.id, fetchSections]);
+	}, [activeBusiness?.id]);
 
 	return {
 		sections,

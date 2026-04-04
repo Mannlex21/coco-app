@@ -3,8 +3,9 @@ import { ModifierGroup } from "@coco/shared/core/entities/Modifier";
 
 interface ModifierState {
 	modifiersGroup: ModifierGroup[];
-
+	searchTerm: string;
 	setModifiersGroup: (modifiersGroup: ModifierGroup[]) => void;
+	setSearchTerm: (term: string) => void;
 	addModifierGroup: (modifierGroup: ModifierGroup) => void;
 	updateModifierGroup: (
 		groupId: string,
@@ -16,9 +17,12 @@ interface ModifierState {
 
 export const useModifierStore = create<ModifierState>((set) => ({
 	modifiersGroup: [],
+	searchTerm: "",
 
 	setModifiersGroup: (modifiersGroups) =>
 		set({ modifiersGroup: [...modifiersGroups] }),
+
+	setSearchTerm: (term) => set({ searchTerm: term }),
 
 	addModifierGroup: (modifierGroup) =>
 		set((state) => ({
@@ -38,6 +42,5 @@ export const useModifierStore = create<ModifierState>((set) => ({
 				(m) => m.id !== groupId,
 			),
 		})),
-
-	clearModifiers: () => set({ modifiersGroup: [] }),
+	clearModifiers: () => set({ modifiersGroup: [], searchTerm: "" }),
 }));
