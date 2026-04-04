@@ -10,8 +10,8 @@ export const DashboardHeader = () => {
 	const { colors } = useTheme();
 	const { user } = useAppStore();
 	const { loadingUser } = useUser();
-
 	const { activeBusiness, loadings } = useBusiness();
+
 	const firstName = user?.name ? user.name.split(" ")[0] : "Socio";
 
 	return (
@@ -24,35 +24,31 @@ export const DashboardHeader = () => {
 				},
 			]}
 		>
-			<Text
-				style={[
-					styles.welcomeText,
-					{ color: colors.textSecondaryLight },
-				]}
-			>
-				¡Bienvenido,{" "}
+			<View style={styles.welcomeContainer}>
 				{loadingUser ? (
-					<Skeleton width={100} height={10} variant="text" />
+					<Skeleton width={90} height={FontSize.xs} variant="text" />
 				) : (
-					firstName
+					<Text
+						style={[
+							styles.welcomeText,
+							{ color: colors.textSecondaryLight },
+						]}
+						numberOfLines={1}
+					>
+						¡Hola, {firstName}!
+					</Text>
 				)}
-				!
-			</Text>
-
-			<View style={styles.selector}>
+			</View>
+			<View style={styles.businessContainer}>
 				{loadings.fetch ? (
-					<Skeleton
-						width={180}
-						height={24}
-						variant="text"
-						style={{ marginTop: 4 }}
-					/>
+					<Skeleton width={160} height={FontSize.xl} variant="text" />
 				) : (
 					<Text
 						style={[
 							styles.businessName,
 							{ color: colors.textPrimaryLight },
 						]}
+						numberOfLines={1}
 					>
 						{activeBusiness
 							? activeBusiness.name
@@ -66,20 +62,29 @@ export const DashboardHeader = () => {
 
 const styles = StyleSheet.create({
 	header: {
-		paddingHorizontal: Spacing.md,
+		paddingHorizontal: Spacing.lg, // Más aire a los lados para look premium
+		paddingTop: Spacing.sm,
 		paddingBottom: Spacing.xs,
-		borderBottomWidth: StyleSheet.hairlineWidth,
+		borderBottomWidth: 1, // Usar 1 en lugar de hairlineWidth da un corte más limpio en pantallas densas
 	},
-	welcomeText: {
-		fontSize: FontSize.sm,
-		fontWeight: FontWeight.medium,
-	},
-	selector: {
-		marginTop: Spacing.xs,
-		alignSelf: "flex-start",
+	businessContainer: {
+		marginBottom: Spacing.xs, // Separación controlada
+		minHeight: FontSize.xl, // Evita colapso mientras carga el skeleton
+		justifyContent: "center",
 	},
 	businessName: {
 		fontSize: FontSize.xl,
 		fontWeight: FontWeight.bold,
+		letterSpacing: -0.5, // Toque tipográfico moderno
+	},
+	welcomeContainer: {
+		minHeight: FontSize.xs,
+		justifyContent: "center",
+	},
+	welcomeText: {
+		fontSize: FontSize.xs,
+		fontWeight: FontWeight.medium,
+		textTransform: "uppercase", // El texto pequeño en mayúsculas se lee muy bien y luce minimalista
+		letterSpacing: 0.5,
 	},
 });

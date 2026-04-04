@@ -17,14 +17,14 @@ export const EmptyState = ({
 			style={styles.emptyIcon}
 		/>
 		<Text style={[styles.emptyTitle, { color: colors.textPrimaryLight }]}>
-			{isFiltering ? "No se encontraron resultados" : "No hay secciones"}
+			{isFiltering ? "No se encontraron resultados" : "No hay elementos"}
 		</Text>
 		<Text
 			style={[styles.emptySubtitle, { color: colors.textSecondaryLight }]}
 		>
 			{isFiltering
 				? "Intenta buscando con otras palabras clave."
-				: "Presiona el botón '+' de abajo para crear tu primera sección."}
+				: "Presiona el botón '+' de abajo para crear tu primer elemento."}
 		</Text>
 	</View>
 );

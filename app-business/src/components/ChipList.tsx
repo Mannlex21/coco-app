@@ -2,6 +2,8 @@ import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { useTheme } from "@coco/shared/hooks/useTheme";
 import { Ionicons } from "@expo/vector-icons";
 import { memo } from "react";
+// Asumiendo que exportas estas constantes desde tu archivo de tema
+// import { FontSize, FontWeight } from "@coco/shared/constants/theme";
 
 interface ChipListProps<T> {
 	items: T[];
@@ -23,8 +25,9 @@ export const ChipList = memo(
 
 		if (!items || items.length === 0) return null;
 
-		const textColor = isDark ? "rgba(255,255,255,0.9)" : "rgba(0,0,0,0.85)";
-		const chipBg = isDark ? "rgba(255,255,255,0.05)" : "#EAEAEA";
+		// 🎨 Aplicando las variables de tu paleta semántica
+		const textColor = colors.textPrimaryLight;
+		const chipBg = colors.inputBg; // O 'surfaceLight' si prefieres que contraste más
 
 		return (
 			<View style={styles.chipsContainer}>
@@ -64,7 +67,7 @@ export const ChipList = memo(
 							>
 								<Ionicons
 									name="close-circle"
-									size={18}
+									size={16}
 									color={colors.error}
 								/>
 							</TouchableOpacity>
@@ -88,16 +91,16 @@ const styles = StyleSheet.create({
 		alignItems: "center",
 		paddingVertical: 6,
 		paddingHorizontal: 10,
-		borderRadius: 20,
+		borderRadius: 20, // Puedes usar BorderRadius.full aquí si lo importas
 	},
 	textContainer: {
 		flexDirection: "row",
 		alignItems: "center",
-		marginRight: 6,
+		marginRight: 4,
 	},
 	chipText: {
-		fontSize: 13,
-		fontWeight: "500",
+		fontSize: 13, // Puedes usar FontSize.sm
+		fontWeight: "500", // Puedes usar FontWeight.medium
 		maxWidth: 150,
 	},
 	closeButton: {

@@ -212,7 +212,9 @@ export const useBusiness = () => {
 		try {
 			await Promise.all([
 				fetchBusinesses(),
-				new Promise((resolve) => setTimeout(resolve, 800)),
+				new Promise((resolve) =>
+					setTimeout(() => resolve(undefined), 800),
+				),
 			]);
 		} catch (err) {
 			console.error("Error al refrescar negocios:", err);

@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { ModifierGroup } from "core/entities/Modifier";
+import { ModifierGroup } from "@coco/shared/core/entities/Modifier";
 
 interface ModifierState {
 	modifiersGroup: ModifierGroup[];

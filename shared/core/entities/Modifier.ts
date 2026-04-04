@@ -10,6 +10,7 @@ export interface Modifier {
 export interface ModifierGroup {
 	id: string;
 	name: string;
+	internalName: string;
 	minSelectable: number; // 0 si es opcional, 1 o más si es obligatorio
 	maxSelectable: number; // Cuántas opciones máximo puede marcar el cliente
 	isAvailable: boolean;

@@ -69,10 +69,10 @@ export const ModifierGroupForm = () => {
 			if (currentGroup) {
 				setFormData({
 					name: currentGroup.name,
-					internalName: currentGroup.internal_name || "",
+					internalName: currentGroup.internalName || "",
 					minSelectable: currentGroup.minSelectable.toString(),
 					maxSelectable: currentGroup.maxSelectable.toString(),
-					isAvailable: currentGroup.status === "active",
+					isAvailable: currentGroup.isAvailable,
 					selectedModifier: currentGroup.choices || [],
 				});
 			}

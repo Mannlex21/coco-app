@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS public.modifier_groups (
     internal_name TEXT, -- Nombre interno para control del negocio
     min_selectable INT DEFAULT 0, -- 1 si es obligatorio, 0 si es opcional
     max_selectable INT DEFAULT 1, -- Cuántos puede elegir máximo
-    status TEXT DEFAULT 'active',
+    is_available BOOLEAN DEFAULT true NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );

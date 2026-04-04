@@ -31,45 +31,10 @@ export interface ColorPalette {
 	info: string;
 	infoLight: string;
 }
-
-const LightTheme: ColorPalette = {
-	// 1. Colores de Marca / Roles
-	clientBg: "#3498DB",
-	businessBg: "#C45E1A",
-	driverBg: "#2ECC71",
-	cocoBase: "#5D4037",
-	cocoInner: "#D7CCC8",
-	cocoEyes: "#212121",
-	leafMed: "#4CAF50",
-	leafLight: "#8BC34A",
-
-	// 2. Colores de Interfaz (Estructura)
-	businessLight: "#FFF5EB",
-	backgroundLight: "#FFFFFF",
-	surfaceLight: "#FFFFFF",
-	borderLight: "#EEEEEE",
-	inputBg: "#F5F5F5",
-
-	// 3. Tipografía
-	textPrimaryLight: "#333333",
-	textSecondaryLight: "#666666",
-	textOnPrimary: "#FFFFFF",
-
-	// 4. Colores Semánticos (Estados)
-	success: "#2D6A4F",
-	successLight: "#E8F5E9",
-	error: "#E76F51",
-	errorLight: "#FFF0EE",
-	warning: "#FFB703",
-	warningLight: "#FFF9E6",
-	info: "#2196F3",
-	infoLight: "#E3F2FD",
-};
-
 const DarkTheme: ColorPalette = {
-	clientBg: "#2980B9",
-	businessBg: "#E07A2F",
-	driverBg: "#27AE60",
+	clientBg: "#1AB5AC",
+	businessBg: "#1A7D78",
+	driverBg: "#C8952A",
 	cocoBase: "#3E2723",
 	cocoInner: "#5D4037",
 	cocoEyes: "#F5F5F5",
@@ -91,12 +56,47 @@ const DarkTheme: ColorPalette = {
 	// 4. Colores Semánticos (Estados)
 	success: "#52B788",
 	successLight: "#1A2E22",
-	error: "#F4A261",
+	error: "#ff3333",
 	errorLight: "#2C1B1A",
 	warning: "#FFD166",
 	warningLight: "#2C271A",
 	info: "#64B5F6",
 	infoLight: "#1A242E",
+};
+const LightTheme: ColorPalette = {
+	// 1. Colores de Marca / Roles (Se quedan para acentos específicos)
+	clientBg: "#1AB5AC", // Teal Principal (Botones primarios, Switch, Iconos clave)
+	businessBg: "#1A7D78", // Teal Oscuro
+	driverBg: "#C8952A", // Dorado (Para elementos secundarios o de alerta suave)
+
+	// Ilustraciones / Mascota
+	cocoBase: "#5D4037",
+	cocoInner: "#D7CCC8",
+	cocoEyes: "#212121",
+	leafMed: "#4CAF50",
+	leafLight: "#8BC34A",
+
+	// 2. Colores de Interfaz (Estructura)
+	businessLight: "#DEF7F5", // Teal Muy Claro (Solo para badges muy específicos)
+	backgroundLight: "#FFFFFF", // 👈 Crema Fondo (El lienzo total de la app)
+	surfaceLight: "#FFFFFF", // Un crema ligerísimamente más claro/pálido para elevar Cards sin romper la armonía
+	borderLight: "#EEEEEE", // Crema Dorada (Para líneas de separación muy finas)
+	inputBg: "#F5F5F5", // Fondo limpio y armónico para las cajas de texto
+
+	// 3. Tipografía
+	textPrimaryLight: "#000000", // 👈 Negro absoluto para máxima legibilidad y minimalismo
+	textSecondaryLight: "#666666", // Un gris oscuro estándar para subtítulos
+	textOnPrimary: "#FFFFFF", // Blanco para el texto dentro de botones rellenos
+
+	// 4. Colores Semánticos
+	success: "#2D6A4F",
+	successLight: "#E8F5E9",
+	error: "#ff3333",
+	errorLight: "#FFF0EE",
+	warning: "#C8952A", // El Dorado de tu paleta
+	warningLight: "#FFF9E6",
+	info: "#1AB5AC", // El Teal Principal
+	infoLight: "#DEF7F5",
 };
 
 export const Colors = {

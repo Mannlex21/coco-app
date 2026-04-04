@@ -3,12 +3,11 @@
 		"strict": true,
 		"jsx": "react-native",
 		"lib": ["es2017"],
-		"moduleResolution": "node",
+		"moduleResolution": "bundler",
 		"allowSyntheticDefaultImports": true,
 		"esModuleInterop": true,
 		"skipLibCheck": true,
-		"resolveJsonModule": true,
-		"baseUrl": "."
+		"resolveJsonModule": true
 	},
 	"exclude": ["node_modules"]
 }

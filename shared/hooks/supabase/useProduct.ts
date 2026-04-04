@@ -84,7 +84,8 @@ export const useProduct = () => {
 					.select(
 						`
                         *,
-                        product_sections(section_id)
+                        product_sections(section_id),
+						product_modifiers(modifier_group_id)
                     `,
 					)
 					.eq("business_id", activeBusiness.id)
@@ -107,6 +108,10 @@ export const useProduct = () => {
 						sectionIds:
 							item.product_sections?.map(
 								(ps: any) => ps.section_id,
+							) || [],
+						modifierGroupIds:
+							item.product_modifiers?.map(
+								(pm: any) => pm.modifier_group_id,
 							) || [],
 						name: item.name,
 						description: item.description,
@@ -179,6 +184,7 @@ export const useProduct = () => {
 		productId?: string,
 		dataToSave?: {
 			sectionIds: string[];
+			modifierGroupIds?: string[];
 			name: string;
 			description: string;
 			price: number;
@@ -205,6 +211,7 @@ export const useProduct = () => {
 
 			let currentProductId = productId;
 
+			// 1. Crear o actualizar el producto base
 			if (productId) {
 				const { error: supabaseError } = await supabase
 					.from(TABLES.PRODUCTS)
@@ -233,6 +240,7 @@ export const useProduct = () => {
 				currentProductId = data.id;
 			}
 
+			// 2. Gestionar relaciones con SECCIONES
 			await supabase
 				.from("product_sections")
 				.delete()
@@ -255,6 +263,36 @@ export const useProduct = () => {
 				if (relError) throw relError;
 			}
 
+			// ⚡ 3. Gestionar relaciones con GRUPOS DE MODIFICADORES (Nueva sección)
+			// Primero limpiamos las relaciones existentes para este producto
+			await supabase
+				.from("product_modifiers")
+				.delete()
+				.eq("product_id", currentProductId);
+
+			if (
+				dataToSave.modifierGroupIds &&
+				dataToSave.modifierGroupIds.length > 0
+			) {
+				const uniqueModifierGroupIds = Array.from(
+					new Set(dataToSave.modifierGroupIds),
+				);
+
+				const modifiersToInsert = uniqueModifierGroupIds.map(
+					(modGroupId) => ({
+						product_id: currentProductId,
+						modifier_group_id: modGroupId,
+					}),
+				);
+
+				const { error: modError } = await supabase
+					.from("product_modifiers")
+					.insert(modifiersToInsert);
+
+				if (modError) throw modError;
+			}
+
+			// 4. Refrescar la lista de productos
 			await fetchProducts("");
 		} catch (err: any) {
 			console.error("Error saving product:", err);
@@ -389,7 +427,9 @@ export const useProduct = () => {
 		try {
 			await Promise.all([
 				fetchProducts(searchTerm),
-				new Promise((resolve) => setTimeout(resolve, 800)),
+				new Promise((resolve) =>
+					setTimeout(() => resolve(undefined), 800),
+				),
 			]);
 		} catch (err) {
 			console.error("Error al refrescar productos:", err);

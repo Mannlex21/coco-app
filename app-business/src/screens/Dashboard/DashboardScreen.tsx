@@ -48,6 +48,5 @@ export const DashboardScreen = () => {
 const styles = StyleSheet.create({
 	content: {
 		padding: Spacing.lg,
-		paddingTop: Spacing.sm,
 	},
 });

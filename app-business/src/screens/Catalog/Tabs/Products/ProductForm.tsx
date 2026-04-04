@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { Ionicons } from "@expo/vector-icons";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTheme } from "@coco/shared/hooks/useTheme";
@@ -9,11 +8,14 @@ import {
 	ActivityIndicator,
 	StyleSheet,
 	Text,
-	TouchableOpacity,
 	View,
 	Platform,
 } from "react-native";
-import { useProduct, useSection } from "@coco/shared/hooks/supabase";
+import {
+	useModifiersGroup,
+	useProduct,
+	useSection,
+} from "@coco/shared/hooks/supabase";
 import {
 	FontSize,
 	BorderRadius,
@@ -25,14 +27,15 @@ import {
 	InputField,
 	ToggleField,
 	PrimaryButton,
-	ChipList,
 } from "@/components";
+import { FormChipSelector } from "@/components/FormChipSelector";
 
 interface RouteParams {
 	title?: string;
 	productId?: string;
 	sectionId?: string;
 	selectedSections?: string[]; // 🌟 Recibimos el objeto completo desde el Picker
+	selectedModifierGroups?: string[];
 }
 
 export const ProductForm = () => {
@@ -45,6 +48,8 @@ export const ProductForm = () => {
 	const { showDialog } = useDialog();
 	const { saveProduct, getProductById, loadings } = useProduct();
 	const { sections, fetch: fetchSections } = useSection();
+	const { modifierGroups, refetch: fetchModifierGroups } =
+		useModifiersGroup();
 
 	const subTextColor = colors.textSecondaryLight;
 	const borderColor = colors.borderLight;
@@ -57,7 +62,8 @@ export const ProductForm = () => {
 		description: "",
 		price: "",
 		isAvailable: true,
-		selectedSection: [] as string[], // 🌟 Almacena puros IDs
+		selectedSection: [] as string[],
+		selectedModifierGroups: [] as string[],
 	});
 
 	useEffect(() => {
@@ -78,12 +84,20 @@ export const ProductForm = () => {
 			// Limpiamos los parámetros para que no se cicle
 			navigation.setParams({ selectedSections: undefined });
 		}
+		if (params?.selectedModifierGroups) {
+			setFormData((prev) => ({
+				...prev,
+				selectedModifierGroups: params.selectedModifierGroups || [],
+			}));
+			navigation.setParams({ selectedModifierGroups: undefined });
+		}
 	}, [route.params]);
 
 	const loadData = async () => {
 		setLoading(true);
 		try {
 			await fetchSections("");
+			await fetchModifierGroups("");
 
 			if (currentProductId) {
 				const currentProduct = await getProductById(currentProductId);
@@ -95,6 +109,8 @@ export const ProductForm = () => {
 						price: currentProduct.price?.toString() || "",
 						isAvailable: currentProduct.isAvailable,
 						selectedSection: currentProduct.sectionIds || [],
+						selectedModifierGroups:
+							currentProduct.modifierGroupIds || [],
 					});
 				}
 			} else if (sectionId) {
@@ -115,6 +131,15 @@ export const ProductForm = () => {
 			...prev,
 			selectedSection: prev.selectedSection.filter(
 				(secId) => secId !== id,
+			),
+		}));
+	};
+
+	const handleRemoveModifierGroup = (id: string) => {
+		setFormData((prev) => ({
+			...prev,
+			selectedModifierGroups: prev.selectedModifierGroups.filter(
+				(groupId) => groupId !== id,
 			),
 		}));
 	};
@@ -144,6 +169,7 @@ export const ProductForm = () => {
 				price: Number.parseFloat(formData.price) || 0,
 				isAvailable: formData.isAvailable,
 				sectionIds: formData.selectedSection,
+				modifierGroupIds: formData.selectedModifierGroups,
 			});
 			showDialog({
 				title: "¡Éxito!",
@@ -219,50 +245,56 @@ export const ProductForm = () => {
 					multiline
 					editable={!loadings.save}
 				/>
+				<FormChipSelector
+					label="¿En qué sección(es) aparece este producto?"
+					addButtonLabel="Sección"
+					items={sections.filter((section) =>
+						formData.selectedSection?.includes(section.id),
+					)}
+					maxVisibleChips={3} // 👈 Muestra solo 3 antes de poner el "+X"
+					getLabel={(item) => item.name}
+					getKey={(item) => item.id}
+					onPressAdd={() => {
+						navigation.navigate("SectionPicker", {
+							alreadySelectedSections: formData.selectedSection,
+							returnScreen: "ProductForm",
+						});
+					}}
+					onRemoveItem={(id) => handleRemoveSection(id)}
+					onPressItem={(item) =>
+						navigation.navigate("SectionPicker", {
+							alreadySelectedSections: formData.selectedSection,
+							returnScreen: "ProductForm",
+						})
+					}
+				/>
 
-				<View style={[styles.divider]}>
-					<Text style={[styles.label, { color: subTextColor }]}>
-						¿En qué sección(es) aparece este producto?
-					</Text>
-
-					<TouchableOpacity
-						style={[
-							styles.addProductBtn,
-							{ borderColor: colors.businessBg },
-						]}
-						onPress={() => {
-							navigation.navigate("SectionPicker", {
-								alreadySelectedSections:
-									formData.selectedSection,
-								returnScreen: "ProductForm",
-							});
-						}}
-					>
-						<Ionicons
-							name="add-circle-outline"
-							size={20}
-							color={colors.businessBg}
-						/>
-						<Text
-							style={[
-								styles.addProductBtnText,
-								{ color: colors.businessBg },
-							]}
-						>
-							Vincular secciones
-						</Text>
-					</TouchableOpacity>
-
-					{/* 🌟 Pintamos los chips buscando la data completa desde el hook local */}
-					<ChipList
-						items={sections.filter((section) =>
-							formData.selectedSection?.includes(section.id),
-						)}
-						getLabel={(item) => item.name}
-						onRemoveProduct={(id) => handleRemoveSection(id)}
-					/>
-				</View>
-
+				<FormChipSelector
+					label="¿Qué grupos de modificadores aplican?"
+					addButtonLabel="Modificador"
+					addButtonIcon="add"
+					maxVisibleChips={3}
+					items={modifierGroups.filter((group) =>
+						formData.selectedModifierGroups?.includes(group.id),
+					)}
+					getLabel={(item) => item.name}
+					getKey={(item) => item.id}
+					onPressAdd={() => {
+						navigation.navigate("ModifierGroupPicker", {
+							alreadySelectedGroups:
+								formData.selectedModifierGroups,
+							returnScreen: "ProductForm",
+						});
+					}}
+					onRemoveItem={(id) => handleRemoveModifierGroup(id)}
+					onPressItem={() => {
+						navigation.navigate("ModifierGroupPicker", {
+							alreadySelectedGroups:
+								formData.selectedModifierGroups,
+							returnScreen: "ProductForm",
+						});
+					}}
+				/>
 				<View style={[styles.divider]}>
 					<ToggleField
 						label="Disponibilidad"

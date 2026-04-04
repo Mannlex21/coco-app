@@ -55,10 +55,6 @@ export const ProductsTab = () => {
 					<VisualizationPicker
 						type={viewType}
 						setType={setViewType}
-						subTextColor={colors.textSecondaryLight}
-						textColor={colors.textPrimaryLight}
-						borderColor={colors.borderLight}
-						businessBg={colors.businessBg}
 						showLabel={false}
 					/>
 				</View>

@@ -20,14 +20,7 @@ export const SearchInput = ({
 	placeholder = "Buscar...",
 }: SearchInputProps) => {
 	return (
-		<View
-			style={[
-				styles.searchContainer,
-				{
-					backgroundColor: colors.surfaceLight,
-				},
-			]}
-		>
+		<View style={[styles.searchContainer]}>
 			<View
 				style={[
 					styles.searchInputWrapper,

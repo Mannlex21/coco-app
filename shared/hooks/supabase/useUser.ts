@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useAppStore } from "@coco/shared/hooks/useAppStore";
-import { User } from "core/entities";
+import { Business, User } from "core/entities";
 import {
 	EntityType,
 	StorageRepository,
@@ -153,15 +153,15 @@ export const useUser = () => {
 		}
 	};
 
-	const updateLastActiveBusiness = async () => {
-		if (!user?.id || !activeBusiness?.id)
+	const updateLastActiveBusiness = async (business: Business) => {
+		if (!user?.id || !business)
 			return { success: false, error: "No user ID or active business" };
 
 		try {
 			const { error } = await supabase
 				.from("users")
 				.update({
-					last_active_business_id: activeBusiness.id, // Guardamos la snake_case para DB
+					last_active_business_id: business.id, // Guardamos la snake_case para DB
 					updated_at: new Date().toISOString(),
 				})
 				.eq("id", user.id);
@@ -172,7 +172,7 @@ export const useUser = () => {
 			if (user) {
 				setUser({
 					...user,
-					lastActiveBusinessId: activeBusiness.id, // Guardamos camelCase para el estado
+					lastActiveBusinessId: business.id, // Guardamos camelCase para el estado
 					updatedAt: new Date(),
 				});
 			}

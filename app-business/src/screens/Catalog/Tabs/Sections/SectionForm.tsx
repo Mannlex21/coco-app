@@ -24,6 +24,7 @@ import {
 	InputField,
 	VisualizationPicker,
 } from "@/components";
+import { FormChipSelector } from "@/components/FormChipSelector";
 
 export const SectionForm = () => {
 	const navigation = useNavigation<any>();
@@ -199,58 +200,29 @@ export const SectionForm = () => {
 						setType={(type) =>
 							handleInputChange("visualizationType", type)
 						}
-						subTextColor={subTextColor}
-						textColor={textColor}
-						borderColor={borderColor}
-						businessBg={colors.businessBg}
 						label="Visualización de productos"
 					/>
 				</View>
 
-				<View style={[styles.divider]}>
-					<Text style={[styles.label, { color: subTextColor }]}>
-						Productos en esta sección
-					</Text>
-
-					<TouchableOpacity
-						style={[
-							styles.addProductBtn,
-							{ borderColor: colors.businessBg },
-						]}
-						onPress={() =>
-							navigation.navigate("ProductPicker", {
-								alreadySelectedProducts:
-									formData.selectedProducts,
-							})
-						}
-					>
-						<Ionicons
-							name="add-circle-outline"
-							size={20}
-							color={colors.businessBg}
-						/>
-						<Text
-							style={[
-								styles.addProductBtnText,
-								{ color: colors.businessBg },
-							]}
-						>
-							Vincular productos
-						</Text>
-					</TouchableOpacity>
-
-					<ChipList
-						items={formData.selectedProducts}
-						getLabel={(item) => item.name}
-						onRemoveProduct={(id) => handleRemoveProduct(id)}
-					/>
-				</View>
-
-				<View
-					style={[
-						styles.dividerLine,
-						{ backgroundColor: borderColor },
-					]}
+				<FormChipSelector
+					label="¿Qué productos aparecen en esta sección?"
+					addButtonLabel="Agregar"
+					addButtonIcon="add"
+					maxVisibleChips={3}
+					items={formData.selectedProducts || []}
+					getLabel={(item) => item.name}
+					getKey={(item) => item.id}
+					onPressAdd={() =>
+						navigation.navigate("ProductPicker", {
+							alreadySelectedProducts: formData.selectedProducts,
+						})
+					}
+					onRemoveItem={(id) => handleRemoveProduct(id)}
+					onPressItem={() => {
+						navigation.navigate("ProductPicker", {
+							alreadySelectedProducts: formData.selectedProducts,
+						});
+					}}
 				/>
 
 				<View style={[styles.divider]}>

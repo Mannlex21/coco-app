@@ -31,7 +31,7 @@ export const BusinessSelectorCard = () => {
 
 	const handleSelectBusiness = async (business: Business) => {
 		setActiveBusiness(business);
-		await updateLastActiveBusiness();
+		await updateLastActiveBusiness(business);
 		showDialog({
 			title: "Negocio Seleccionado",
 			message: `Ahora estás gestionando "${business.name}".`,

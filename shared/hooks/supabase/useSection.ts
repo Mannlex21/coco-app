@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { Product, Section } from "core/entities";
+import { Product, Section } from "@coco/shared/core/entities";
 import { TABLES } from "@coco/shared/constants";
 import { useAppStore, useSectionStore } from "@coco/shared/hooks";
 import { useSupabaseContext } from "@coco/shared/providers";
@@ -426,7 +426,9 @@ export const useSection = () => {
 		try {
 			await Promise.all([
 				fetchSections(searchTerm),
-				new Promise((resolve) => setTimeout(resolve, 800)),
+				new Promise((resolve) =>
+					setTimeout(() => resolve(undefined), 800),
+				),
 			]);
 		} catch (err) {
 			console.error("Error al refrescar secciones:", err);

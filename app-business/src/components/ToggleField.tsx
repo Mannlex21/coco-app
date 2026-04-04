@@ -21,23 +21,20 @@ export const ToggleField = memo(
 		onValueChange,
 		disabled = false,
 	}: ToggleFieldProps) => {
-		const { colors, isDark } = useTheme();
+		const { colors } = useTheme();
 
-		const subTextColor = isDark
-			? "rgba(255,255,255,0.6)"
-			: "rgba(0,0,0,0.55)";
-
-		// Fondo del track cuando está apagado
-		const trackColorFalse = isDark ? "#3A3A3C" : "#D1D1D6";
+		// Usamos el color de borde para el fondo del switch apagado
+		// para que sea sutil y se adapte a ambos temas
+		const trackColorFalse = colors.borderLight;
 
 		return (
 			<View style={styles.container}>
 				<View style={styles.toggleRow}>
-					<View style={{ flex: 1, paddingRight: 10 }}>
+					<View style={styles.textContainer}>
 						<Text
 							style={[
 								styles.toggleTitle,
-								{ color: subTextColor },
+								{ color: colors.textSecondaryLight },
 							]}
 						>
 							{label}
@@ -45,7 +42,7 @@ export const ToggleField = memo(
 						<Text
 							style={[
 								styles.toggleSubtitle,
-								{ color: subTextColor },
+								{ color: colors.textSecondaryLight },
 							]}
 						>
 							{value ? activeDescription : inactiveDescription}
@@ -56,16 +53,13 @@ export const ToggleField = memo(
 						value={value}
 						onValueChange={onValueChange}
 						disabled={disabled}
-						// iOS usa trackColor, Android usa thumbColor y trackColor
 						trackColor={{
 							false: trackColorFalse,
 							true: colors.businessBg,
 						}}
-						// El círculo deslizable
 						thumbColor={
 							Platform.OS === "android" ? "#FFFFFF" : undefined
 						}
-						// Color de fondo nativo en iOS para redondear el diseño cuando está apagado
 						ios_backgroundColor={trackColorFalse}
 					/>
 				</View>
@@ -76,23 +70,22 @@ export const ToggleField = memo(
 
 const styles = StyleSheet.create({
 	container: {
-		marginTop: 5,
-	},
-	label: {
-		fontSize: 13,
-		fontWeight: FontWeight.bold,
-		textTransform: "uppercase",
-		marginBottom: 8,
-		marginTop: 20,
+		marginTop: 12,
+		marginBottom: 4,
 	},
 	toggleRow: {
 		flexDirection: "row",
 		alignItems: "center",
 		justifyContent: "space-between",
 	},
+	textContainer: {
+		flex: 1,
+		paddingRight: 12,
+	},
 	toggleTitle: {
 		fontSize: FontSize.md,
 		fontWeight: FontWeight.bold,
+		marginBottom: 4,
 	},
 	toggleSubtitle: {
 		fontSize: FontSize.sm,

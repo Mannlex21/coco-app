@@ -22,14 +22,13 @@ export const ModifierGroupListItem = ({
 	role,
 }: ModifierGroupListItemProps) => {
 	const isRequired = item.min_selectable > 0;
-	const min = item.min_selectable || 0;
-	const max = item.max_selectable || 0;
+	const min = item.minSelectable || 0;
+	const max = item.maxSelectable || 0;
 
 	// Lógica para mejorar la lectura de Mín y Máx
 	let selectionRule = "";
-	if (min <= 0) {
-		selectionRule = "Sin cantidad";
-	} else if (min === max) {
+
+	if (min === max) {
 		selectionRule = min === 1 ? "Selección única" : `Selecciona ${min}`;
 	} else if (min > 0) {
 		selectionRule = `Mínimo ${min} - Máximo ${max}`;
@@ -40,7 +39,7 @@ export const ModifierGroupListItem = ({
 	// Fallback por si choices viene como array o directo como número
 	const optionsCount = Array.isArray(item.choices)
 		? item.choices.length
-		: item.options_count || 0;
+		: item.optionsCount || 0;
 
 	return (
 		<TouchableOpacity

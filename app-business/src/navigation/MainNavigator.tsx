@@ -21,6 +21,7 @@ import { ModifierForm } from "@/screens/Catalog/Tabs/ModifiersGroup/components/M
 import { ModifierPicker } from "@/screens/Catalog/Tabs/ModifiersGroup/components/ModifierPicker";
 import { ModifierGroupForm } from "@/screens/Catalog/Tabs/ModifiersGroup/ModifierGroupForm";
 import { SectionPicker } from "@/screens/Catalog/Tabs/Sections/components/SectionPicker";
+import { ModifierGroupPicker } from "@/screens/Catalog/Tabs/ModifiersGroup/components/ModifierGroupPicker";
 
 const RootStack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -187,6 +188,14 @@ export const MainNavigator = () => {
 				name="ProductPicker"
 				component={ProductPicker}
 				options={getScreenOptions("Seleccionar Productos", "modal")}
+			/>
+			<RootStack.Screen
+				name="ModifierGroupPicker"
+				component={ModifierGroupPicker}
+				options={getScreenOptions(
+					"Seleccionar Grupos de Modificadores",
+					"modal",
+				)}
 			/>
 
 			<RootStack.Screen

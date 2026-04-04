@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { TABLES } from "@coco/shared/constants";
-import { Modifier } from "core/entities/Modifier";
+import { Modifier, ModifierGroup } from "@coco/shared/core/entities/Modifier";
 import { useAppStore, useModifierStore } from "@coco/shared/hooks";
 import { useSupabaseContext } from "@coco/shared/providers/SupabaseContext";
 
@@ -87,7 +87,7 @@ export const useModifiersGroup = () => {
 	);
 
 	const getModifierGroupById = useCallback(
-		async (groupId: string) => {
+		async (groupId: string): Promise<any> => {
 			const groupInMemory = modifierGroups.find((g) => g.id === groupId);
 			if (groupInMemory) return groupInMemory;
 
@@ -265,7 +265,9 @@ export const useModifiersGroup = () => {
 		try {
 			await Promise.all([
 				fetchModifierGroups(searchTerm),
-				new Promise((resolve) => setTimeout(resolve, 800)),
+				new Promise((resolve) =>
+					setTimeout(() => resolve(undefined), 800),
+				),
 			]);
 		} catch (err) {
 			console.error("Error al refrescar modificadores:", err);

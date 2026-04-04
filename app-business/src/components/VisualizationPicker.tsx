@@ -1,4 +1,5 @@
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { useTheme } from "@coco/shared/hooks/useTheme";
 import { Ionicons } from "@expo/vector-icons";
 import { FontSize, FontWeight } from "@coco/shared/config/theme";
 import { memo } from "react";
@@ -6,10 +7,6 @@ import { memo } from "react";
 interface VisualizationPickerProps {
 	type: "list" | "grid";
 	setType: (type: "list" | "grid") => void;
-	subTextColor: string;
-	textColor: string;
-	borderColor: string;
-	businessBg: string;
 	label?: string;
 	showLabel?: boolean;
 }
@@ -18,69 +15,101 @@ export const VisualizationPicker = memo(
 	({
 		type,
 		setType,
-		subTextColor,
-		textColor,
-		borderColor,
-		businessBg,
 		label = "Visualización",
 		showLabel = true,
-	}: VisualizationPickerProps) => (
-		<View style={styles.container}>
-			{showLabel && (
-				<Text style={[styles.label, { color: subTextColor }]}>
-					{label}
-				</Text>
-			)}
+	}: VisualizationPickerProps) => {
+		const { colors } = useTheme();
 
-			<View style={[styles.pickerRow, { borderColor: borderColor }]}>
-				<TouchableOpacity
-					style={[
-						styles.pickerOption,
-						type === "list" && { backgroundColor: businessBg },
-					]}
-					onPress={() => setType("list")}
-					activeOpacity={0.9}
-				>
-					<Ionicons
-						name="list"
-						size={18}
-						color={type === "list" ? "white" : subTextColor}
-					/>
+		return (
+			<View style={styles.container}>
+				{showLabel && (
 					<Text
 						style={[
-							styles.pickerOptionText,
-							{ color: type === "list" ? "white" : textColor },
+							styles.label,
+							{ color: colors.textSecondaryLight },
 						]}
 					>
-						Lista
+						{label}
 					</Text>
-				</TouchableOpacity>
+				)}
 
-				<TouchableOpacity
+				<View
 					style={[
-						styles.pickerOption,
-						type === "grid" && { backgroundColor: businessBg },
+						styles.pickerRow,
+						{ borderColor: colors.borderLight },
 					]}
-					onPress={() => setType("grid")}
-					activeOpacity={0.9}
 				>
-					<Ionicons
-						name="grid"
-						size={16}
-						color={type === "grid" ? "white" : subTextColor}
-					/>
-					<Text
+					<TouchableOpacity
 						style={[
-							styles.pickerOptionText,
-							{ color: type === "grid" ? "white" : textColor },
+							styles.pickerOption,
+							type === "list" && {
+								backgroundColor: colors.businessBg,
+							},
 						]}
+						onPress={() => setType("list")}
+						activeOpacity={0.9}
 					>
-						Cuadrícula
-					</Text>
-				</TouchableOpacity>
+						<Ionicons
+							name="list"
+							size={18}
+							color={
+								type === "list"
+									? colors.textOnPrimary
+									: colors.textSecondaryLight
+							}
+						/>
+						<Text
+							style={[
+								styles.pickerOptionText,
+								{
+									color:
+										type === "list"
+											? colors.textOnPrimary
+											: colors.textPrimaryLight,
+								},
+							]}
+						>
+							Lista
+						</Text>
+					</TouchableOpacity>
+
+					<TouchableOpacity
+						style={[
+							styles.pickerOption,
+							type === "grid" && {
+								backgroundColor: colors.businessBg,
+							},
+						]}
+						onPress={() => setType("grid")}
+						activeOpacity={0.9}
+					>
+						<Ionicons
+							name="grid"
+							size={16}
+							color={
+								type === "grid"
+									? colors.textOnPrimary
+									: colors.textSecondaryLight
+							}
+						/>
+						<Text
+							style={[
+								styles.pickerOptionText,
+								{
+									color:
+										type === "grid"
+											? colors.textOnPrimary
+											: colors.textPrimaryLight,
+								},
+							]}
+						>
+							Cuadrícula
+						</Text>
+					</TouchableOpacity>
+				</View>
 			</View>
-		</View>
-	),
+		);
+	},
 );
 
 const styles = StyleSheet.create({

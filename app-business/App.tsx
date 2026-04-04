@@ -15,6 +15,7 @@ import { SupabaseProvider } from "@coco/shared/providers/SupabaseContext";
 import { AuthChangeEvent, Session } from "@supabase/supabase-js";
 import { RolesApp } from "@coco/shared/constants";
 import { useBusiness } from "@coco/shared/hooks";
+import { CocoLoadingScreen } from "@coco/shared/components";
 
 function AppContent() {
 	const { user, setUser, isLoadingAuth, setLoadingAuth, themeMode } =
@@ -22,6 +23,21 @@ function AppContent() {
 	const { loadActiveBusiness } = useBusiness();
 	const { isDark } = useTheme();
 	const [isRegistering, setIsRegistering] = useState(false);
+	const [appIsReady, setAppIsReady] = useState(false);
+	const currentColors = Colors[themeMode];
+	const headerBgColor =
+		currentColors.surfaceLight || (isDark ? "#1C1C1E" : "#FFFFFF");
+
+	const CocoAppTheme = {
+		...DefaultTheme,
+		colors: {
+			...DefaultTheme.colors,
+			background: currentColors.backgroundLight,
+			primary: currentColors.businessBg,
+			card: headerBgColor,
+			text: currentColors.textPrimaryLight,
+		},
+	};
 
 	useEffect(() => {
 		if (!supabase) return;
@@ -80,6 +96,8 @@ function AppContent() {
 				}
 			} catch (err) {
 				console.error("Fallo crítico cargando perfil de usuario:", err);
+			} finally {
+				setLoadingAuth(false);
 			}
 		};
 
@@ -103,7 +121,6 @@ function AppContent() {
 				} else {
 					setUser(null);
 				}
-
 				setLoadingAuth(false);
 			},
 		);
@@ -113,36 +130,24 @@ function AppContent() {
 		};
 	}, [setUser, setLoadingAuth, loadActiveBusiness]);
 
-	const currentColors = Colors[themeMode];
-	const headerBgColor =
-		currentColors.surfaceLight || (isDark ? "#1C1C1E" : "#FFFFFF");
+	useEffect(() => {
+		// Simulamos una carga de datos (puedes reemplazar esto con tu lógica real)
+		async function prepare() {
+			try {
+				await new Promise((resolve) => setTimeout(resolve, 3000)); // Espera 3.5 segundos
+			} catch (e) {
+				console.warn(e);
+			} finally {
+				setAppIsReady(true);
+			}
+		}
 
-	const CocoAppTheme = {
-		...DefaultTheme,
-		colors: {
-			...DefaultTheme.colors,
-			background: currentColors.backgroundLight,
-			primary: currentColors.businessBg,
-			card: headerBgColor,
-			text: currentColors.textPrimaryLight,
-		},
-	};
+		prepare();
+	}, []);
 
 	// Spinner para la carga de autenticación
-	if (isLoadingAuth) {
-		return (
-			<View
-				style={[
-					styles.loadingContainer,
-					{ backgroundColor: currentColors.businessBg },
-				]}
-			>
-				<ActivityIndicator
-					color={currentColors.textOnPrimary || "white"}
-					size="large"
-				/>
-			</View>
-		);
+	if (isLoadingAuth || !appIsReady) {
+		return <CocoLoadingScreen />;
 	}
 
 	return (
