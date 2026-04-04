@@ -72,29 +72,22 @@ export const ModifierGroupPicker = () => {
 				title="Vincular Grupos"
 				onBack={() => navigation.goBack()}
 				fontSizeTitle={FontSize.xl}
+				rightActions={
+					<TouchableOpacity
+						onPress={() =>
+							navigation.navigate("ModifierGroupForm", {
+								title: "Nuevo Grupo de Modificadores",
+							})
+						}
+					>
+						<Ionicons
+							name="add-circle-sharp"
+							size={28}
+							color={colors.businessBg}
+						/>
+					</TouchableOpacity>
+				}
 			/>
-
-			<View
-				style={[
-					styles.subHeaderContainer,
-					{ borderBottomColor: borderColor },
-				]}
-			>
-				<TouchableOpacity
-					style={[
-						styles.createBtn,
-						{ backgroundColor: colors.businessBg },
-					]}
-					onPress={() =>
-						navigation.navigate("ModifierGroupForm", {
-							// Pantalla ficticia para crear un grupo nuevo si lo requieres
-						})
-					}
-				>
-					<Ionicons name="add" size={20} color="white" />
-					<Text style={styles.createBtnText}>Crear Nuevo Grupo</Text>
-				</TouchableOpacity>
-			</View>
 
 			<Text style={[styles.headerSub, { color: subTextColor }]}>
 				Selecciona los grupos de modificadores que aplican para este
@@ -159,7 +152,7 @@ export const ModifierGroupPicker = () => {
 													? "checkbox"
 													: "square-outline"
 											}
-											size={24}
+											size={28}
 											color={
 												isSelected
 													? colors.businessBg

@@ -8,13 +8,12 @@ import {
 	StyleSheet,
 	ActivityIndicator,
 	Platform,
-	TouchableOpacity,
 } from "react-native";
 import { FontSize, BorderRadius, FontWeight } from "@coco/shared/config/theme";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { useTheme } from "@coco/shared/hooks/useTheme";
 import { useDialog } from "@coco/shared/providers";
-import { useProduct, useSection } from "@coco/shared/hooks/supabase";
+import { useSection } from "@coco/shared/hooks/supabase";
 import { Product } from "@coco/shared/core/entities/";
 import {
 	PrimaryButton,
@@ -24,13 +23,20 @@ import {
 	VisualizationPicker,
 } from "@/components";
 import { FormChipSelector } from "@/components/FormChipSelector";
+interface RouteParams {
+	title?: string;
+	sectionId?: string;
+	returnScreen?: string;
+	selectedProducts?: string[];
+}
 
 export const SectionForm = () => {
 	const navigation = useNavigation<any>();
 	const route = useRoute<any>();
+	const { title, sectionId, selectedProducts } =
+		(route.params as RouteParams) || {};
 	const { colors } = useTheme();
 	const { showDialog } = useDialog();
-	const [sectionId, setSectionId] = useState(undefined);
 	const insets = useSafeAreaInsets();
 	const { getSectionById, saveSection, loadings } = useSection();
 
@@ -51,19 +57,13 @@ export const SectionForm = () => {
 	};
 
 	useEffect(() => {
-		if (route.params?.selectedProducts) {
+		if (selectedProducts) {
 			handleInputChange(
 				"selectedProducts",
 				route.params.selectedProducts,
 			);
 		}
-	}, [route.params?.selectedProducts]);
-
-	useEffect(() => {
-		if (route.params?.sectionId) {
-			setSectionId(route.params.sectionId);
-		}
-	}, [route.params?.sectionId]);
+	}, [selectedProducts]);
 
 	useEffect(() => {
 		if (sectionId) {
@@ -144,8 +144,9 @@ export const SectionForm = () => {
 	return (
 		<View style={{ flex: 1, backgroundColor: bgApp }}>
 			<ScreenHeader
-				title={sectionId ? "Editar Sección" : "Nueva Sección"}
+				title={title || "Formulario Sección"}
 				onBack={() => navigation.goBack()}
+				fontSizeTitle={FontSize.xl}
 			/>
 
 			<KeyboardAwareScrollView

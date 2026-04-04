@@ -160,6 +160,7 @@ export const UserSetupScreen = () => {
 				<ScreenHeader
 					title="Mi Perfil"
 					onBack={() => navigation.goBack()}
+					fontSizeTitle={FontSize.xl}
 				/>
 			</View>
 

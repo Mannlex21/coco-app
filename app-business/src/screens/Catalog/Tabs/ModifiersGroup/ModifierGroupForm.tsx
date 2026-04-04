@@ -41,7 +41,7 @@ export const ModifierGroupForm = () => {
 	const route = useRoute();
 	const insets = useSafeAreaInsets();
 
-	const { groupId } = (route.params as RouteParams) || {};
+	const { title, groupId } = (route.params as RouteParams) || {};
 
 	const { colors } = useTheme();
 	const { showDialog } = useDialog();
@@ -180,9 +180,8 @@ export const ModifierGroupForm = () => {
 	return (
 		<View style={{ flex: 1, backgroundColor: colors.backgroundLight }}>
 			<ScreenHeader
-				title={
-					groupId ? "Editar Modificadores" : "Nuevos Modificadores"
-				}
+				title={title || "Formulario Modificadores"}
+				fontSizeTitle={FontSize.xl}
 				onBack={() => navigation.goBack()}
 			/>
 

@@ -47,6 +47,7 @@ export const ProductForm = () => {
 	const route = useRoute<any>();
 	const insets = useSafeAreaInsets();
 	const {
+		title,
 		productId,
 		sectionId,
 		returnScreen = "",
@@ -238,7 +239,8 @@ export const ProductForm = () => {
 	return (
 		<View style={{ flex: 1, backgroundColor: bgApp }}>
 			<ScreenHeader
-				title={currentProductId ? "Editar Producto" : "Nuevo Producto"}
+				title={title || "Formulario Producto"}
+				fontSizeTitle={FontSize.xl}
 				onBack={() => navigation.goBack()}
 			/>
 

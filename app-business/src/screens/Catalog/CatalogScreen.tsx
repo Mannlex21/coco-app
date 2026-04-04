@@ -12,8 +12,13 @@ import { useTheme } from "@coco/shared/hooks/useTheme";
 import { SectionsTab } from "@/screens/Catalog/Tabs/Sections/SectionsTab";
 import { ProductsTab } from "@/screens/Catalog/Tabs/Products/ProductsTab";
 import { ModifiersGroupTab } from "@/screens/Catalog/Tabs/ModifiersGroup/ModifiersGroupTab";
+import { CrossSellsTab } from "@/screens/Catalog/Tabs/CrossSells/CrossSellsTab";
 
-type TabType = "secciones" | "productos" | "grupoModificadores";
+type TabType =
+	| "secciones"
+	| "productos"
+	| "grupoModificadores"
+	| "ventasCruzadas";
 
 interface TabItem {
 	id: TabType;
@@ -51,6 +56,12 @@ export const CatalogScreen = () => {
 			title: "Grupo de modificadores",
 			IconComponent: MaterialIcons,
 			iconName: "add-chart",
+		},
+		{
+			id: "ventasCruzadas",
+			title: "Ventas Cruzadas",
+			IconComponent: MaterialIcons,
+			iconName: "sell",
 		},
 	];
 
@@ -143,6 +154,7 @@ export const CatalogScreen = () => {
 			{activeTab === "secciones" && <SectionsTab />}
 			{activeTab === "productos" && <ProductsTab />}
 			{activeTab === "grupoModificadores" && <ModifiersGroupTab />}
+			{activeTab === "ventasCruzadas" && <CrossSellsTab />}
 		</View>
 	);
 };

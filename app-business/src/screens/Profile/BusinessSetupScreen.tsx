@@ -112,6 +112,7 @@ export const BusinessSetupScreen = ({ navigation }: any) => {
 				<ScreenHeader
 					title="Configura tu Negocio"
 					onBack={() => navigation.goBack()}
+					fontSizeTitle={FontSize.xl}
 				/>
 			</View>
 

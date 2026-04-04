@@ -90,34 +90,28 @@ export const ModifierPicker = () => {
 				title="Vincular Modificadores"
 				onBack={() => navigation.goBack()}
 				fontSizeTitle={FontSize.xl}
+				rightActions={
+					<TouchableOpacity
+						onPress={() =>
+							navigation.navigate("ModifierForm", {
+								onModifierSaved: (newMod: Modifier) => {
+									setActiveModifiers((prev) => [
+										newMod,
+										...prev,
+									]);
+									setHasNewUnsavedItems(true);
+								},
+							})
+						}
+					>
+						<Ionicons
+							name="add-circle-sharp"
+							size={28}
+							color={colors.businessBg}
+						/>
+					</TouchableOpacity>
+				}
 			/>
-
-			<View
-				style={[
-					styles.subHeaderContainer,
-					{ borderBottomColor: borderColor },
-				]}
-			>
-				<TouchableOpacity
-					style={[
-						styles.createBtn,
-						{ backgroundColor: colors.businessBg },
-					]}
-					onPress={() =>
-						navigation.navigate("ModifierForm", {
-							onModifierSaved: (newMod: Modifier) => {
-								setActiveModifiers((prev) => [newMod, ...prev]);
-								setHasNewUnsavedItems(true);
-							},
-						})
-					}
-				>
-					<Ionicons name="add" size={20} color="white" />
-					<Text style={styles.createBtnText}>
-						Crear Nuevo Modificador
-					</Text>
-				</TouchableOpacity>
-			</View>
 
 			<Text style={[styles.headerSub, { color: subTextColor }]}>
 				Revisa la lista de modificadores. Quita los que no necesites
@@ -167,7 +161,7 @@ export const ModifierPicker = () => {
 							>
 								<Ionicons
 									name="trash-outline"
-									size={22}
+									size={24}
 									color={colors.error}
 								/>
 							</TouchableOpacity>
@@ -205,7 +199,6 @@ export const ModifierPicker = () => {
 
 const styles = StyleSheet.create({
 	scrollContent: { paddingHorizontal: 16, paddingBottom: 20 },
-	centered: { marginTop: 40, justifyContent: "center", alignItems: "center" },
 	headerSub: {
 		fontSize: FontSize.md,
 		marginBottom: 10,
