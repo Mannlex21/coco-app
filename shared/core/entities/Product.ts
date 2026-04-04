@@ -11,4 +11,5 @@ export interface Product {
 	createdAt: Date;
 	updatedAt: Date;
 	sectionIds: string[];
+	modifierGroupIds: string[];
 }

@@ -32,7 +32,6 @@ import {
 } from "@/components";
 import { FormChipSelector } from "@/components/FormChipSelector";
 import * as ImagePicker from "expo-image-picker";
-import { MaterialIcons } from "@expo/vector-icons";
 
 interface RouteParams {
 	title?: string;

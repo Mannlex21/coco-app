@@ -3,8 +3,10 @@ import { useTheme } from "@coco/shared/hooks/useTheme";
 import { Ionicons } from "@expo/vector-icons";
 import { memo } from "react";
 import { FontSize, FontWeight } from "@coco/shared/config/theme";
+
 type IoniconsProps = React.ComponentProps<typeof Ionicons>;
 type IoniconsName = IoniconsProps["name"];
+
 interface FormChipSelectorProps<T> {
 	label: string;
 	addButtonLabel?: string;
@@ -16,13 +18,14 @@ interface FormChipSelectorProps<T> {
 	onRemoveItem: (id: string) => void;
 	getLabel: (item: T) => string;
 	getKey: (item: T) => string;
+	disabled?: boolean;
 }
 
 export const FormChipSelector = memo(
 	<T extends Record<string, any>>({
 		label,
-		addButtonLabel = "Agregar", // 👈 Texto por defecto
-		addButtonIcon = "add", // 👈 Icono por defecto
+		addButtonLabel = "Agregar",
+		addButtonIcon = "add",
 		items,
 		maxVisibleChips = 3,
 		onPressAdd,
@@ -30,13 +33,13 @@ export const FormChipSelector = memo(
 		onRemoveItem,
 		getLabel,
 		getKey,
+		disabled = false,
 	}: FormChipSelectorProps<T>) => {
 		const { colors } = useTheme();
 
 		const visibleItems = items.slice(0, maxVisibleChips);
 		const remainingCount = items.length - maxVisibleChips;
 
-		// Compartimos los mismos colores para que se vean exactamente igual
 		const chipBg = colors.inputBg;
 		const textColor = colors.textPrimaryLight;
 
@@ -50,9 +53,14 @@ export const FormChipSelector = memo(
 
 				<View style={styles.chipsContainer}>
 					<TouchableOpacity
-						style={[styles.chip, { backgroundColor: chipBg }]}
+						style={[
+							styles.chip,
+							{ backgroundColor: chipBg },
+							disabled && { opacity: 0.5 },
+						]}
 						onPress={onPressAdd}
 						activeOpacity={0.6}
+						disabled={disabled}
 					>
 						<View style={styles.textContainer}>
 							<Ionicons
@@ -72,7 +80,6 @@ export const FormChipSelector = memo(
 						</View>
 					</TouchableOpacity>
 
-					{/* 2. Lista de Chips seleccionados */}
 					{visibleItems.map((item) => {
 						const key = getKey(item);
 						const displayName = getLabel(item);
@@ -83,12 +90,13 @@ export const FormChipSelector = memo(
 								style={[
 									styles.chip,
 									{ backgroundColor: chipBg },
+									disabled && { opacity: 0.7 },
 								]}
 							>
 								<TouchableOpacity
 									style={styles.textContainer}
 									onPress={() => onPressItem?.(item)}
-									disabled={!onPressItem}
+									disabled={disabled || !onPressItem}
 									activeOpacity={0.6}
 								>
 									<Text
@@ -106,7 +114,11 @@ export const FormChipSelector = memo(
 								<TouchableOpacity
 									onPress={() => onRemoveItem(key)}
 									activeOpacity={0.7}
-									style={styles.closeButton}
+									style={[
+										styles.closeButton,
+										disabled && { opacity: 0.3 },
+									]}
+									disabled={disabled}
 								>
 									<Ionicons
 										name="close-circle"
@@ -118,12 +130,16 @@ export const FormChipSelector = memo(
 						);
 					})}
 
-					{/* 3. Chip indicador de remanentes (+X) */}
 					{remainingCount > 0 && (
 						<TouchableOpacity
-							style={[styles.chip, { backgroundColor: chipBg }]}
+							style={[
+								styles.chip,
+								{ backgroundColor: chipBg },
+								disabled && { opacity: 0.5 },
+							]}
 							onPress={onPressAdd}
 							activeOpacity={0.6}
+							disabled={disabled}
 						>
 							<Text
 								style={[

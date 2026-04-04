@@ -18,6 +18,7 @@ import { FontSize, BorderRadius, FontWeight } from "@coco/shared/config/theme";
 import { ScreenHeader, InputField, ToggleField, ChipList } from "@/components";
 import { useModifiersGroup } from "@coco/shared/hooks/supabase/useModifiersGroup";
 import { Modifier } from "@coco/shared/core/entities";
+import { FormChipSelector } from "@/components/FormChipSelector";
 
 interface RouteParams {
 	title?: string;
@@ -31,20 +32,13 @@ export const ModifierGroupForm = () => {
 
 	const { groupId } = (route.params as RouteParams) || {};
 
-	const { colors, isDark } = useTheme();
+	const { colors } = useTheme();
 	const { showDialog } = useDialog();
 	const { user } = useAppStore();
-
-	const { saveModifierGroup, getModifierGroupById } = useModifiersGroup();
-
-	// --- VARIABLES DE ESTILO ---
-	const subTextColor = isDark ? "rgba(255,255,255,0.6)" : "rgba(0,0,0,0.55)";
-	const borderColor = isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.05)";
-	const bgApp = isDark ? "#121212" : "#FFFFFF";
+	const { saveModifierGroup, getModifierGroupById, loadings } =
+		useModifiersGroup();
 
 	// --- ESTADOS ---
-	const [loading, setLoading] = useState(false);
-	const [saving, setSaving] = useState(false);
 
 	const [formData, setFormData] = useState({
 		name: "",
@@ -52,7 +46,7 @@ export const ModifierGroupForm = () => {
 		minSelectable: "0",
 		maxSelectable: "1",
 		isAvailable: true,
-		selectedModifier: [] as Modifier[], // Aquí viven las opciones en memoria
+		selectedModifier: [] as Modifier[],
 	});
 
 	useEffect(() => {
@@ -62,12 +56,10 @@ export const ModifierGroupForm = () => {
 	const loadData = async () => {
 		if (!user?.lastActiveBusinessId || !groupId) return;
 
-		setLoading(true);
 		try {
 			const currentGroup = await getModifierGroupById(groupId);
 
 			if (currentGroup) {
-				console.log(currentGroup);
 				setFormData({
 					name: currentGroup.name,
 					internalName: currentGroup.internalName || "",
@@ -79,15 +71,12 @@ export const ModifierGroupForm = () => {
 			}
 		} catch (error) {
 			console.error(error);
-		} finally {
-			setLoading(false);
 		}
 	};
 
-	// --- GUARDADO ---
 	const handleSave = async () => {
-		const min = parseInt(formData.minSelectable) || 0;
-		const max = parseInt(formData.maxSelectable) || 1;
+		const min = Number.parseInt(formData.minSelectable) || 0;
+		const max = Number.parseInt(formData.maxSelectable) || 1;
 
 		if (!formData.name.trim()) {
 			return showDialog({
@@ -115,9 +104,7 @@ export const ModifierGroupForm = () => {
 			});
 		}
 
-		setSaving(true);
 		try {
-			// Enviamos todo el paquete (incluyendo los modificadores temporales y fijos)
 			await saveModifierGroup(groupId, {
 				name: formData.name.trim(),
 				internalName: formData.internalName.trim(),
@@ -126,13 +113,11 @@ export const ModifierGroupForm = () => {
 				isAvailable: formData.isAvailable,
 				choices: formData.selectedModifier,
 			});
-
 			showDialog({
 				title: "¡Éxito!",
 				message:
 					"El grupo de modificadores ha sido guardado correctamente.",
 				intent: "success",
-				onConfirm: () => navigation.goBack(),
 			});
 		} catch (error) {
 			console.error(error);
@@ -142,8 +127,6 @@ export const ModifierGroupForm = () => {
 					"No pudimos guardar los modificadores en este momento.",
 				intent: "error",
 			});
-		} finally {
-			setSaving(false);
 		}
 	};
 
@@ -158,10 +141,9 @@ export const ModifierGroupForm = () => {
 		handleInputChange("selectedModifier", filteredProducts);
 	};
 
-	// 🔥 NUEVA FUNCIÓN: Permite editar un modificador que esté en la lista sin tocar BD
 	const handleEditModifier = (modifier: Modifier) => {
 		navigation.navigate("ModifierForm", {
-			modifier: modifier, // Pasamos el objeto completo para rellenar el form
+			modifier: modifier,
 			onModifierSaved: (updatedMod: Modifier) => {
 				const updatedList = formData.selectedModifier.map((m) =>
 					m.id === updatedMod.id ? updatedMod : m,
@@ -171,16 +153,21 @@ export const ModifierGroupForm = () => {
 		});
 	};
 
-	if (loading) {
+	if (loadings.fetch) {
 		return (
-			<View style={[styles.centered, { backgroundColor: bgApp }]}>
+			<View
+				style={[
+					styles.centered,
+					{ backgroundColor: colors.backgroundLight },
+				]}
+			>
 				<ActivityIndicator size="large" color={colors.businessBg} />
 			</View>
 		);
 	}
 
 	return (
-		<View style={{ flex: 1, backgroundColor: bgApp }}>
+		<View style={{ flex: 1, backgroundColor: colors.backgroundLight }}>
 			<ScreenHeader
 				title={
 					groupId ? "Editar Modificadores" : "Nuevos Modificadores"
@@ -196,7 +183,12 @@ export const ModifierGroupForm = () => {
 				extraScrollHeight={16}
 				showsVerticalScrollIndicator={false}
 			>
-				<Text style={[styles.headerSub, { color: subTextColor }]}>
+				<Text
+					style={[
+						styles.headerSub,
+						{ color: colors.textSecondaryLight },
+					]}
+				>
 					Configura opciones adicionales u obligatorias para tus
 					productos.
 				</Text>
@@ -208,7 +200,7 @@ export const ModifierGroupForm = () => {
 					onChangeText={(val) =>
 						setFormData({ ...formData, name: val })
 					}
-					editable={!saving}
+					editable={!loadings.save}
 				/>
 
 				<InputField
@@ -218,7 +210,7 @@ export const ModifierGroupForm = () => {
 					onChangeText={(val) =>
 						setFormData({ ...formData, internalName: val })
 					}
-					editable={!saving}
+					editable={!loadings.save}
 				/>
 
 				<View style={styles.rowInputs}>
@@ -231,7 +223,7 @@ export const ModifierGroupForm = () => {
 								setFormData({ ...formData, minSelectable: val })
 							}
 							keyboardType="numeric"
-							editable={!saving}
+							editable={!loadings.save}
 						/>
 					</View>
 					<View style={{ width: 16 }} />
@@ -244,72 +236,42 @@ export const ModifierGroupForm = () => {
 								setFormData({ ...formData, maxSelectable: val })
 							}
 							keyboardType="numeric"
-							editable={!saving}
+							editable={!loadings.save}
 						/>
 					</View>
 				</View>
 
-				{/* --- SECCIÓN DE VINCULACIÓN MEDIANTE EL PICKER --- */}
-				<View style={styles.divider}>
-					<Text
-						style={[
-							styles.label,
-							{ color: subTextColor, marginTop: 10 },
-						]}
-					>
-						Opciones vinculadas
-					</Text>
-
-					<TouchableOpacity
-						style={[
-							styles.addModifierBtn,
-							{ borderColor: colors.businessBg },
-						]}
-						onPress={() =>
-							navigation.navigate("ModifierPicker", {
-								groupId,
-								// 👇 CAMBIO AQUÍ: En lugar de mapear solo IDs, mandamos los objetos completos en memoria
-								currentMemoryModifiers:
-									formData.selectedModifier,
-								onSelect: (selectedFromPicker: Modifier[]) => {
-									handleInputChange(
-										"selectedModifier",
-										selectedFromPicker,
-									);
-								},
-							})
+				<FormChipSelector
+					label="Opciones vinculadas"
+					addButtonLabel="Modificadores"
+					items={formData.selectedModifier}
+					maxVisibleChips={2}
+					getLabel={(item) => item.name}
+					getKey={(item) => item.id}
+					disabled={loadings.save}
+					onPressAdd={() => {
+						navigation.navigate("ModifierPicker", {
+							groupId,
+							currentMemoryModifiers: formData.selectedModifier,
+							onSelect: (selectedFromPicker: Modifier[]) => {
+								handleInputChange(
+									"selectedModifier",
+									selectedFromPicker,
+								);
+							},
+						});
+					}}
+					onRemoveItem={(id) => {
+						if (!loadings.save) {
+							handleRemoveProduct(id);
 						}
-					>
-						<Ionicons
-							name="link-outline"
-							size={20}
-							color={colors.businessBg}
-						/>
-						<Text
-							style={[
-								styles.addModifierBtnText,
-								{ color: colors.businessBg },
-							]}
-						>
-							{formData.selectedModifier.length > 0
-								? "Modificar selección"
-								: "Seleccionar modificadores existentes"}
-						</Text>
-					</TouchableOpacity>
-
-					{/* Mostramos los modificadores seleccionados */}
-					<View style={{ marginTop: 10 }}>
-						<ChipList
-							items={formData.selectedModifier}
-							getKey={(item) => item.id}
-							getLabel={(item) => `${item.name}`}
-							onRemoveProduct={handleRemoveProduct}
-							onPressItem={(item) =>
-								handleEditModifier(item as Modifier)
-							}
-						/>
-					</View>
-				</View>
+					}}
+					onPressItem={(item) => {
+						if (!loadings.save) {
+							handleEditModifier(item as Modifier);
+						}
+					}}
+				/>
 
 				<View style={styles.divider}>
 					<ToggleField
@@ -320,7 +282,7 @@ export const ModifierGroupForm = () => {
 						onValueChange={(val) =>
 							setFormData({ ...formData, isAvailable: val })
 						}
-						disabled={saving}
+						disabled={loadings.save}
 					/>
 				</View>
 			</KeyboardAwareScrollView>
@@ -328,7 +290,10 @@ export const ModifierGroupForm = () => {
 			<View
 				style={[
 					styles.bottomContainer,
-					{ borderTopColor: borderColor, backgroundColor: bgApp },
+					{
+						borderTopColor: colors.borderLight,
+						backgroundColor: colors.backgroundLight,
+					},
 				]}
 			>
 				<TouchableOpacity
@@ -339,12 +304,19 @@ export const ModifierGroupForm = () => {
 							marginBottom:
 								Platform.OS === "ios" ? insets.bottom : 12,
 						},
-						saving && { opacity: 0.7 },
+						loadings.save && { opacity: 0.5 },
 					]}
 					onPress={handleSave}
-					disabled={saving}
+					disabled={loadings.save}
 				>
-					<Text style={styles.saveBtnText}>{"Guardar Cambios"}</Text>
+					<Text
+						style={[
+							styles.saveBtnText,
+							{ color: colors.textOnPrimary },
+						]}
+					>
+						Guardar Cambios
+					</Text>
 				</TouchableOpacity>
 			</View>
 		</View>
@@ -352,7 +324,6 @@ export const ModifierGroupForm = () => {
 };
 
 const styles = StyleSheet.create({
-	// Tus estilos se quedan exactamente igual
 	scrollContent: { paddingHorizontal: 16, paddingBottom: 20 },
 	centered: { flex: 1, justifyContent: "center", alignItems: "center" },
 	headerSub: { fontSize: FontSize.md, marginBottom: 20, marginTop: 4 },
@@ -370,7 +341,7 @@ const styles = StyleSheet.create({
 		borderRadius: BorderRadius.md,
 		alignItems: "center",
 	},
-	saveBtnText: { color: "white", fontWeight: FontWeight.bold, fontSize: 16 },
+	saveBtnText: { fontWeight: FontWeight.bold, fontSize: 16 },
 	addModifierBtn: {
 		flexDirection: "row",
 		alignItems: "center",

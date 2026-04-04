@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { TABLES } from "@coco/shared/constants";
-import { Modifier, ModifierGroup } from "@coco/shared/core/entities/Modifier";
+import { Modifier } from "@coco/shared/core/entities/Modifier";
 import { useAppStore, useModifierStore } from "@coco/shared/hooks";
 import { useSupabaseContext } from "@coco/shared/providers/SupabaseContext";
 

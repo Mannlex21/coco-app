@@ -151,7 +151,8 @@ export const useProduct = () => {
 					.select(
 						`
                         *,
-                        product_sections(section_id)
+                        product_sections(section_id),
+						product_modifiers(modifier_group_id)
                     `,
 					)
 					.eq("id", productId)
@@ -166,6 +167,10 @@ export const useProduct = () => {
 						sectionIds:
 							data.product_sections?.map(
 								(ps: any) => ps.section_id,
+							) || [],
+						modifierGroupIds:
+							data.product_modifiers?.map(
+								(pm: any) => pm.modifier_group_id,
 							) || [],
 						name: data.name,
 						description: data.description,
