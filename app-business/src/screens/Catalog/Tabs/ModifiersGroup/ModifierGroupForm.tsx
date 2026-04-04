@@ -14,8 +14,19 @@ import {
 	Platform,
 } from "react-native";
 import { useAppStore } from "@coco/shared/hooks/useAppStore";
-import { FontSize, BorderRadius, FontWeight } from "@coco/shared/config/theme";
-import { ScreenHeader, InputField, ToggleField, ChipList } from "@/components";
+import {
+	FontSize,
+	BorderRadius,
+	FontWeight,
+	Spacing,
+} from "@coco/shared/config/theme";
+import {
+	ScreenHeader,
+	InputField,
+	ToggleField,
+	ChipList,
+	PrimaryButton,
+} from "@/components";
 import { useModifiersGroup } from "@coco/shared/hooks/supabase/useModifiersGroup";
 import { Modifier } from "@coco/shared/core/entities";
 import { FormChipSelector } from "@/components/FormChipSelector";
@@ -38,7 +49,7 @@ export const ModifierGroupForm = () => {
 	const { saveModifierGroup, getModifierGroupById, loadings } =
 		useModifiersGroup();
 
-	// --- ESTADOS ---
+	const borderColor = colors.borderLight;
 
 	const [formData, setFormData] = useState({
 		name: "",
@@ -294,30 +305,18 @@ export const ModifierGroupForm = () => {
 						borderTopColor: colors.borderLight,
 						backgroundColor: colors.backgroundLight,
 					},
+					loadings.save && { opacity: 0.5 },
 				]}
 			>
-				<TouchableOpacity
-					style={[
-						styles.saveBtn,
-						{
-							backgroundColor: colors.businessBg,
-							marginBottom:
-								Platform.OS === "ios" ? insets.bottom : 12,
-						},
-						loadings.save && { opacity: 0.5 },
-					]}
+				<PrimaryButton
+					title={`Guardar cambios`}
 					onPress={handleSave}
-					disabled={loadings.save}
-				>
-					<Text
-						style={[
-							styles.saveBtnText,
-							{ color: colors.textOnPrimary },
-						]}
-					>
-						Guardar Cambios
-					</Text>
-				</TouchableOpacity>
+					disabled={loadings.save} // 👈 Bloqueo del botón principal
+					loading={loadings.save} // 👈 Añadido por si tu botón usa un spinner interno
+					marginBottom={
+						Platform.OS === "ios" ? insets.bottom : Spacing.md
+					}
+				/>
 			</View>
 		</View>
 	);

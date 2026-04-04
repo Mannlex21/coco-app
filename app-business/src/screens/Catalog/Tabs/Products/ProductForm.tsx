@@ -37,7 +37,7 @@ interface RouteParams {
 	title?: string;
 	productId?: string;
 	sectionId?: string;
-	selectedSections?: string[]; // 🌟 Recibimos el objeto completo desde el Picker
+	selectedSections?: string[];
 	selectedModifierGroups?: string[];
 }
 
@@ -77,15 +77,11 @@ export const ProductForm = () => {
 	useEffect(() => {
 		const params = route.params as RouteParams;
 
-		// 1. Validamos que existan las secciones en los parámetros
 		if (params?.selectedSections) {
 			setFormData((prev) => ({
 				...prev,
-				// 🚀 El truco está aquí: Si params.selectedSections es falsy, cae en []
 				selectedSection: params.selectedSections || [],
 			}));
-
-			// Limpiamos los parámetros para que no se cicle
 			navigation.setParams({ selectedSections: undefined });
 		}
 		if (params?.selectedModifierGroups) {
@@ -181,7 +177,6 @@ export const ProductForm = () => {
 				title: "¡Éxito!",
 				message: "El producto ha sido guardado correctamente.",
 				intent: "success",
-				onConfirm: () => navigation.goBack(),
 			});
 		} catch (error) {
 			console.error(error);
@@ -216,10 +211,11 @@ export const ProductForm = () => {
 			setFormData({ ...formData, imageUrl: result.assets[0].uri });
 		}
 	};
+
 	const handleDeleteImage = () => {
 		setFormData({
 			...formData,
-			imageUrl: "", // O imageUrl: null según uses
+			imageUrl: "",
 		});
 	};
 
@@ -230,6 +226,7 @@ export const ProductForm = () => {
 			</View>
 		);
 	}
+
 	return (
 		<View style={{ flex: 1, backgroundColor: bgApp }}>
 			<ScreenHeader
@@ -258,15 +255,14 @@ export const ProductForm = () => {
 								borderColor: colors.borderLight,
 								backgroundColor: colors.inputBg,
 							},
+							loadings.save && { opacity: 0.5 }, // 👈 Bloqueo visual de la imagen
 						]}
 						onPress={handleSelectImage}
-						disabled={loadings.save}
+						disabled={loadings.save} // 👈 Bloqueo interactivo
 					>
 						{formData.imageUrl ? (
 							<Image
-								source={{
-									uri: formData.imageUrl,
-								}}
+								source={{ uri: formData.imageUrl }}
 								style={styles.image}
 								resizeMode="cover"
 							/>
@@ -305,15 +301,17 @@ export const ProductForm = () => {
 						)}
 					</TouchableOpacity>
 
-					{/* Botones de acción flotantes (solo si hay imagen) */}
+					{/* Botones de acción flotantes */}
 					{formData.imageUrl && (
 						<View style={styles.actionButtonsContainer}>
 							<TouchableOpacity
 								style={[
 									styles.actionBtn,
 									{ backgroundColor: colors.surfaceLight },
+									loadings.save && { opacity: 0.5 }, // 👈 Bloqueo visual del botón flotante
 								]}
 								onPress={handleSelectImage}
+								disabled={loadings.save} // 👈 Bloqueo interactivo
 							>
 								<Text
 									style={[
@@ -329,8 +327,10 @@ export const ProductForm = () => {
 								style={[
 									styles.actionBtn,
 									{ backgroundColor: colors.errorLight },
+									loadings.save && { opacity: 0.5 }, // 👈 Bloqueo visual del botón flotante
 								]}
 								onPress={handleDeleteImage}
+								disabled={loadings.save} // 👈 Bloqueo interactivo
 							>
 								<Text
 									style={[
@@ -376,13 +376,15 @@ export const ProductForm = () => {
 					multiline
 					editable={!loadings.save}
 				/>
+
 				<FormChipSelector
 					label="¿En qué sección(es) aparece este producto?"
 					addButtonLabel="Sección"
+					disabled={loadings.save} // 👈 Bloqueo al componente Chip
 					items={sections.filter((section) =>
 						formData.selectedSection?.includes(section.id),
 					)}
-					maxVisibleChips={3} // 👈 Muestra solo 3 antes de poner el "+X"
+					maxVisibleChips={3}
 					getLabel={(item) => item.name}
 					getKey={(item) => item.id}
 					onPressAdd={() => {
@@ -392,7 +394,7 @@ export const ProductForm = () => {
 						});
 					}}
 					onRemoveItem={(id) => handleRemoveSection(id)}
-					onPressItem={(item) =>
+					onPressItem={() =>
 						navigation.navigate("SectionPicker", {
 							alreadySelectedSections: formData.selectedSection,
 							returnScreen: "ProductForm",
@@ -404,6 +406,7 @@ export const ProductForm = () => {
 					label="¿Qué grupos de modificadores aplican?"
 					addButtonLabel="Modificador"
 					addButtonIcon="add"
+					disabled={loadings.save} // 👈 Bloqueo al componente Chip
 					maxVisibleChips={3}
 					items={modifierGroups.filter((group) =>
 						formData.selectedModifierGroups?.includes(group.id),
@@ -426,6 +429,7 @@ export const ProductForm = () => {
 						});
 					}}
 				/>
+
 				<View style={[styles.divider]}>
 					<ToggleField
 						label="Disponibilidad"
@@ -449,6 +453,8 @@ export const ProductForm = () => {
 				<PrimaryButton
 					title={`Guardar cambios`}
 					onPress={handleSave}
+					disabled={loadings.save} // 👈 Bloqueo del botón principal
+					loading={loadings.save} // 👈 Añadido por si tu botón usa un spinner interno
 					marginBottom={
 						Platform.OS === "ios" ? insets.bottom : Spacing.md
 					}

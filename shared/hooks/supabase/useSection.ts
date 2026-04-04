@@ -134,13 +134,60 @@ export const useSection = () => {
 			try {
 				const { data, error: supabaseError } = await supabase
 					.from(TABLES.SECTIONS)
-					.select("*")
+					.select(
+						`
+                    id,
+                    business_id,
+                    name,
+                    description,
+                    position,
+                    is_available,
+                    visualization_type,
+                    created_at,
+                    updated_at,
+                    product_sections (
+                        products (
+                            id,
+                            business_id,
+                            name,
+                            description,
+                            price,
+                            image_url,
+                            is_available,
+                            position,
+                            created_at,
+                            updated_at
+                        )
+                    )
+                `,
+					)
 					.eq("id", sectionId)
 					.single();
 
 				if (supabaseError) throw supabaseError;
 
 				if (data) {
+					// Mapeamos los productos igual que lo haces en fetchSections
+					const rawProducts =
+						data.product_sections?.map((ps: any) => ps.products) ||
+						[];
+
+					const mappedProducts = rawProducts
+						.filter((p: any) => p !== null && p !== undefined)
+						.map((p: any) => ({
+							id: p.id,
+							businessId: p.business_id,
+							sectionIds: [data.id],
+							name: p.name,
+							description: p.description,
+							price: p.price,
+							imageUrl: p.image_url,
+							isAvailable: p.is_available,
+							position: p.position,
+							createdAt: new Date(p.created_at),
+							updatedAt: new Date(p.updated_at),
+						}));
+
 					return {
 						id: data.id,
 						businessId: data.business_id,
@@ -151,6 +198,7 @@ export const useSection = () => {
 						visualizationType: data.visualization_type,
 						createdAt: new Date(data.created_at),
 						updatedAt: new Date(data.updated_at),
+						products: mappedProducts, // 👈 Añadidos los productos mapeados
 					};
 				}
 				return null;

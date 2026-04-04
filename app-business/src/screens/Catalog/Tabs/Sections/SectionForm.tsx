@@ -14,12 +14,11 @@ import { FontSize, BorderRadius, FontWeight } from "@coco/shared/config/theme";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { useTheme } from "@coco/shared/hooks/useTheme";
 import { useDialog } from "@coco/shared/providers";
-import { useSection } from "@coco/shared/hooks/supabase";
+import { useProduct, useSection } from "@coco/shared/hooks/supabase";
 import { Product } from "@coco/shared/core/entities/";
 import {
 	PrimaryButton,
 	ScreenHeader,
-	ChipList,
 	ToggleField,
 	InputField,
 	VisualizationPicker,
@@ -33,8 +32,8 @@ export const SectionForm = () => {
 	const { showDialog } = useDialog();
 	const [sectionId, setSectionId] = useState(undefined);
 	const insets = useSafeAreaInsets();
-	const { getSectionById, saveSection } = useSection();
-	const textColor = colors.textPrimaryLight;
+	const { getSectionById, saveSection, loadings } = useSection();
+
 	const subTextColor = colors.textSecondaryLight;
 	const borderColor = colors.borderLight;
 	const bgApp = colors.backgroundLight;
@@ -46,9 +45,6 @@ export const SectionForm = () => {
 		visualizationType: "list" as "list" | "grid",
 		selectedProducts: [] as Product[],
 	});
-
-	const [loading, setLoading] = useState(false);
-	const [fetchingData, setFetchingData] = useState(false);
 
 	const handleInputChange = (key: keyof typeof formData, value: any) => {
 		setFormData((prev) => ({ ...prev, [key]: value }));
@@ -72,7 +68,6 @@ export const SectionForm = () => {
 	useEffect(() => {
 		if (sectionId) {
 			(async () => {
-				setFetchingData(true);
 				try {
 					const data = await getSectionById(sectionId);
 					if (data) {
@@ -93,8 +88,6 @@ export const SectionForm = () => {
 						intent: "error",
 					});
 					navigation.goBack();
-				} finally {
-					setFetchingData(false);
 				}
 			})();
 		}
@@ -117,7 +110,6 @@ export const SectionForm = () => {
 			return;
 		}
 
-		setLoading(true);
 		try {
 			const productIds = formData.selectedProducts.map((p) => p.id);
 			await saveSection(sectionId, {
@@ -132,7 +124,6 @@ export const SectionForm = () => {
 				title: "¡Éxito!",
 				message: `La sección ha sido ${sectionId ? "actualizada" : "creada"} correctamente.`,
 				intent: "success",
-				onConfirm: () => navigation.goBack(),
 			});
 		} catch (error: any) {
 			showDialog({
@@ -140,12 +131,10 @@ export const SectionForm = () => {
 				message: error.message || "No se pudo guardar la sección.",
 				intent: "error",
 			});
-		} finally {
-			setLoading(false);
 		}
 	};
 
-	if (fetchingData) {
+	if (loadings.fetch && sectionId) {
 		return (
 			<View style={[styles.centered, { backgroundColor: bgApp }]}>
 				<ActivityIndicator size="large" color={colors.businessBg} />
@@ -178,7 +167,7 @@ export const SectionForm = () => {
 					placeholder="Ejemplo: Hamburguesas, Bebidas o Postres"
 					value={formData.name}
 					onChangeText={(text) => handleInputChange("name", text)}
-					editable={!loading}
+					editable={!loadings.save} // Bloqueamos por guardado
 					showLabel={true}
 				/>
 
@@ -190,7 +179,7 @@ export const SectionForm = () => {
 						handleInputChange("description", text)
 					}
 					multiline
-					editable={!loading}
+					editable={!loadings.save} // Bloqueamos por guardado
 					showLabel={true}
 				/>
 
@@ -234,7 +223,7 @@ export const SectionForm = () => {
 						onValueChange={(val) =>
 							handleInputChange("isAvailable", val)
 						}
-						disabled={loading}
+						disabled={loadings.save} // Bloqueamos por guardado
 					/>
 				</View>
 			</KeyboardAwareScrollView>
@@ -248,7 +237,7 @@ export const SectionForm = () => {
 				<PrimaryButton
 					title="Guardar Cambios"
 					onPress={handleSave}
-					loading={loading}
+					loading={loadings.save} // Pasamos la carga de guardado aquí
 					marginBottom={Platform.OS === "ios" ? insets.bottom : 12}
 				/>
 			</View>
@@ -280,7 +269,6 @@ const styles = StyleSheet.create({
 	divider: {
 		marginVertical: 5,
 	},
-	// Le cambié el nombre para no confundirlo con el marginVertical
 	dividerLine: {
 		height: 1,
 		marginVertical: 5,

@@ -1,3 +1,5 @@
+import { Product } from "./Product";
+
 export interface Section {
 	id: string;
 	businessId: string;
@@ -8,4 +10,5 @@ export interface Section {
 	visualizationType: string;
 	createdAt: Date;
 	updatedAt: Date;
+	products: Product[];
 }
