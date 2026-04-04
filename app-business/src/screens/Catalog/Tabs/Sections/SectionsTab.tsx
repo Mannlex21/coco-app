@@ -19,7 +19,7 @@ export const SectionsTab = () => {
 	const {
 		sections,
 
-		onRefresh,
+		handleRefresh,
 		searchTerm,
 		setSearchTerm,
 		handleSearch,
@@ -65,7 +65,7 @@ export const SectionsTab = () => {
 				refreshControl={
 					<RefreshControl
 						refreshing={loadings.refresh}
-						onRefresh={onRefresh}
+						onRefresh={handleRefresh}
 						colors={[colors.businessBg]}
 					/>
 				}

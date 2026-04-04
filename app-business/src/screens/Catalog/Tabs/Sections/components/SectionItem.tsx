@@ -30,7 +30,10 @@ export const SectionItem = ({
 	const isGrid = section.visualizationType === "grid";
 
 	const onPressItem = (productId: string) => {
-		navigation.navigate("ProductForm", { productId });
+		navigation.navigate("ProductForm", {
+			productId,
+			returnScreen: "SectionsTab",
+		});
 	};
 
 	return (

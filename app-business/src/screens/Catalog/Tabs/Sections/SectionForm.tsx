@@ -119,7 +119,6 @@ export const SectionForm = () => {
 				visualizationType: formData.visualizationType,
 				productIds,
 			});
-
 			showDialog({
 				title: "¡Éxito!",
 				message: `La sección ha sido ${sectionId ? "actualizada" : "creada"} correctamente.`,

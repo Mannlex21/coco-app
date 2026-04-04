@@ -37,6 +37,7 @@ interface RouteParams {
 	title?: string;
 	productId?: string;
 	sectionId?: string;
+	returnScreen: string;
 	selectedSections?: string[];
 	selectedModifierGroups?: string[];
 }
@@ -45,7 +46,11 @@ export const ProductForm = () => {
 	const navigation = useNavigation<any>();
 	const route = useRoute<any>();
 	const insets = useSafeAreaInsets();
-	const { productId, sectionId } = (route.params as RouteParams) || {};
+	const {
+		productId,
+		sectionId,
+		returnScreen = "",
+	} = (route.params as RouteParams) || {};
 	const [currentProductId] = useState(productId);
 	const { colors } = useTheme();
 	const { showDialog } = useDialog();
@@ -173,6 +178,9 @@ export const ProductForm = () => {
 				sectionIds: formData.selectedSection,
 				modifierGroupIds: formData.selectedModifierGroups,
 			});
+			if (returnScreen === "SectionsTab") {
+				fetchSections("");
+			}
 			showDialog({
 				title: "¡Éxito!",
 				message: "El producto ha sido guardado correctamente.",

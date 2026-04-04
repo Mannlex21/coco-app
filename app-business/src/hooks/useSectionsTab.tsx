@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigation } from "@react-navigation/native";
-import { useSection } from "@coco/shared/hooks/supabase";
+import { useProduct, useSection } from "@coco/shared/hooks/supabase";
 import { useContextMenu, useDialog } from "@coco/shared/providers";
 import { Section } from "@coco/shared/core/entities";
 import { MaterialIcons, Ionicons } from "@expo/vector-icons";
@@ -27,7 +27,12 @@ export const useSectionsTab = () => {
 		fetch,
 		loadings,
 	} = useSection();
+	const { onRefresh: fetchSections } = useProduct();
 
+	const handleRefresh = () => {
+		onRefresh();
+		fetchSections();
+	};
 	const handleSearch = () => {
 		fetch(searchTerm);
 	};
@@ -213,5 +218,6 @@ export const useSectionsTab = () => {
 		handleOpenMenu,
 		movingSectionId,
 		loadings,
+		handleRefresh,
 	};
 };
