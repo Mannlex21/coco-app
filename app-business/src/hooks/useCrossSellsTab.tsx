@@ -13,7 +13,6 @@ export const useCrossSellsTab = () => {
 	const { showDialog } = useDialog();
 	const { showContextMenu } = useContextMenu();
 
-	const [viewType, setViewType] = useState<"list" | "grid">("list");
 	const [isFirst, setIsFirst] = useState(false);
 	const [isLast, setIsLast] = useState(false);
 	const [movingGroupId, setMovingGroupId] = useState<string | null>(null);
@@ -47,7 +46,6 @@ export const useCrossSellsTab = () => {
 		currentGroup: ProductCrossSellGroup,
 		direction: "up" | "down",
 	) => {
-		// Asumiendo que tu hook useCrossSell tiene la función adaptada o la vas a implementar:
 		setMovingGroupId(currentGroup.id);
 
 		showDialog({
@@ -70,7 +68,6 @@ export const useCrossSellsTab = () => {
 			type: "options",
 			onConfirm: async () => {
 				try {
-					// 💡 Enviamos el originProductId y el groupId como pide tu hook actual
 					await deleteCrossSellGroup(selectedProductId, groupId);
 					showDialog({
 						title: "Eliminado",
@@ -135,11 +132,11 @@ export const useCrossSellsTab = () => {
 					/>
 				),
 				onPress: () => {
-					navigation.navigate("CrossSellGroupForm", {
-						title: "Editar Grupo",
+					navigation.navigate("CrossSellAssociation", {
+						title: "Vincular Productos",
 						groupId: group.id,
 						groupName: group.name,
-						originProductId: selectedProductId, // 👈 Lo pasamos para el guardado
+						originProductId: selectedProductId,
 					});
 				},
 			},
@@ -192,12 +189,10 @@ export const useCrossSellsTab = () => {
 		crossSellGroups,
 		onRefresh: handleRefresh,
 		handleOpenMenu,
-		viewType,
-		setViewType,
 		movingGroupId,
 		loadings,
-		selectedProductId, // 👈 Lo exponemos para conectarlo al select
-		setSelectedProductId, // 👈 Para actualizarlo desde la UI
+		selectedProductId,
+		setSelectedProductId,
 		refetch: () =>
 			selectedProductId && fetchCrossSellByProduct(selectedProductId),
 	};

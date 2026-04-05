@@ -10,5 +10,6 @@ CREATE TABLE public.sections (
     position INT DEFAULT 0,              -- Para ordenar las categorías manualmente
     is_available BOOLEAN DEFAULT true,   -- 👈 Cambiado de status TEXT a BOOLEAN
     created_at TIMESTAMPTZ DEFAULT now(),-- Control de auditoría
-    updated_at TIMESTAMPTZ DEFAULT now() -- Control de auditoría
+    updated_at TIMESTAMPTZ DEFAULT now(), -- Control de auditoría
+    visualization_type section_visualization_type DEFAULT 'list' NOT NULL
 );

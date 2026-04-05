@@ -113,7 +113,6 @@ export const ProductsTab = () => {
 			<FloatingButton
 				label="Nuevo Producto"
 				iconName="add"
-				colors={colors}
 				onPress={() =>
 					navigation.navigate("ProductForm", {
 						title: "Nuevo Producto",

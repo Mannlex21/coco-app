@@ -1,7 +1,9 @@
 import { useState, useEffect, useCallback } from "react";
 import { Product, Section } from "@coco/shared/core/entities";
 import { TABLES } from "@coco/shared/constants";
-import { useAppStore, useSectionStore } from "@coco/shared/hooks";
+import { useAppStore } from "@coco/shared/hooks/useAppStore";
+import { useSectionStore } from "@coco/shared/hooks/useSectionStore";
+
 import { useSupabaseContext } from "@coco/shared/providers";
 
 export const useSection = () => {

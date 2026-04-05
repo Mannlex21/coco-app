@@ -6,6 +6,7 @@ import {
 	Spacing,
 	Shadow,
 } from "@coco/shared/config/theme";
+import { useTheme } from "@coco/shared/hooks";
 
 type IoniconsProps = React.ComponentProps<typeof Ionicons>;
 type IoniconsName = IoniconsProps["name"];
@@ -14,23 +15,29 @@ interface FloatingButtonProps {
 	label: string;
 	iconName?: IoniconsName;
 	onPress: () => void;
-	colors: any;
-	activeOpacity?: number;
+	disabled?: boolean;
 }
 
 export const FloatingButton = ({
 	label,
 	iconName = "add",
 	onPress,
-	colors,
-	activeOpacity = 0.8,
+	disabled = false,
 }: FloatingButtonProps) => {
+	const { colors } = useTheme();
+
 	return (
 		<View style={styles.fabFixedWrapper} pointerEvents="box-none">
 			<TouchableOpacity
-				style={[styles.fabUber, { backgroundColor: colors.businessBg }]}
-				activeOpacity={activeOpacity}
+				style={[
+					styles.fabUber,
+					{
+						backgroundColor: colors.businessBg,
+						opacity: disabled ? 0.7 : 1,
+					},
+				]}
 				onPress={onPress}
+				disabled={disabled}
 			>
 				{iconName && (
 					<Ionicons

@@ -5,7 +5,23 @@ import { useCrossSellStore } from "@coco/shared/hooks/useCrossSellStore";
 import {
 	DBProductCrossSellGroup,
 	mapDBCrossSellToFrontend,
+	VisualizationType, // 👈 Importamos el tipo
 } from "@coco/shared/core/entities";
+
+// Interfaz para los items que vas a guardar
+interface SaveItemsPayload {
+	suggested_product_id: string;
+	override_price?: number | null;
+	position: number;
+}
+
+// Interfaz que acepta el nuevo valor is_available y visualization_type
+interface SaveGroupPayload {
+	name: string;
+	is_available?: boolean;
+	visualization_type?: VisualizationType; // 👈 Agregado aquí
+	items?: SaveItemsPayload[];
+}
 
 export const useCrossSells = () => {
 	const supabase = useSupabaseContext();
@@ -32,7 +48,7 @@ export const useCrossSells = () => {
 	};
 
 	/**
-	 * 🔄 FETCH: Obtiene los grupos filtrados por el producto seleccionado en tu Select
+	 * 🔄 FETCH: Obtiene los grupos filtrados por el producto seleccionado
 	 */
 	const fetchCrossSellByProduct = useCallback(
 		async (originProductId: string) => {
@@ -49,7 +65,13 @@ export const useCrossSells = () => {
 					.from(TABLES.PRODUCT_CROSS_SELL_GROUPS)
 					.select(
 						`
-                        *,
+                        id,
+                        origin_product_id,
+                        name,
+                        position,
+                        is_available, 
+                        visualization_type, 
+                        created_at,
                         product_cross_sell_items (
                             id,
                             group_id,
@@ -67,7 +89,7 @@ export const useCrossSells = () => {
                         )
                     `,
 					)
-					.eq("origin_product_id", originProductId) // 👈 Filtrado por producto
+					.eq("origin_product_id", originProductId)
 					.order("position", { ascending: true });
 
 				if (supabaseError) throw supabaseError;
@@ -90,22 +112,35 @@ export const useCrossSells = () => {
 	);
 
 	/**
-	 * 💾 SAVE: Crea o edita el título de un grupo para el producto actual
+	 * 💾 SAVE GROUP: Crea o actualiza un grupo de ventas cruzadas
 	 */
 	const saveCrossSellGroup = async (
 		originProductId: string,
 		groupId?: string,
-		dataToSave?: { name: string },
+		dataToSave?: SaveGroupPayload,
 	) => {
 		if (!dataToSave || !originProductId) return;
 
 		setFunctionLoading("saveGroup", true);
+		setFunctionLoading("saveItems", true);
+
 		try {
-			const payload = {
+			const payload: any = {
 				origin_product_id: originProductId,
 				name: dataToSave.name.trim(),
 			};
 
+			if (dataToSave.is_available !== undefined) {
+				payload.is_available = dataToSave.is_available;
+			}
+
+			if (dataToSave.visualization_type !== undefined) {
+				payload.visualization_type = dataToSave.visualization_type;
+			}
+
+			let finalGroupId = groupId;
+
+			// --- PASO A: GUARDAR EL GRUPO ---
 			if (groupId) {
 				const { error: supabaseError } = await supabase
 					.from(TABLES.PRODUCT_CROSS_SELL_GROUPS)
@@ -114,7 +149,7 @@ export const useCrossSells = () => {
 
 				if (supabaseError) throw supabaseError;
 			} else {
-				// Insert: Buscamos la última posición de los grupos de ESTE producto
+				// Buscamos la última posición para el producto origen
 				const { data: lastGroup } = await supabase
 					.from(TABLES.PRODUCT_CROSS_SELL_GROUPS)
 					.select("position")
@@ -125,25 +160,145 @@ export const useCrossSells = () => {
 
 				const newPosition = lastGroup ? lastGroup.position + 1 : 1;
 
-				const { error: supabaseError } = await supabase
+				const { data: newGroup, error: supabaseError } = await supabase
 					.from(TABLES.PRODUCT_CROSS_SELL_GROUPS)
-					.insert({ ...payload, position: newPosition });
+					.insert({ ...payload, position: newPosition })
+					.select("id")
+					.single();
 
 				if (supabaseError) throw supabaseError;
+				finalGroupId = newGroup.id;
 			}
 
-			// Recargamos solo los grupos de ese producto
+			// --- PASO B: GUARDAR LOS ITEMS ---
+			if (finalGroupId && dataToSave.items) {
+				const newItems = dataToSave.items;
+				const newProductIds = newItems.map(
+					(item) => item.suggested_product_id,
+				);
+
+				// 1. Validar qué productos realmente existen en la BD 🛡️
+				// Esto evita que la app truene por FK constraints si se borran productos.
+				const { data: validProducts, error: checkError } =
+					await supabase
+						.from("products")
+						.select("id")
+						.in("id", newProductIds);
+
+				if (checkError) throw checkError;
+
+				const validProductIds =
+					validProducts?.map((p: any) => p.id) || [];
+
+				// 2. Limpiamos los items viejos de este grupo (Estrategia Clean Sweep)
+				const { error: deleteError } = await supabase
+					.from(TABLES.PRODUCT_CROSS_SELL_ITEMS)
+					.delete()
+					.eq("group_id", finalGroupId);
+
+				if (deleteError) throw deleteError;
+
+				// 3. Insertamos el nuevo set completo de items
+				const itemsPayload = newItems
+					.filter((item) =>
+						validProductIds.includes(item.suggested_product_id),
+					)
+					.map((item) => ({
+						group_id: finalGroupId,
+						suggested_product_id: item.suggested_product_id,
+						override_price: item.override_price ?? null,
+						position: item.position,
+					}));
+
+				if (itemsPayload.length > 0) {
+					const { error: insertError } = await supabase
+						.from(TABLES.PRODUCT_CROSS_SELL_ITEMS)
+						.insert(itemsPayload);
+
+					if (insertError) throw insertError;
+				}
+			}
+
+			// Refrescamos todo el store global una sola vez al final
 			await fetchCrossSellByProduct(originProductId);
 		} catch (err: any) {
-			console.error("Error saving cross-sell group:", err);
+			console.error("Error al guardar grupo e items:", err);
 			throw err;
 		} finally {
 			setFunctionLoading("saveGroup", false);
+			setFunctionLoading("saveItems", false);
 		}
 	};
 
 	/**
-	 * 🗑️ DELETE: Elimina un grupo
+	 * 🔗 SAVE ITEMS: Guarda (o pisa) los productos sugeridos de un grupo
+	 */
+	const saveCrossSellItems = async (
+		originProductId: string,
+		groupId: string,
+		items: SaveItemsPayload[],
+	) => {
+		setFunctionLoading("saveItems", true);
+		try {
+			// 1. Borramos los items actuales del grupo para reescribirlos
+			const { error: deleteError } = await supabase
+				.from(TABLES.PRODUCT_CROSS_SELL_ITEMS)
+				.delete()
+				.eq("group_id", groupId);
+
+			if (deleteError) throw deleteError;
+
+			// 2. Si hay items nuevos, los insertamos
+			if (items.length > 0) {
+				const payload = items.map((item) => ({
+					group_id: groupId,
+					suggested_product_id: item.suggested_product_id,
+					override_price: item.override_price ?? null,
+					position: item.position,
+				}));
+
+				const { error: insertError } = await supabase
+					.from(TABLES.PRODUCT_CROSS_SELL_ITEMS)
+					.insert(payload);
+
+				if (insertError) throw insertError;
+			}
+
+			await fetchCrossSellByProduct(originProductId);
+		} catch (err: any) {
+			console.error("Error saving cross-sell items:", err);
+			throw err;
+		} finally {
+			setFunctionLoading("saveItems", false);
+		}
+	};
+
+	/**
+	 * ↕️ MOVE GROUPS: Guarda el nuevo orden de los grupos (Drag & Drop)
+	 */
+	const updateGroupsOrder = async (
+		originProductId: string,
+		orderedGroups: { id: string; position: number }[],
+	) => {
+		setFunctionLoading("move", true);
+		try {
+			const { error: supabaseError } = await supabase
+				.from(TABLES.PRODUCT_CROSS_SELL_GROUPS)
+				.upsert(orderedGroups);
+
+			if (supabaseError) throw supabaseError;
+
+			await fetchCrossSellByProduct(originProductId);
+		} catch (err: any) {
+			console.error("Error moving groups:", err);
+			throw err;
+		} finally {
+			setFunctionLoading("move", false);
+		}
+	};
+
+	/**
+	 * 🗑️ DELETE: Elimina un grupo y sus items en cascada
 	 */
 	const deleteCrossSellGroup = async (
 		originProductId: string,
@@ -158,7 +313,6 @@ export const useCrossSells = () => {
 
 			if (supabaseError) throw supabaseError;
 
-			// Filtramos en memoria para agilizar la UI
 			setCrossSellGroups(crossSellGroups.filter((g) => g.id !== groupId));
 		} catch (err: any) {
 			console.error("Error deleting cross-sell group:", err);
@@ -174,6 +328,8 @@ export const useCrossSells = () => {
 		error,
 		fetchCrossSellByProduct,
 		saveCrossSellGroup,
+		saveCrossSellItems,
+		updateGroupsOrder,
 		deleteCrossSellGroup,
 		setError,
 	};

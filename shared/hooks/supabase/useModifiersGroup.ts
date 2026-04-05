@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback } from "react";
 import { TABLES } from "@coco/shared/constants";
 import { Modifier } from "@coco/shared/core/entities/Modifier";
-import { useAppStore, useModifierStore } from "@coco/shared/hooks";
+import { useAppStore } from "@coco/shared/hooks/useAppStore";
+import { useModifierStore } from "@coco/shared/hooks/useModifierStore";
 import { useSupabaseContext } from "@coco/shared/providers/SupabaseContext";
 
 export const useModifiersGroup = () => {

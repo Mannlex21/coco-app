@@ -2,11 +2,9 @@ import { useState, useEffect, useCallback, useMemo } from "react";
 import { Product, Section } from "@coco/shared/core/entities";
 import { TABLES } from "@coco/shared/constants";
 import { useSupabaseContext } from "@coco/shared/providers";
-import {
-	useAppStore,
-	useProductStore,
-	useSectionStore,
-} from "@coco/shared/hooks";
+import { useAppStore } from "@coco/shared/hooks/useAppStore";
+import { useProductStore } from "@coco/shared/hooks/useProductStore";
+import { useSectionStore } from "@coco/shared/hooks/useSectionStore";
 import { StorageRepository } from "../../infrastructure/supabase/StorageRepository";
 
 export const useProduct = () => {

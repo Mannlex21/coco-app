@@ -22,6 +22,8 @@ import { ModifierPicker } from "@/screens/Catalog/Tabs/ModifiersGroup/components
 import { ModifierGroupForm } from "@/screens/Catalog/Tabs/ModifiersGroup/ModifierGroupForm";
 import { SectionPicker } from "@/screens/Catalog/Tabs/Sections/components/SectionPicker";
 import { ModifierGroupPicker } from "@/screens/Catalog/Tabs/ModifiersGroup/components/ModifierGroupPicker";
+import { CrossSellAssociation } from "@/screens/Catalog/Tabs/CrossSells/CrossSellAssociation";
+import { CrossSellItemsConfig } from "@/screens/Catalog/Tabs/CrossSells/CrossSellItemsConfig";
 
 const RootStack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -197,7 +199,11 @@ export const MainNavigator = () => {
 					"modal",
 				)}
 			/>
-
+			<RootStack.Screen
+				name="CrossSellItemsConfig"
+				component={CrossSellItemsConfig}
+				options={getScreenOptions("Configuración de producto", "modal")}
+			/>
 			<RootStack.Screen
 				name="SectionPicker"
 				component={SectionPicker}
@@ -230,7 +236,14 @@ export const MainNavigator = () => {
 					"modal",
 				)}
 			/>
-
+			<RootStack.Screen
+				name="CrossSellAssociation"
+				component={CrossSellAssociation}
+				options={getScreenOptions(
+					"Formulario de Grupo de Modificadores",
+					"modal",
+				)}
+			/>
 			<RootStack.Screen
 				name="UserSetup"
 				component={UserSetupScreen}

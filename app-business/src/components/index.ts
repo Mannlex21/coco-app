@@ -6,7 +6,6 @@ export * from "./ScreenHeader";
 export * from "./SearchInput";
 export * from "./ToggleField";
 export * from "./VisualizationPicker";
-export * from "../screens/Profile/BusinessSetupScreen";
 export * from "./Skeleton";
 export * from "./CustomDropdown";
 export * from "./InputField";

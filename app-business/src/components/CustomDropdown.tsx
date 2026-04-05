@@ -15,7 +15,7 @@ import {
 	BorderRadius,
 	Shadow,
 } from "@coco/shared/config/theme";
-import { SearchInput } from "@/components";
+import { SearchInput } from "@/components/SearchInput";
 
 interface DropdownOption {
 	label: string;

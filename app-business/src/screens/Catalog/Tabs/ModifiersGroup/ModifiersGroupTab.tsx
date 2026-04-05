@@ -87,7 +87,6 @@ export const ModifiersGroupTab = () => {
 			<FloatingButton
 				label="Nuevo Grupo"
 				iconName="add"
-				colors={colors}
 				onPress={() =>
 					navigation.navigate("ModifierGroupForm", {
 						title: "Nuevo Grupo de Modificadores",

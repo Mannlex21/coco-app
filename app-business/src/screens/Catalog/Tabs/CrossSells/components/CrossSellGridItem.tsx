@@ -40,7 +40,48 @@ export const CrossSellGridItem = React.memo(
 				onPress={onPress}
 			>
 				<View style={styles.imageWrapper}>
-					{/* (Código de la imagen idéntico...) */}
+					{hasImage ? (
+						<Image
+							source={{ uri: item.imageUrl }}
+							style={styles.gridProductImage}
+							resizeMode="cover"
+						/>
+					) : (
+						<View
+							style={[
+								styles.gridProductImagePlaceholder,
+								{ backgroundColor: colors.borderLight }, // 👈 Color sutil de fondo
+							]}
+						>
+							<Ionicons
+								name="fast-food-outline"
+								size={44}
+								color={colors.textSecondaryLight}
+							/>
+						</View>
+					)}
+
+					{/* ✏️ BOTÓN DE ACCIÓN (Flotando en la esquina de la imagen al estilo Uber) */}
+
+					{showAddButton && (
+						<TouchableOpacity
+							style={[
+								styles.addBtn,
+								{
+									borderColor: colors.borderLight,
+									backgroundColor: colors.surfaceLight,
+								},
+							]}
+							activeOpacity={0.7}
+							onPress={onAdd}
+						>
+							<MaterialIcons
+								name="shopping-cart"
+								size={16}
+								color={colors.textPrimaryLight}
+							/>
+						</TouchableOpacity>
+					)}
 				</View>
 
 				<View style={styles.gridProductInfo}>
@@ -97,14 +138,14 @@ export const CrossSellGridItem = React.memo(
 
 const styles = StyleSheet.create({
 	gridProductCard: {
-		width: "48.5%", // Dos columnas perfectas
-		marginBottom: Spacing.lg,
-		paddingVertical: Spacing.md,
+		width: 160, // 👈 CAMBIO: Ancho estático para que quepan varias en la pantalla al desplazar
+		marginBottom: Spacing.md, // Un poco menos de margen inferior
+		paddingVertical: Spacing.sm,
 	},
 	imageWrapper: {
 		position: "relative",
 		width: "100%",
-		height: 160,
+		height: 140, // 👈 Un poquitín más baja para que mantenga proporción con el ancho de 160
 		borderRadius: BorderRadius.xl,
 		overflow: "hidden",
 	},

@@ -89,7 +89,6 @@ export const SectionsTab = () => {
 			<FloatingButton
 				label="Nueva Sección"
 				iconName="add"
-				colors={colors}
 				onPress={() =>
 					navigation.navigate("SectionForm", {
 						title: "Nueva Sección",
