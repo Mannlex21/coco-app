@@ -310,8 +310,8 @@ export const ModifierGroupForm = () => {
 				<PrimaryButton
 					title={`Guardar cambios`}
 					onPress={handleSave}
-					disabled={loadings.save} // 👈 Bloqueo del botón principal
-					loading={loadings.save} // 👈 Añadido por si tu botón usa un spinner interno
+					disabled={loadings.save}
+					loading={loadings.save}
 					marginBottom={
 						Platform.OS === "ios" ? insets.bottom : Spacing.md
 					}

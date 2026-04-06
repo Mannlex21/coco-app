@@ -13,6 +13,7 @@ export const useBusiness = () => {
 	const [loadings, setLoadings] = useState({
 		fetch: true, // Para la carga inicial
 		register: false, // Para crear negocio
+		update: false, // Para actualizar negocio
 		toggle: false, // Para abrir/cerrar negocio
 		delete: false, // Para borrar negocio
 		refresh: false, // Para el pull-to-refresh
@@ -32,7 +33,7 @@ export const useBusiness = () => {
 
 		try {
 			const { data, error: supabaseError } = await supabase
-				.from("businesses")
+				.from(TABLES.BUSINESSES)
 				.select("*")
 				.eq("ownerId", user.id);
 
@@ -60,7 +61,7 @@ export const useBusiness = () => {
 				{
 					event: "*",
 					schema: "public",
-					table: "businesses",
+					table: TABLES.BUSINESSES,
 					filter: `ownerId=eq.${user.id}`,
 				},
 				() => fetchBusinesses(),
@@ -100,6 +101,44 @@ export const useBusiness = () => {
 			throw err;
 		} finally {
 			setFunctionLoading("register", false);
+		}
+	};
+
+	const updateBusiness = async (businessId: string, formData: any) => {
+		if (!user?.id) throw new Error("No hay usuario autenticado.");
+
+		setFunctionLoading("update", true);
+		try {
+			const { data, error: supabaseError } = await supabase
+				.from(TABLES.BUSINESSES)
+				.update({
+					...formData,
+					updatedAt: new Date().toISOString(), // Actualizamos la fecha de modificación
+				})
+				.eq("id", businessId)
+				.select()
+				.single();
+
+			if (supabaseError) throw supabaseError;
+
+			// Actualizamos el estado local (Zustand) manualmente para evitar delay del realtime
+			setBusinesses(
+				businesses.map((b) =>
+					b.id === businessId ? (data as Business) : b,
+				),
+			);
+
+			// Si el negocio editado es el activo, actualizamos el store global
+			if (activeBusiness?.id === businessId) {
+				setActiveBusiness(data as Business);
+			}
+
+			return data;
+		} catch (err) {
+			console.error("Error en updateBusiness:", err);
+			throw err;
+		} finally {
+			setFunctionLoading("update", false);
 		}
 	};
 
@@ -147,7 +186,7 @@ export const useBusiness = () => {
 			try {
 				if (businessId) {
 					const { data, error: supabaseError } = await supabase
-						.from("businesses")
+						.from(TABLES.BUSINESSES)
 						.select("*")
 						.eq("id", businessId)
 						.maybeSingle();
@@ -156,13 +195,13 @@ export const useBusiness = () => {
 
 					if (data) {
 						setActiveBusiness(data as Business);
-						return; // Terminamos con éxito
+						return;
 					}
 				}
 
 				const { data: userBusinesses, error: listError } =
 					await supabase
-						.from("businesses")
+						.from(TABLES.BUSINESSES)
 						.select("*")
 						.eq("ownerId", userId)
 						.order("createdAt", { ascending: true })
@@ -182,8 +221,9 @@ export const useBusiness = () => {
 				console.error("Error al orquestar el negocio activo:", err);
 			}
 		},
-		[supabase, user?.id, setActiveBusiness],
+		[supabase, setActiveBusiness],
 	);
+
 	const deleteBusiness = async (businessId: string) => {
 		setFunctionLoading("delete", true);
 		try {
@@ -227,6 +267,7 @@ export const useBusiness = () => {
 		businesses,
 		activeBusiness,
 		registerBusiness,
+		updateBusiness,
 		toggleBusinessStatus,
 		onRefresh,
 		deleteBusiness,

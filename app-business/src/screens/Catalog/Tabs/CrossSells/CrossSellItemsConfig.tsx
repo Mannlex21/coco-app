@@ -22,7 +22,7 @@ export const CrossSellItemsConfig = () => {
 
 	const {
 		onSaveConfig,
-		alreadySelectedProductIds = [], // 👈 Ahora recibimos directamente el arreglo de IDs
+		alreadySelectedProductIds = [],
 		originProductId,
 	} = route.params || {};
 
@@ -131,7 +131,6 @@ export const CrossSellItemsConfig = () => {
 					/>
 				</View>
 
-				{/* 💡 Precio Original como Texto (Lectura) */}
 				<View style={styles.inputContainer}>
 					<Text
 						style={[
@@ -153,7 +152,6 @@ export const CrossSellItemsConfig = () => {
 					</Text>
 				</View>
 
-				{/* 💡 Input de Precio Modificado con tu componente InputField */}
 				<View style={styles.fieldWrapper}>
 					<InputField
 						label="Precio Modificado (Opcional)"

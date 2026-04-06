@@ -15,8 +15,12 @@ import { useBusiness } from "@coco/shared/hooks/supabase";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { PrimaryButton, ScreenHeader, InputField } from "@/components";
 
-export const BusinessSetupScreen = ({ navigation }: any) => {
-	const { registerBusiness } = useBusiness();
+export const BusinessSetupScreen = ({ route, navigation }: any) => {
+	const { business } = route.params || {};
+	const isEditing = !!business?.id;
+
+	const { registerBusiness, updateBusiness } = useBusiness();
+
 	const [loading, setLoading] = useState(false);
 	const { showDialog } = useDialog();
 	const { colors } = useTheme();
@@ -27,12 +31,12 @@ export const BusinessSetupScreen = ({ navigation }: any) => {
 	const borderColor = colors.borderLight;
 
 	const [form, setForm] = useState({
-		name: "",
-		category: "food" as any,
-		description: "",
-		address: "",
-		phone: "",
-		deliveryCost: "20",
+		name: business?.name || "",
+		category: business?.category || ("food" as any),
+		description: business?.description || "",
+		address: business?.address || "",
+		phone: business?.phone || "",
+		deliveryCost: business?.deliveryCost?.toString() || "20",
 	});
 
 	const handleInputChange = (key: keyof typeof form, value: string) => {
@@ -40,11 +44,12 @@ export const BusinessSetupScreen = ({ navigation }: any) => {
 	};
 
 	const handleSave = async () => {
+		// Validaciones (igual para ambos casos)
 		if (!form.name.trim() || !form.address.trim() || !form.phone.trim()) {
 			return showDialog({
 				title: "Campos incompletos",
 				message:
-					"Para registrarte en Coco, necesitamos el nombre, dirección y WhatsApp de tu negocio.",
+					"Necesitamos el nombre, dirección y WhatsApp de tu negocio.",
 				intent: "error",
 			});
 		}
@@ -63,27 +68,41 @@ export const BusinessSetupScreen = ({ navigation }: any) => {
 		try {
 			setLoading(true);
 
-			await registerBusiness({
-				name: form.name.trim(),
-				category: form.category,
-				description: form.description.trim(),
-				address: form.address.trim(),
-				phone: form.phone.trim(),
-				deliveryCost: Number(form.deliveryCost),
-			});
+			if (isEditing) {
+				// CASO EDICIÓN
+				await updateBusiness(business.id, {
+					name: form.name.trim(),
+					category: form.category,
+					description: form.description.trim(),
+					address: form.address.trim(),
+					phone: form.phone.trim(),
+					deliveryCost: Number(form.deliveryCost),
+				});
+			} else {
+				// CASO CREACIÓN DESDE CERO
+				await registerBusiness({
+					name: form.name.trim(),
+					category: form.category,
+					description: form.description.trim(),
+					address: form.address.trim(),
+					phone: form.phone.trim(),
+					deliveryCost: Number(form.deliveryCost),
+				});
+			}
 
 			showDialog({
-				title: "¡Bienvenido a Coco!",
-				message: `${form.name} ha sido registrado con éxito. Ya puedes empezar a configurar tu catálogo.`,
+				title: isEditing ? "Cambios guardados" : "¡Bienvenido a Coco!",
+				message: isEditing
+					? "La información se actualizó con éxito."
+					: `${form.name} ha sido registrado. Ya puedes configurar tu catálogo.`,
 				intent: "success",
 				onConfirm: () => navigation.goBack(),
 			});
 		} catch (error: any) {
 			console.error("Error al guardar negocio:", error);
 			showDialog({
-				title: "Error de Registro",
-				message:
-					"No pudimos crear el negocio en este momento. Revisa tu conexión a internet e inténtalo de nuevo.",
+				title: "Error",
+				message: "No pudimos guardar los cambios. Inténtalo de nuevo.",
 				intent: "error",
 			});
 		} finally {
@@ -91,7 +110,6 @@ export const BusinessSetupScreen = ({ navigation }: any) => {
 		}
 	};
 
-	// Mapeo de categorías para que funcione con tu componente <ChipList /> o renderizado directo
 	const categoryItems = Object.entries(BUSINESS_CATEGORY_LABELS).map(
 		([id, name]) => ({
 			id,
@@ -101,20 +119,11 @@ export const BusinessSetupScreen = ({ navigation }: any) => {
 
 	return (
 		<View style={{ flex: 1, backgroundColor: colors.backgroundLight }}>
-			<View
-				style={[
-					{
-						borderBottomWidth: StyleSheet.hairlineWidth,
-						borderBottomColor: colors.borderLight,
-					},
-				]}
-			>
-				<ScreenHeader
-					title="Configura tu Negocio"
-					onBack={() => navigation.goBack()}
-					fontSizeTitle={FontSize.xl}
-				/>
-			</View>
+			<ScreenHeader
+				title={isEditing ? "Editar Negocio" : "Registrar Negocio"}
+				onBack={() => navigation.goBack()}
+				fontSizeTitle={FontSize.xl}
+			/>
 
 			<KeyboardAwareScrollView
 				style={{ flex: 1 }}
@@ -125,7 +134,9 @@ export const BusinessSetupScreen = ({ navigation }: any) => {
 				showsVerticalScrollIndicator={false}
 			>
 				<Text style={[styles.headerTitle, { color: textColor }]}>
-					Cuéntanos sobre tu negocio
+					{isEditing
+						? `Editando ${business.name}`
+						: "Cuéntanos sobre tu negocio"}
 				</Text>
 				<Text style={[styles.headerSub, { color: subTextColor }]}>
 					Esta información será visible para tus clientes.
@@ -218,7 +229,6 @@ export const BusinessSetupScreen = ({ navigation }: any) => {
 					showLabel={true}
 				/>
 
-				{/* El costo de envío lo mantenemos dentro de InputField para mantener el orden visual */}
 				<InputField
 					label="Costo de Envío Base (MXN)"
 					placeholder="0.00"
@@ -231,8 +241,6 @@ export const BusinessSetupScreen = ({ navigation }: any) => {
 					showLabel={true}
 				/>
 			</KeyboardAwareScrollView>
-
-			{/* Botón flotante al fondo usando el insets de área segura */}
 			<View
 				style={[
 					styles.bottomContainer,

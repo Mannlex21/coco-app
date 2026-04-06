@@ -78,8 +78,6 @@ export const useUser = () => {
 					filter: `id=eq.${user.id}`,
 				},
 				() => {
-					// 👈 En lugar de adivinar el merge de 'user', simplemente
-					// re-ejecutamos el fetch que ya sabe cómo formatear todo.
 					fetchUserData();
 				},
 			)

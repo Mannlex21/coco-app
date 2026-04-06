@@ -265,10 +265,10 @@ export const ProductForm = () => {
 								borderColor: colors.borderLight,
 								backgroundColor: colors.inputBg,
 							},
-							loadings.save && { opacity: 0.5 }, // 👈 Bloqueo visual de la imagen
+							loadings.save && { opacity: 0.5 },
 						]}
 						onPress={handleSelectImage}
-						disabled={loadings.save} // 👈 Bloqueo interactivo
+						disabled={loadings.save}
 					>
 						{formData.imageUrl ? (
 							<Image
@@ -318,10 +318,10 @@ export const ProductForm = () => {
 								style={[
 									styles.actionBtn,
 									{ backgroundColor: colors.surfaceLight },
-									loadings.save && { opacity: 0.5 }, // 👈 Bloqueo visual del botón flotante
+									loadings.save && { opacity: 0.5 },
 								]}
 								onPress={handleSelectImage}
-								disabled={loadings.save} // 👈 Bloqueo interactivo
+								disabled={loadings.save}
 							>
 								<Text
 									style={[
@@ -337,10 +337,10 @@ export const ProductForm = () => {
 								style={[
 									styles.actionBtn,
 									{ backgroundColor: colors.errorLight },
-									loadings.save && { opacity: 0.5 }, // 👈 Bloqueo visual del botón flotante
+									loadings.save && { opacity: 0.5 },
 								]}
 								onPress={handleDeleteImage}
-								disabled={loadings.save} // 👈 Bloqueo interactivo
+								disabled={loadings.save}
 							>
 								<Text
 									style={[
@@ -390,7 +390,7 @@ export const ProductForm = () => {
 				<FormChipSelector
 					label="¿En qué sección(es) aparece este producto?"
 					addButtonLabel="Sección"
-					disabled={loadings.save} // 👈 Bloqueo al componente Chip
+					disabled={loadings.save}
 					items={sections.filter((section) =>
 						formData.selectedSection?.includes(section.id),
 					)}
@@ -416,7 +416,7 @@ export const ProductForm = () => {
 					label="¿Qué grupos de modificadores aplican?"
 					addButtonLabel="Modificador"
 					addButtonIcon="add"
-					disabled={loadings.save} // 👈 Bloqueo al componente Chip
+					disabled={loadings.save}
 					maxVisibleChips={3}
 					items={modifierGroups.filter((group) =>
 						formData.selectedModifierGroups?.includes(group.id),
@@ -463,8 +463,8 @@ export const ProductForm = () => {
 				<PrimaryButton
 					title={`Guardar cambios`}
 					onPress={handleSave}
-					disabled={loadings.save} // 👈 Bloqueo del botón principal
-					loading={loadings.save} // 👈 Añadido por si tu botón usa un spinner interno
+					disabled={loadings.save}
+					loading={loadings.save}
 					marginBottom={
 						Platform.OS === "ios" ? insets.bottom : Spacing.md
 					}

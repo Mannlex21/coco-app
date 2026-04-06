@@ -1,5 +1,5 @@
 -- ==========================================================
--- SCRIPT DE DATOS REALISTAS CON VOLUMEN PARA COCO APP
+-- SCRIPT DE DATOS REALISTAS: HAMBURGUESERÍA (CON VENTA CRUZADA)
 -- ==========================================================
 
 DO $$ 
@@ -19,7 +19,7 @@ DECLARE
     v_grp_extras UUID;
     v_grp_salsas UUID;
     
-    -- Productos
+    -- Productos (8 en total)
     v_prod_doble UUID;
     v_prod_chicken UUID;
     v_prod_veggie UUID;
@@ -28,6 +28,9 @@ DECLARE
     v_prod_coca UUID;
     v_prod_cerveza UUID;
     v_prod_combo_master UUID;
+
+    -- Auxiliares para Venta Cruzada
+    v_cs_grupo UUID;
 BEGIN
 
     -- 1. INSERTAR NEGOCIO
@@ -41,8 +44,8 @@ BEGIN
         'food', 
         'Av. Insurgentes Sur #4232, Col. Condesa', 
         '5559876543', 
-        'https://placehold.co/400x400/1A7D78/FFFFFF?text=Terminal+Logo', 
-        'https://placehold.co/1200x600/1E1E1E/FFFFFF?text=Terminal+Cover', 
+        '', -- logoUrl vacío
+        '', -- coverUrl vacío
         true, 
         25.00, 
         'premium', 
@@ -78,7 +81,7 @@ BEGIN
 
 
     -- 4. GRUPOS DE MODIFICADORES (Reglas variadas)
-    -- Obligatorio (Termino de la carne): min 1, max 1
+    -- Obligatorio (Término de la carne): min 1, max 1
     INSERT INTO public.modifier_groups (business_id, name, internal_name, min_selectable, max_selectable, is_available)
     VALUES (v_business_id, 'Término de la carne', 'termino_res', 1, 1, true) RETURNING id INTO v_grp_termino;
 
@@ -95,7 +98,7 @@ BEGIN
     VALUES (v_business_id, 'Elige hasta 2 salsas', 'salsas_alitas', 0, 2, true) RETURNING id INTO v_grp_salsas;
 
 
-    -- 5. OPCIONES DE MODIFICADORES (Gran Volumen de datos)
+    -- 5. OPCIONES DE MODIFICADORES
     -- Términos
     INSERT INTO public.modifier_options (modifier_group_id, name, extra_price, is_available) VALUES 
         (v_grp_termino, 'Término Medio', 0.00, true),
@@ -125,37 +128,37 @@ BEGIN
         (v_grp_salsas, 'BBQ Clásica', 0.00, true),
         (v_grp_salsas, 'Buffalo Hot', 0.00, true),
         (v_grp_salsas, 'Lemon Pepper', 0.00, true),
-        (v_grp_salsas, 'Mango Habandero 🔥', 5.00, true),
+        (v_grp_salsas, 'Mango Habanero 🔥', 5.00, true),
         (v_grp_salsas, 'Ajo Parmesano', 5.00, true);
 
 
-    -- 6. PRODUCTOS
+    -- 6. PRODUCTOS (8 Productos) - image_url vacío ('') en todos
     INSERT INTO public.products (business_id, name, description, price, image_url, is_available, position) VALUES 
-        (v_business_id, 'La Terminal Doble', 'Nuestra Burger insignia con doble carne, tocino y aderezo especial.', 165.00, 'https://placehold.co/600x400/1A7D78/FFFFFF?text=Burger+Doble', true, 0) RETURNING id INTO v_prod_doble;
-
-    INSERT INTO public.products (business_id, name, description, price, image_url, is_available, position) VALUES 
-        (v_business_id, 'Crispy Chicken', 'Pechuga de pollo empanizada extracrujiente, lechuga y mayonesa chipotle.', 135.00, 'https://placehold.co/600x400/1A7D78/FFFFFF?text=Chicken+Burger', true, 1) RETURNING id INTO v_prod_chicken;
+        (v_business_id, 'La Terminal Doble', 'Nuestra Burger insignia con doble carne, tocino y aderezo especial.', 165.00, '', true, 0) RETURNING id INTO v_prod_doble;
 
     INSERT INTO public.products (business_id, name, description, price, image_url, is_available, position) VALUES 
-        (v_business_id, 'La Veggie-Terminal', 'Medallón de garbanzo y avena, queso suizo, espinaca y tomate.', 125.00, 'https://placehold.co/600x400/1A7D78/FFFFFF?text=Veggie+Burger', true, 2) RETURNING id INTO v_prod_veggie;
+        (v_business_id, 'Crispy Chicken', 'Pechuga de pollo empanizada extracrujiente, lechuga y mayonesa chipotle.', 135.00, '', true, 1) RETURNING id INTO v_prod_chicken;
 
     INSERT INTO public.products (business_id, name, description, price, image_url, is_available, position) VALUES 
-        (v_business_id, 'Papas Terminal con Queso', '300g de papas de la casa bañadas en aderezo de queso cheddar fundido.', 75.00, 'https://placehold.co/600x400/1A7D78/FFFFFF?text=Papas+Cheddar', true, 0) RETURNING id INTO v_prod_papas;
+        (v_business_id, 'La Veggie-Terminal', 'Medallón de garbanzo y avena, queso suizo, espinaca y tomate.', 125.00, '', true, 2) RETURNING id INTO v_prod_veggie;
 
     INSERT INTO public.products (business_id, name, description, price, image_url, is_available, position) VALUES 
-        (v_business_id, 'Alitas Crujientes (10 pzas)', '10 Alitas de pollo fritas a la perfección. Elige tus salsas.', 140.00, 'https://placehold.co/600x400/1A7D78/FFFFFF?text=Alitas', true, 1) RETURNING id INTO v_prod_alitas;
+        (v_business_id, 'Papas Terminal con Queso', '300g de papas de la casa bañadas en aderezo de queso cheddar fundido.', 75.00, '', true, 0) RETURNING id INTO v_prod_papas;
 
     INSERT INTO public.products (business_id, name, description, price, image_url, is_available, position) VALUES 
-        (v_business_id, 'Refresco de Lata 355ml', 'Variedad de sabores de la familia Coca-Cola.', 30.00, 'https://placehold.co/600x400/1A7D78/FFFFFF?text=Refrescos', true, 0) RETURNING id INTO v_prod_coca;
+        (v_business_id, 'Alitas Crujientes (10 pzas)', '10 Alitas de pollo fritas a la perfección. Elige tus salsas.', 140.00, '', true, 1) RETURNING id INTO v_prod_alitas;
 
     INSERT INTO public.products (business_id, name, description, price, image_url, is_available, position) VALUES 
-        (v_business_id, 'Cerveza Nacional 355ml', 'Corona, Victoria o Pacífico. Bien fría.', 45.00, 'https://placehold.co/600x400/1A7D78/FFFFFF?text=Cerveza', true, 1) RETURNING id INTO v_prod_cerveza;
+        (v_business_id, 'Refresco de Lata 355ml', 'Variedad de sabores de la familia Coca-Cola.', 30.00, '', true, 0) RETURNING id INTO v_prod_coca;
 
     INSERT INTO public.products (business_id, name, description, price, image_url, is_available, position) VALUES 
-        (v_business_id, 'Combo Master Terminal', 'Una Burger Doble + Papas Individuales + Refresco a elegir.', 230.00, 'https://placehold.co/600x400/1A7D78/FFFFFF?text=Combo+Master', true, 0) RETURNING id INTO v_prod_combo_master;
+        (v_business_id, 'Cerveza Nacional 355ml', 'Corona, Victoria o Pacífico. Bien fría.', 45.00, '', true, 1) RETURNING id INTO v_prod_cerveza;
+
+    INSERT INTO public.products (business_id, name, description, price, image_url, is_available, position) VALUES 
+        (v_business_id, 'Combo Master Terminal', 'Una Burger Doble + Papas Individuales + Refresco a elegir.', 230.00, '', true, 0) RETURNING id INTO v_prod_combo_master;
 
 
-    -- 7. VINCULACIÓN PRODUCTOS <-> SECCIONES (Soporta N:N)
+    -- 7. VINCULACIÓN PRODUCTOS <-> SECCIONES
     -- Hamburguesas
     INSERT INTO public.product_sections (product_id, section_id) VALUES (v_prod_doble, v_sec_burgers);
     INSERT INTO public.product_sections (product_id, section_id) VALUES (v_prod_chicken, v_sec_burgers);
@@ -172,8 +175,7 @@ BEGIN
     -- Combos
     INSERT INTO public.product_sections (product_id, section_id) VALUES (v_prod_combo_master, v_sec_combos);
 
-    -- EJEMPLO DE MULTI-SECCIÓN REALISTA:
-    -- Las papas también aparecen en la sección de Hamburguesas como acompañamiento directo
+    -- Ejemplo de Multi-Sección: Las papas también aparecen en la sección de Hamburguesas
     INSERT INTO public.product_sections (product_id, section_id) VALUES (v_prod_papas, v_sec_burgers);
 
 
@@ -192,5 +194,51 @@ BEGIN
     -- Al Combo Master le aplica: Escoger bebida y también los términos/extras de la burger que incluye
     INSERT INTO public.product_modifiers (product_id, modifier_group_id) VALUES (v_prod_combo_master, v_grp_refrescos);
     INSERT INTO public.product_modifiers (product_id, modifier_group_id) VALUES (v_prod_combo_master, v_grp_termino);
+
+
+    -- 9. GRUPOS DE VENTA CRUZADA (NUEVO)
+    
+    -- ====== A) EN LA TERMINAL DOBLE ======
+    -- Sugerir Guarniciones (Formato Grid)
+    INSERT INTO public.product_cross_sell_groups (origin_product_id, name, position, is_available, visualization_type)
+    VALUES (v_prod_doble, 'Acompáñala con:', 0, true, 'grid') RETURNING id INTO v_cs_grupo;
+
+    INSERT INTO public.product_cross_sell_items (group_id, suggested_product_id, override_price, position) VALUES 
+        (v_cs_grupo, v_prod_papas, 65.00, 0),       -- Descuento de $75 a $65
+        (v_cs_grupo, v_prod_alitas, NULL, 1);      -- Precio normal
+
+    -- Sugerir Bebidas Alcohólicas (Formato Lista)
+    INSERT INTO public.product_cross_sell_groups (origin_product_id, name, position, is_available, visualization_type)
+    VALUES (v_prod_doble, 'Para quitar la sed', 1, true, 'list') RETURNING id INTO v_cs_grupo;
+
+    INSERT INTO public.product_cross_sell_items (group_id, suggested_product_id, override_price, position) VALUES 
+        (v_cs_grupo, v_prod_cerveza, 40.00, 0);    -- Descuento de $45 a $40
+
+
+    -- ====== B) EN EL CRISPY CHICKEN ======
+    -- Sugerir Papas (Formato Lista)
+    INSERT INTO public.product_cross_sell_groups (origin_product_id, name, position, is_available, visualization_type)
+    VALUES (v_prod_chicken, '¿Le sumamos unas papas?', 0, true, 'list') RETURNING id INTO v_cs_grupo;
+
+    INSERT INTO public.product_cross_sell_items (group_id, suggested_product_id, override_price, position) VALUES 
+        (v_cs_grupo, v_prod_papas, 60.00, 0);      -- Descuento mayor en este amarre ($60)
+
+
+    -- ====== C) EN LAS PAPAS CON QUESO ======
+    -- Sugerir Refresco en formato Grid
+    INSERT INTO public.product_cross_sell_groups (origin_product_id, name, position, is_available, visualization_type)
+    VALUES (v_prod_papas, 'Se ven solas... ¿un refresco?', 0, true, 'grid') RETURNING id INTO v_cs_grupo;
+
+    INSERT INTO public.product_cross_sell_items (group_id, suggested_product_id, override_price, position) VALUES 
+        (v_cs_grupo, v_prod_coca, 25.00, 0);       -- Descuento de $30 a $25
+
+
+    -- ====== D) EN EL COMBO MASTER TERMINAL ======
+    -- Sugerir una Entrada extra para compartir (Formato Lista)
+    INSERT INTO public.product_cross_sell_groups (origin_product_id, name, position, is_available, visualization_type)
+    VALUES (v_prod_combo_master, '¿Vienes con alguien?', 0, true, 'list') RETURNING id INTO v_cs_grupo;
+
+    INSERT INTO public.product_cross_sell_items (group_id, suggested_product_id, override_price, position) VALUES 
+        (v_cs_grupo, v_prod_alitas, 120.00, 0);    -- Descuento de $140 a $120
 
 END $$;

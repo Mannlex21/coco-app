@@ -55,7 +55,7 @@ export const CrossSellAssociation = () => {
 	const [formData, setFormData] = useState({
 		name: "",
 		isAvailable: true,
-		visualizationType: "list" as "list" | "grid", // 👈 Estado para el picker
+		visualizationType: "list" as "list" | "grid",
 		selectedCrossSellProducts: [] as any[],
 	});
 

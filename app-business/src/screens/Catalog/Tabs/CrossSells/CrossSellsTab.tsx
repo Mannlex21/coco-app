@@ -10,7 +10,7 @@ import {
 	View,
 } from "react-native";
 import { EmptyState, FloatingButton, CustomDropdown } from "@/components";
-import { useProductStore } from "@coco/shared/hooks"; // 💡 Limpiamos useAppStore si no se usaba
+import { useProductStore } from "@coco/shared/hooks";
 import { useCrossSellsTab } from "@/hooks/useCrossSellsTab";
 import { CrossSellGroupItem } from "./components/CrossSellGroupItem";
 

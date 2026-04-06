@@ -17,7 +17,6 @@ export const useCrossSellsTab = () => {
 	const [isLast, setIsLast] = useState(false);
 	const [movingGroupId, setMovingGroupId] = useState<string | null>(null);
 
-	// 💡 Estado crucial para saber qué productos cruzados mostrar en base al Select
 	const [selectedProductId, setSelectedProductId] = useState<string | null>(
 		null,
 	);
@@ -25,11 +24,10 @@ export const useCrossSellsTab = () => {
 	const {
 		crossSellGroups,
 		deleteCrossSellGroup,
-		fetchCrossSellByProduct, // 👈 Hook enfocado en el ID del producto
+		fetchCrossSellByProduct,
 		loadings,
 	} = useCrossSells();
 
-	// 🔄 Cada que cambie el producto en el select, disparamos la búsqueda
 	useEffect(() => {
 		if (selectedProductId) {
 			fetchCrossSellByProduct(selectedProductId);

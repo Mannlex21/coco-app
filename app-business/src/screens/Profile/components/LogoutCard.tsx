@@ -16,7 +16,6 @@ export const LogoutCard = () => {
 	const { showDialog } = useDialog();
 	const { setActiveBusiness, setUser } = useAppStore();
 
-	// Mapeo semántico de error directo de tu ColorPalette
 	const errorBg = colors.errorLight;
 	const errorTextColor = colors.error;
 
@@ -49,28 +48,28 @@ export const LogoutCard = () => {
 	return (
 		<View style={styles.sectionContainer}>
 			<TouchableOpacity
-				style={[styles.buttonRow, { backgroundColor: errorBg }]}
+				style={[
+					styles.buttonRow,
+					{
+						backgroundColor: colors.errorLight,
+						borderColor: colors.error,
+						borderWidth: StyleSheet.hairlineWidth,
+					},
+				]}
 				onPress={handleLogout}
 				activeOpacity={0.7}
 			>
-				<View style={styles.buttonLeft}>
+				<View style={styles.iconContainer}>
 					<Ionicons
 						name="log-out-outline"
 						size={22}
 						color={errorTextColor}
 					/>
-					<Text
-						style={[styles.buttonLabel, { color: errorTextColor }]}
-					>
-						Cerrar Sesión
-					</Text>
 				</View>
 
-				<Ionicons
-					name="chevron-forward"
-					size={20}
-					color={errorTextColor}
-				/>
+				<Text style={[styles.buttonLabel, { color: errorTextColor }]}>
+					Cerrar Sesión
+				</Text>
 			</TouchableOpacity>
 		</View>
 	);
@@ -79,24 +78,25 @@ export const LogoutCard = () => {
 const styles = StyleSheet.create({
 	sectionContainer: {
 		width: "100%",
-		paddingVertical: Spacing.sm,
-		paddingHorizontal: Spacing.xs, // Mismo alineado al ras que las demás secciones
 	},
 	buttonRow: {
 		flexDirection: "row",
-		justifyContent: "space-between",
+		justifyContent: "center",
 		alignItems: "center",
 		paddingVertical: Spacing.md,
-		paddingHorizontal: Spacing.md, // Padding interno para que el texto no pegue al borde del fondo
-		borderRadius: BorderRadius.md, // Un radio sutil para darle forma de botón
+		paddingHorizontal: Spacing.md,
+		borderRadius: BorderRadius.md,
+		position: "relative",
 	},
-	buttonLeft: {
-		flexDirection: "row",
+	iconContainer: {
+		position: "absolute",
+		left: Spacing.md,
+		justifyContent: "center",
 		alignItems: "center",
 	},
 	buttonLabel: {
 		fontSize: FontSize.md,
-		fontWeight: FontWeight.bold, // Le damos más peso para que resalte como botón de acción
-		marginLeft: Spacing.md,
+		fontWeight: FontWeight.bold,
+		textAlign: "center",
 	},
 });

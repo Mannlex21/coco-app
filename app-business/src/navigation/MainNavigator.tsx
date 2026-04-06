@@ -8,7 +8,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { DashboardScreen } from "@/screens/Dashboard/DashboardScreen";
-import { BusinessSetupScreen } from "@/screens/Profile/BusinessSetupScreen";
+import { BusinessSetupScreen } from "@/screens/Profile/screens/BusinessSetupScreen";
 import { FontSize, FontWeight } from "@coco/shared/config/theme";
 import { CatalogScreen } from "@/screens/Catalog/CatalogScreen";
 import { useTheme } from "@coco/shared/hooks/useTheme";
@@ -24,6 +24,7 @@ import { SectionPicker } from "@/screens/Catalog/Tabs/Sections/components/Sectio
 import { ModifierGroupPicker } from "@/screens/Catalog/Tabs/ModifiersGroup/components/ModifierGroupPicker";
 import { CrossSellAssociation } from "@/screens/Catalog/Tabs/CrossSells/CrossSellAssociation";
 import { CrossSellItemsConfig } from "@/screens/Catalog/Tabs/CrossSells/CrossSellItemsConfig";
+import { BusinessScheduleScreen } from "@/screens/Profile/screens/BusinessScheduleScreen";
 
 const RootStack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -247,6 +248,11 @@ export const MainNavigator = () => {
 			<RootStack.Screen
 				name="UserSetup"
 				component={UserSetupScreen}
+				options={getScreenOptions("Editar Perfil", "modal")}
+			/>
+			<RootStack.Screen
+				name="BusinessSchedule"
+				component={BusinessScheduleScreen}
 				options={getScreenOptions("Editar Perfil", "modal")}
 			/>
 		</RootStack.Navigator>

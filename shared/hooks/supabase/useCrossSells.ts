@@ -5,7 +5,7 @@ import { useCrossSellStore } from "@coco/shared/hooks/useCrossSellStore";
 import {
 	DBProductCrossSellGroup,
 	mapDBCrossSellToFrontend,
-	VisualizationType, // 👈 Importamos el tipo
+	VisualizationType,
 } from "@coco/shared/core/entities";
 
 // Interfaz para los items que vas a guardar
@@ -19,7 +19,7 @@ interface SaveItemsPayload {
 interface SaveGroupPayload {
 	name: string;
 	is_available?: boolean;
-	visualization_type?: VisualizationType; // 👈 Agregado aquí
+	visualization_type?: VisualizationType;
 	items?: SaveItemsPayload[];
 }
 

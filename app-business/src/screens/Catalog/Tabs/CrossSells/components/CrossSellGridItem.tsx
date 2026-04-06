@@ -11,7 +11,7 @@ import { RolesApp } from "@coco/shared/constants";
 import { ProductCrossSellItem } from "@coco/shared/core/entities";
 
 interface CrossSellGridItemProps {
-	item: ProductCrossSellItem; // 👈 Tu interfaz limpia
+	item: ProductCrossSellItem;
 	colors: any;
 	onPress: () => void;
 	onAdd?: () => void;
@@ -50,7 +50,7 @@ export const CrossSellGridItem = React.memo(
 						<View
 							style={[
 								styles.gridProductImagePlaceholder,
-								{ backgroundColor: colors.borderLight }, // 👈 Color sutil de fondo
+								{ backgroundColor: colors.borderLight },
 							]}
 						>
 							<Ionicons
@@ -60,8 +60,6 @@ export const CrossSellGridItem = React.memo(
 							/>
 						</View>
 					)}
-
-					{/* ✏️ BOTÓN DE ACCIÓN (Flotando en la esquina de la imagen al estilo Uber) */}
 
 					{showAddButton && (
 						<TouchableOpacity
@@ -103,7 +101,6 @@ export const CrossSellGridItem = React.memo(
 							]}
 						>
 							MXN${finalPrice.toFixed(2)}{" "}
-							{/* 👈 Aplicamos el precio final */}
 						</Text>
 
 						{!item.isAvailable && (
@@ -138,14 +135,14 @@ export const CrossSellGridItem = React.memo(
 
 const styles = StyleSheet.create({
 	gridProductCard: {
-		width: 160, // 👈 CAMBIO: Ancho estático para que quepan varias en la pantalla al desplazar
-		marginBottom: Spacing.md, // Un poco menos de margen inferior
+		width: 160,
+		marginBottom: Spacing.md,
 		paddingVertical: Spacing.sm,
 	},
 	imageWrapper: {
 		position: "relative",
 		width: "100%",
-		height: 140, // 👈 Un poquitín más baja para que mantenga proporción con el ancho de 160
+		height: 140,
 		borderRadius: BorderRadius.xl,
 		overflow: "hidden",
 	},

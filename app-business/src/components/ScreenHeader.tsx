@@ -2,13 +2,13 @@ import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "@coco/shared/hooks/useTheme";
 import { FontSize } from "@coco/shared/config/theme";
-import { memo, ReactNode } from "react"; // 👈 Importamos ReactNode
+import { memo, ReactNode } from "react";
 
 interface SectionHeaderProps {
 	title: string;
 	onBack: () => void;
 	fontSizeTitle?: number;
-	rightActions?: ReactNode; // 👈 Cambiado a la derecha y opcional
+	rightActions?: ReactNode;
 }
 
 export const ScreenHeader = memo(
@@ -78,7 +78,7 @@ const styles = StyleSheet.create({
 	},
 	headerTitle: {
 		fontWeight: "800",
-		flex: 1, // 👈 Esto empuja el contenedor de la derecha al final
+		flex: 1,
 	},
 	rightActionsContainer: {
 		flexDirection: "row",

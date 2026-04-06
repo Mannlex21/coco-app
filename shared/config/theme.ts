@@ -78,13 +78,13 @@ const LightTheme: ColorPalette = {
 
 	// 2. Colores de Interfaz (Estructura)
 	businessLight: "#DEF7F5", // Teal Muy Claro (Solo para badges muy específicos)
-	backgroundLight: "#FFFFFF", // 👈 Crema Fondo (El lienzo total de la app)
+	backgroundLight: "#FFFFFF", //  Crema Fondo (El lienzo total de la app)
 	surfaceLight: "#FFFFFF", // Un crema ligerísimamente más claro/pálido para elevar Cards sin romper la armonía
 	borderLight: "#EEEEEE", // Crema Dorada (Para líneas de separación muy finas)
 	inputBg: "#F5F5F5", // Fondo limpio y armónico para las cajas de texto
 
 	// 3. Tipografía
-	textPrimaryLight: "#000000", // 👈 Negro absoluto para máxima legibilidad y minimalismo
+	textPrimaryLight: "#000000", //  Negro absoluto para máxima legibilidad y minimalismo
 	textSecondaryLight: "#666666", // Un gris oscuro estándar para subtítulos
 	textOnPrimary: "#FFFFFF", // Blanco para el texto dentro de botones rellenos
 

@@ -200,7 +200,7 @@ export const useSection = () => {
 						visualizationType: data.visualization_type,
 						createdAt: new Date(data.created_at),
 						updatedAt: new Date(data.updated_at),
-						products: mappedProducts, // 👈 Añadidos los productos mapeados
+						products: mappedProducts,
 					};
 				}
 				return null;

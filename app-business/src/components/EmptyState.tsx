@@ -6,8 +6,8 @@ import { StyleSheet, Text, View } from "react-native";
 interface EmptyStateProps {
 	isFiltering: boolean;
 	colors: any;
-	title?: string; // 👈 Opcional
-	description?: string; // 👈 Opcional
+	title?: string;
+	description?: string;
 }
 
 export const EmptyState = ({

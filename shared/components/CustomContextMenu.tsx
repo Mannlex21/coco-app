@@ -191,7 +191,7 @@ export const CustomContextMenu = ({
 									{
 										backgroundColor: colors.errorLight,
 										borderColor: colors.error,
-										borderWidth: 1,
+										borderWidth: StyleSheet.hairlineWidth,
 									},
 								]}
 								onPress={handleClose}

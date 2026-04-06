@@ -155,7 +155,6 @@ export const useAppStore = create<AppState>()(
 				cart: state.cart,
 				cartBusinessId: state.cartBusinessId,
 				themeMode: state.themeMode,
-				// 💡 Nota: `sections` y `products` no están aquí a propósito para no saturar el SecureStore con memoria volátil.
 			}),
 		},
 	),

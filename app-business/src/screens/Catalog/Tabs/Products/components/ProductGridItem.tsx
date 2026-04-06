@@ -30,7 +30,7 @@ export const ProductGridItem = ({
 
 	return (
 		<TouchableOpacity
-			style={styles.gridProductCard} // 👈 Removido el color de fondo para fundirse en la pantalla
+			style={styles.gridProductCard}
 			activeOpacity={0.8}
 			onPress={onPress}
 		>
@@ -46,7 +46,7 @@ export const ProductGridItem = ({
 					<View
 						style={[
 							styles.gridProductImagePlaceholder,
-							{ backgroundColor: colors.borderLight }, // 👈 Color sutil de fondo
+							{ backgroundColor: colors.borderLight },
 						]}
 					>
 						<Ionicons
@@ -56,8 +56,6 @@ export const ProductGridItem = ({
 						/>
 					</View>
 				)}
-
-				{/* ✏️ BOTÓN DE ACCIÓN (Flotando en la esquina de la imagen al estilo Uber) */}
 
 				{showAddButton && (
 					<TouchableOpacity
@@ -96,7 +94,7 @@ export const ProductGridItem = ({
 					<Text
 						style={[
 							styles.gridProductPrice,
-							{ color: colors.textSecondaryLight }, // 👈 Uber usa un tono secundario aquí
+							{ color: colors.textSecondaryLight },
 						]}
 					>
 						MXN${item.price?.toFixed(2) || "0.00"}
@@ -134,15 +132,15 @@ export const ProductGridItem = ({
 
 const styles = StyleSheet.create({
 	gridProductCard: {
-		width: "48.5%", // 👈 Dos columnas perfectas
-		marginBottom: Spacing.lg, // Un poco más de aire abajo
+		width: "48.5%",
+		marginBottom: Spacing.lg,
 		paddingVertical: Spacing.md,
 	},
 	imageWrapper: {
 		position: "relative",
 		width: "100%",
 		height: 160,
-		borderRadius: BorderRadius.xl, // 👈 Solo la imagen y el placeholder son redondeados
+		borderRadius: BorderRadius.xl,
 		overflow: "hidden",
 	},
 	gridProductImage: {
@@ -158,7 +156,7 @@ const styles = StyleSheet.create({
 
 	addBtn: {
 		position: "absolute",
-		bottom: 10, // 👈 Abajo a la derecha como el "+" de Uber
+		bottom: 10,
 		right: 10,
 		width: 32,
 		height: 32,
@@ -168,7 +166,7 @@ const styles = StyleSheet.create({
 		borderWidth: 1,
 	},
 	gridProductInfo: {
-		marginTop: Spacing.xs, // 👈 Separación sutil debajo de la imagen
+		marginTop: Spacing.xs,
 		gap: 1,
 	},
 	gridProductName: {

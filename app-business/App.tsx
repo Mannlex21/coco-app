@@ -100,7 +100,6 @@ function AppContent() {
 		if (!supabase) return;
 
 		let isMounted = true;
-		// 💡 Bandera local para evitar que mapearYSetearUsuario se ejecute si ya se está procesando
 		let isProcessingAuth = false;
 
 		const { data: authListener } = supabase.auth.onAuthStateChange(
@@ -126,8 +125,6 @@ function AppContent() {
 			isMounted = false;
 			authListener.subscription.unsubscribe();
 		};
-		// 💡 IMPORTANTE: Si tus funciones provienen de stores globales,
-		// sus referencias no cambian. Al dejar el arreglo vacío evitamos re-montajes.
 	}, []);
 
 	useEffect(() => {

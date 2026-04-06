@@ -1,5 +1,5 @@
 -- ==========================================================
--- SCRIPT DE DATOS REALISTAS: PIZZERÍA (ESTRUCTURAS COMPLEJAS)
+-- SCRIPT DE DATOS REALISTAS: PIZZERÍA (CON CROSS-SELLING)
 -- ==========================================================
 
 DO $$ 
@@ -28,6 +28,11 @@ DECLARE
     v_p_cesar UUID; v_p_caprese UUID;
     v_p_tiramisu UUID; v_p_brownie UUID;
     v_p_coca UUID; v_p_vino UUID;
+
+    -- Grupos de Venta Cruzada
+    v_cs_pizza_combos UUID;
+    v_cs_pizza_dulce UUID;
+    v_cs_pasta_maridaje UUID;
 BEGIN
 
     -- 1. INSERTAR NEGOCIO
@@ -84,19 +89,15 @@ BEGIN
 
 
     -- 4. GRUPOS DE MODIFICADORES
-    -- Obligatorio: Tamaño (min 1, max 1)
     INSERT INTO public.modifier_groups (business_id, name, internal_name, min_selectable, max_selectable, is_available)
     VALUES (v_business_id, 'Tamaño de la Pizza', 'tamano_pizza', 1, 1, true) RETURNING id INTO v_grp_tamano;
 
-    -- Opcional: Tipo de Orilla (min 0, max 1)
     INSERT INTO public.modifier_groups (business_id, name, internal_name, min_selectable, max_selectable, is_available)
     VALUES (v_business_id, 'Borde u Orilla', 'orilla_pizza', 0, 1, true) RETURNING id INTO v_grp_orilla;
 
-    -- Opcional Múltiple: Toppings Extra (min 0, max 8) - Ideal para probar listas largas
     INSERT INTO public.modifier_groups (business_id, name, internal_name, min_selectable, max_selectable, is_available)
     VALUES (v_business_id, 'Ingredientes Extra', 'toppings_pizza', 0, 8, true) RETURNING id INTO v_grp_toppings;
 
-    -- Opcional Múltiple: Aderezos (min 0, max 3)
     INSERT INTO public.modifier_groups (business_id, name, internal_name, min_selectable, max_selectable, is_available)
     VALUES (v_business_id, 'Aderezos para acompañar', 'aderezos_extras', 0, 3, true) RETURNING id INTO v_grp_aderezos;
 
@@ -113,7 +114,7 @@ BEGIN
         (v_grp_orilla, 'Orilla rellena de queso Mozzarella', 35.00, true),
         (v_grp_orilla, 'Orilla cubierta de ajonjolí y mantequilla', 15.00, true);
 
-    -- Toppings (Bastantes opciones para estresar la UI)
+    -- Toppings
     INSERT INTO public.modifier_options (modifier_group_id, name, extra_price, is_available) VALUES 
         (v_grp_toppings, 'Pepperoni Extra', 25.00, true),
         (v_grp_toppings, 'Champiñones Frescos', 20.00, true),
@@ -209,15 +210,87 @@ BEGIN
 
 
     -- 8. VINCULACIÓN PRODUCTOS <-> GRUPOS DE MODIFICADORES
-    -- A todas las pizzas les aplica: Tamaño, Orilla, Toppings y Aderezos
     INSERT INTO public.product_modifiers (product_id, modifier_group_id) 
     SELECT p.id, m.id 
     FROM public.products p, public.modifier_groups m
     WHERE p.id IN (v_p_pep, v_p_margherita, v_p_suprema, v_p_hawaiian, v_p_4quesos)
       AND m.id IN (v_grp_tamano, v_grp_orilla, v_grp_toppings, v_grp_aderezos);
 
-    -- A las entradas (específicamente Boneless y Papas) les aplican los aderezos
     INSERT INTO public.product_modifiers (product_id, modifier_group_id) VALUES (v_p_boneless, v_grp_aderezos);
     INSERT INTO public.product_modifiers (product_id, modifier_group_id) VALUES (v_p_papas, v_grp_aderezos);
+
+
+    -- 9. NUEVO: VENTAS CRUZADAS (CROSS-SELLING)
+
+    -- A) Si compras Pizza Suprema, te ofrece complementar tu orden con Entradas (Formato Lista)
+    INSERT INTO public.product_cross_sell_groups (origin_product_id, name, position, is_available, visualization_type)
+    VALUES (v_p_suprema, '¡Completa tu Pizza!', 0, true, 'list') RETURNING id INTO v_cs_pizza_combos;
+
+    INSERT INTO public.product_cross_sell_items (group_id, suggested_product_id, override_price, position) VALUES 
+        (v_cs_pizza_combos, v_p_garlic_bread, 50.00, 0), -- Descuento de $65 a $50
+        (v_cs_pizza_combos, v_p_boneless, 110.00, 1),    -- Descuento de $130 a $110
+        (v_cs_pizza_combos, v_p_papas, NULL, 2);         -- Precio normal ($60)
+
+    -- B) Si compras Pizza Suprema, te ofrece algo dulce o refrescos (Formato Grid/Cuadrícula)
+    INSERT INTO public.product_cross_sell_groups (origin_product_id, name, position, is_available, visualization_type)
+    VALUES (v_p_suprema, '¿Un gustito para terminar?', 1, true, 'grid') RETURNING id INTO v_cs_pizza_dulce;
+
+    INSERT INTO public.product_cross_sell_items (group_id, suggested_product_id, override_price, position) VALUES 
+        (v_cs_pizza_dulce, v_p_tiramisu, NULL, 0),     -- Precio normal
+        (v_cs_pizza_dulce, v_p_brownie, NULL, 1),      -- Precio normal
+        (v_cs_pizza_dulce, v_p_coca, 25.00, 2);        -- Descuento de $35 a $25
+
+    -- C) Si compras Lasagna Boloñesa, sugiere un maridaje de vino (Formato Lista)
+    INSERT INTO public.product_cross_sell_groups (origin_product_id, name, position, is_available, visualization_type)
+    VALUES (v_p_lasagna, 'El maridaje perfecto', 0, true, 'list') RETURNING id INTO v_cs_pasta_maridaje;
+
+    INSERT INTO public.product_cross_sell_items (group_id, suggested_product_id, override_price, position) VALUES 
+        (v_cs_pasta_maridaje, v_p_vino, 75.00, 0);      -- Descuento de $90 a $75
+
+    -- 1. EN LA PIZZA MARGHERITA (Una pizza clásica y ligera)
+    -- A) Sugerir Ensaladas para acompañar (Formato Lista)
+    INSERT INTO public.product_cross_sell_groups (origin_product_id, name, position, is_available, visualization_type)
+    VALUES (v_p_margherita, 'Acompaña con algo fresco', 0, true, 'list') RETURNING id INTO v_cs_pizza_combos;
+
+    INSERT INTO public.product_cross_sell_items (group_id, suggested_product_id, override_price, position) VALUES 
+        (v_cs_pizza_combos, v_p_cesar, 80.00, 0),       -- Descuento de $95 a $80
+        (v_cs_pizza_combos, v_p_caprese, 95.00, 1);    -- Descuento de $110 a $95
+
+    -- B) Sugerir Bebidas (Formato Grid)
+    INSERT INTO public.product_cross_sell_groups (origin_product_id, name, position, is_available, visualization_type)
+    VALUES (v_p_margherita, 'Para calmar la sed', 1, true, 'grid') RETURNING id INTO v_cs_pizza_dulce;
+
+    INSERT INTO public.product_cross_sell_items (group_id, suggested_product_id, override_price, position) VALUES 
+        (v_cs_pizza_dulce, v_p_coca, NULL, 0),         -- Precio normal
+        (v_cs_pizza_dulce, v_p_vino, 80.00, 1);        -- Descuento de $90 a $80
+
+
+    -- 2. EN EL FETTUCCINE ALFREDO (Pasta cremosa)
+    -- A) Sugerir una entrada de Pan de Ajo (Formato Lista)
+    INSERT INTO public.product_cross_sell_groups (origin_product_id, name, position, is_available, visualization_type)
+    VALUES (v_p_fettuccine, 'Ideal para chopear la salsa', 0, true, 'list') RETURNING id INTO v_cs_pasta_maridaje;
+
+    INSERT INTO public.product_cross_sell_items (group_id, suggested_product_id, override_price, position) VALUES 
+        (v_cs_pasta_maridaje, v_p_garlic_bread, 55.00, 0); -- Descuento de $65 a $55
+
+
+    -- 3. EN LA ENSALADA CÉSAR (Plato ligero)
+    -- A) Sugerir agregarle proteína o carbohidratos (Formato Lista)
+    INSERT INTO public.product_cross_sell_groups (origin_product_id, name, position, is_available, visualization_type)
+    VALUES (v_p_cesar, '¿Con qué la acompañamos?', 0, true, 'list') RETURNING id INTO v_cs_pizza_combos;
+
+    INSERT INTO public.product_cross_sell_items (group_id, suggested_product_id, override_price, position) VALUES 
+        (v_cs_pizza_combos, v_p_boneless, 115.00, 0),   -- Descuento de $130 a $115
+        (v_cs_pizza_combos, v_p_garlic_bread, NULL, 1);-- Precio normal
+
+
+    -- 4. EN EL TIRAMISÚ CLÁSICO (Postre)
+    -- A) Sugerir un digestivo o bebida caliente simulada (Formato Grid)
+    INSERT INTO public.product_cross_sell_groups (origin_product_id, name, position, is_available, visualization_type)
+    VALUES (v_p_tiramisu, 'El combo de sobremesa', 0, true, 'grid') RETURNING id INTO v_cs_pizza_dulce;
+
+    INSERT INTO public.product_cross_sell_items (group_id, suggested_product_id, override_price, position) VALUES 
+        (v_cs_pizza_dulce, v_p_vino, 70.00, 0),        -- Descuento de $90 a $70
+        (v_cs_pizza_dulce, v_p_coca, NULL, 1);         -- Precio normal
 
 END $$;
